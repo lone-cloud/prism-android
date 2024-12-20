@@ -1,0 +1,16 @@
+<resources>
+    <string name="foreground_notif_description">Notification to run in the foreground</string>
+    <string name="foreground_notif_content_no_reg">Waiting for registration to connect</string>
+    <string name="foreground_notif_content_with_reg">Connected for %s registration(s)</string>
+    <string name="foreground_notif_ticker">Foreground</string>
+    <string name="app_dropdown_restart">Restart Service</string>
+    <string name="app_dropdown_change_server">Change server</string>
+    <string name="warning_notif_content">Sunup is disconnected</string>
+    <string name="warning_notif_description">Warn when Sunup is disconnected or an issue occurred.</string>
+    <string name="warning_notif_ticker">Warning</string>
+    <string name="toast_url_candidate_fail">Fail to use %1$s</string>
+    <string name="toast_url_candidate_success">Successfully using %1$s</string>
+    <string name="app_bar_dropdown_description">Actions</string>
+    <string name="custom_push_server">Custom Push server</string>
+    <string name="url">URL</string>
+</resources>

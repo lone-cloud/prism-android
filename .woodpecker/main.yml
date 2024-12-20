@@ -1,0 +1,34 @@
+steps:
+    check:
+        image: runmymind/docker-android-sdk:latest
+        when:
+          branch: main
+          event: [push, pull_request]
+        commands:
+          - ./gradlew assembleRelease ktlintCheck --stacktrace
+
+    build:
+        image: runmymind/docker-android-sdk:latest
+        when:
+          branch: main
+          event: tag
+        commands:
+          - export RELEASE_STORE_FILE=$PWD/release-key.jks
+          - echo $RELEASE_KEY | base64 -d > $RELEASE_STORE_FILE
+          - ./gradlew -Psign assembleRelease --stacktrace
+          - mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/sunup.apk
+        environment:
+          RELEASE_KEY_ALIAS: sunup
+        secrets: [ release_key, release_store_password, release_key_password ]
+
+    upload:
+        image: codeberg.org/s1m/woodpecker-upload:latest
+        when:
+            branch: main
+            event: tag
+        settings:
+            token:
+                from_secret: codeberg_token
+            file: app/build/outputs/apk/sunup.apk
+            fastlane: true
+
