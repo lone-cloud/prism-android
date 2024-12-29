@@ -159,7 +159,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         if (FailureCounter.addFail(context, webSocket)) {
             // If null, we keep the worker with its 16min
             val delay = FailureCounter.getTimeout() ?: return
-            Log.d(TAG, "Retrying in $delay s")
+            Log.d(TAG, "Retrying in $delay ms")
             RestartWorker.run(context, delay = delay)
         }
     }
