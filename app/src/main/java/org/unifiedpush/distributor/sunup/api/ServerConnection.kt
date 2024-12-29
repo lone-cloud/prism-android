@@ -53,8 +53,8 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         }
     }
 
-    override fun onOpen(webSocket: WebSocket, response: Response) {
-        FailureCounter.newSource(context, webSocket)
+    override fun onOpen(ws: WebSocket, response: Response) {
+        FailureCounter.newSource(context, ws)
         releaseLock()
         try {
             Log.d(TAG, "onOpen: " + response.code)
@@ -63,14 +63,16 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         }
     }
 
-    override fun onMessage(webSocket: WebSocket, text: String) {
-        val message = json.decodeFromString<ServerMessage>(text)
+    override fun onMessage(ws: WebSocket, text: String) {
+        val message = ServerMessage.deserialize(text) ?: run {
+            Log.d(TAG, "Couldn't deserialize $text")
+        }
         Log.d(TAG, "New message: ${message::class.java.simpleName}")
         lastEventDate = Calendar.getInstance()
         when (message) {
             is ServerMessage.Broadcast -> ignoreEvent()
-            is ServerMessage.Hello -> onHello(webSocket, message)
-            is ServerMessage.Notification -> onNotification(webSocket, message)
+            is ServerMessage.Hello -> onHello(ws, message)
+            is ServerMessage.Notification -> onNotification(ws, message)
             ServerMessage.Ping -> onPing()
             is ServerMessage.Register -> onRegister(message)
             is ServerMessage.Unegister -> onUnregister(message)
@@ -81,7 +83,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         Log.d(TAG, "Ignoring event")
     }
 
-    private fun onHello(websocket: WebSocket, message: ServerMessage.Hello) {
+    private fun onHello(ws: WebSocket, message: ServerMessage.Hello) {
         Log.d(TAG, "Hello")
         ApiUrlCandidate.finish()?.let {
             store.apiUrl = it
@@ -101,12 +103,12 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
                 ClientMessage.Register(
                     channelID = pair.first,
                     key = pair.second
-                ).send(websocket)
+                ).send(ws)
             }
         }
     }
 
-    private fun onNotification(webSocket: WebSocket, message: ServerMessage.Notification) {
+    private fun onNotification(ws: WebSocket, message: ServerMessage.Notification) {
         sendMessage(
             context,
             message.channelID,
@@ -114,7 +116,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         )
         ClientMessage.Ack(
             arrayOf(ClientMessage.ClientAck(message.channelID, message.version))
-        ).send(webSocket)
+        ).send(ws)
     }
 
     private fun onPing() {
