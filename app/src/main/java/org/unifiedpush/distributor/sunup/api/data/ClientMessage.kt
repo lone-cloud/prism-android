@@ -105,8 +105,15 @@ sealed class ClientMessage {
     @Serializable
     data class ClientAck(val channelID: String, val version: String)
 
-    fun send(ws: WebSocket) {
+    fun serialize(): String {
         val json = Json { ignoreUnknownKeys = true }
-        ws.send(json.encodeToString<ClientMessage>(this))
+        return when (this) {
+            Ping -> "{}"
+            else -> json.encodeToString<ClientMessage>(this)
+        }
+    }
+
+    fun send(ws: WebSocket) {
+        ws.send(this.serialize())
     }
 }

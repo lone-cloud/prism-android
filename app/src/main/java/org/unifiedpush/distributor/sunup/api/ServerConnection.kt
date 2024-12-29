@@ -8,7 +8,7 @@ import android.util.Log
 import android.widget.Toast
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
-import kotlinx.serialization.json.Json
+import java.util.concurrent.atomic.AtomicBoolean
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -33,7 +33,6 @@ import org.unifiedpush.distributor.utils.removeSync
 
 class ServerConnection(private val context: Context, private val releaseLock: () -> Unit) : WebSocketListener() {
 
-    private val json = Json { ignoreUnknownKeys = true }
     private val store = AppStore(context)
 
     fun start(): WebSocket {
@@ -73,7 +72,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             is ServerMessage.Broadcast -> ignoreEvent()
             is ServerMessage.Hello -> onHello(ws, message)
             is ServerMessage.Notification -> onNotification(ws, message)
-            ServerMessage.Ping -> onPing()
+            ServerMessage.Ping -> onPing(ws)
             is ServerMessage.Register -> onRegister(message)
             is ServerMessage.Unegister -> onUnregister(message)
         }
@@ -119,8 +118,14 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         ).send(ws)
     }
 
-    private fun onPing() {
+    private fun onPing(ws: WebSocket) {
         FailureCounter.newPing(context)
+        if (!waitingPong.getAndSet(false)) {
+            Log.d(TAG, "Sending Pong")
+            ClientMessage.Ping.send(ws)
+        } else {
+            Log.d(TAG, "Received Pong")
+        }
     }
 
     private fun onRegister(message: ServerMessage.Register) {
@@ -201,5 +206,6 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
 
     companion object {
         var lastEventDate: Calendar? = null
+        var waitingPong = AtomicBoolean(false)
     }
 }

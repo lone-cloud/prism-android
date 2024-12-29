@@ -30,6 +30,11 @@ object MessageSender {
         }
     }
 
+    fun ping(context: Context) {
+        send(context, ClientMessage.Ping)
+        ServerConnection.waitingPong.set(true)
+    }
+
     fun hasPendingMsgs(): Boolean {
         return messageQueue.isNotEmpty()
     }

@@ -3,6 +3,8 @@ package org.unifiedpush.distributor.sunup.api.data
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonClassDiscriminator
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -97,4 +99,19 @@ sealed class ServerMessage {
     @Serializable
     @SerialName("ping")
     data object Ping : ServerMessage()
+
+    companion object {
+        fun deserialize(jsonStr: String): ServerMessage? {
+            val json = Json { ignoreUnknownKeys = true }
+            return try {
+                json.decodeFromString<ServerMessage>(jsonStr)
+            } catch (e: SerializationException) {
+                if (json.decodeFromString<Map<String, String>>(jsonStr).isEmpty()) {
+                    Ping
+                } else {
+                    null
+                }
+            }
+        }
+    }
 }

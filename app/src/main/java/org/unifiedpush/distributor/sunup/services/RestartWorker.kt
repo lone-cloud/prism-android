@@ -7,7 +7,6 @@ import android.util.Log
 import androidx.work.*
 import org.unifiedpush.distributor.WorkerCompanion
 import org.unifiedpush.distributor.sunup.api.MessageSender
-import org.unifiedpush.distributor.sunup.api.data.ClientMessage
 import org.unifiedpush.distributor.sunup.callback.NetworkCallbackFactory
 import org.unifiedpush.distributor.sunup.utils.TAG
 
@@ -20,15 +19,16 @@ class RestartWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, params
     override fun doWork(): Result {
         // We avoid running twice at the same time
         synchronized(lock) {
-            Log.d(TAG, "Working")
+            Log.d(TAG, "Working [$id]")
             if (!NetworkCallbackFactory.hasInternet) {
                 Log.d(TAG, "Aborting, no internet.")
                 return Result.success()
             }
             if (FailureCounter.isRunningWithoutFailure) {
+                Log.d(TAG, "Running without failure")
                 // We send a ping, if it fails it will restart this worker, and wont
                 // pass this check
-                MessageSender.send(applicationContext, ClientMessage.Ping)
+                MessageSender.ping(applicationContext)
                 return Result.success()
             }
             Log.d(TAG, "Restarting")
