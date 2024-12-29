@@ -44,7 +44,7 @@ class FgService : ForegroundService() {
         override val serviceClass = FgService::class.java
 
         override fun startService(context: Context) {
-            Log.d(TAG, "nFails: ${FailureCounter.nFails}")
+            Log.d(FgService.TAG, "nFails: ${FailureCounter.nFails}")
             super.startService(context)
         }
     }
