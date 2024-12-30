@@ -75,6 +75,9 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             ServerMessage.Ping -> onPing(ws)
             is ServerMessage.Register -> onRegister(message)
             is ServerMessage.Unegister -> onUnregister(message)
+            is ServerMessage.Urgency -> {
+                Log.d(TAG, "Urgency status=${message.status}")
+            }
         }
     }
 

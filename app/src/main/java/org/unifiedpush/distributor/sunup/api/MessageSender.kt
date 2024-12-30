@@ -1,9 +1,11 @@
 package org.unifiedpush.distributor.sunup.api
 
 import android.content.Context
+import android.util.Log
 import okhttp3.WebSocket
 import org.unifiedpush.distributor.sunup.api.data.ClientMessage
 import org.unifiedpush.distributor.sunup.services.RestartWorker
+import org.unifiedpush.distributor.sunup.utils.TAG
 
 object MessageSender {
     private var websocket: WebSocket? = null
@@ -20,6 +22,7 @@ object MessageSender {
     }
 
     fun send(context: Context, message: ClientMessage) {
+        Log.d(TAG, "Sending ${message.serialize()}")
         synchronized(this) {
             websocket?.let {
                 message.send(it)

@@ -25,7 +25,7 @@ sealed class ServerMessage {
      */
     @Serializable
     @SerialName("hello")
-    class Hello(val uaid: String?, val status: UInt, val use_webpush: Boolean) : ServerMessage()
+    data class Hello(val uaid: String?, val status: UInt, val use_webpush: Boolean) : ServerMessage()
 
     /**
      *     Register {
@@ -38,7 +38,7 @@ sealed class ServerMessage {
      */
     @Serializable
     @SerialName("register")
-    class Register(val channelID: String, val status: UInt, val pushEndpoint: String) : ServerMessage()
+    data class Register(val channelID: String, val status: UInt, val pushEndpoint: String) : ServerMessage()
 
     /**
      *     Unregister {
@@ -49,7 +49,7 @@ sealed class ServerMessage {
      */
     @Serializable
     @SerialName("unregister")
-    class Unegister(val channelID: String, val status: UInt) : ServerMessage()
+    data class Unegister(val channelID: String, val status: UInt) : ServerMessage()
 
     /**
      *     Broadcast {
@@ -60,7 +60,7 @@ sealed class ServerMessage {
      */
     @Serializable
     @SerialName("broadcast")
-    class Broadcast() : ServerMessage()
+    data object Broadcast : ServerMessage()
 
     /**
      *     pub struct Notification {
@@ -92,6 +92,15 @@ sealed class ServerMessage {
         val data: String?,
         val headers: HashMap<String, String>?
     ) : ServerMessage()
+
+    /**
+     *    Urgency {
+     *         status: u32,
+     *     },
+     */
+    @Serializable
+    @SerialName("urgency")
+    data class Urgency(val status: UInt) : ServerMessage()
 
     /**
      *     Ping,

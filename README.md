@@ -39,3 +39,12 @@ updates.push.domain.tld {
 5. In the android app, change server to the autoconnect endpoint (here `push.domain.tld`).
 
 [Autopush]: https://github.com/mozilla-services/autopush-rs
+
+## Developpers
+
+It is possible to configure a few things with build config:
+
+| Name | Description | Default |
+|------|-------------|---------|
+| DEFAULT_API_URL | Define the API Url used by default | `"https://push.services.mozilla.com"` |
+| URGENCY | To add support for urgency requirement depending on the battery level | `false` until this is supported by the main server |

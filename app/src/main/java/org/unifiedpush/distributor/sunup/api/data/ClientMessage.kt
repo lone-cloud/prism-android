@@ -85,6 +85,25 @@ sealed class ClientMessage {
     @SerialName("nack")
     class Nack(val code: UInt?, val version: String) : ClientMessage()
 
+    @Serializable
+    @SerialName("urgency")
+    class MinUrgency(val min: Urgency) : ClientMessage()
+
+    @Serializable
+    enum class Urgency {
+        @SerialName("very-low")
+        VeryLow,
+
+        @SerialName("low")
+        Low,
+
+        @SerialName("normal")
+        Normal,
+
+        @SerialName("high")
+        High
+    }
+
     /**
      *     Ping,
      */
