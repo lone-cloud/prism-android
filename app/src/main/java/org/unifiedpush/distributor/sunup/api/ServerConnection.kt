@@ -14,12 +14,12 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
+import org.unifiedpush.android.distributor.ui.R as LibR
 import org.unifiedpush.distributor.receiver.DistributorReceiver
 import org.unifiedpush.distributor.sunup.AppStore
 import org.unifiedpush.distributor.sunup.DatabaseFactory
 import org.unifiedpush.distributor.sunup.Distributor
 import org.unifiedpush.distributor.sunup.Distributor.sendMessage
-import org.unifiedpush.android.distributor.ui.R as LibR
 import org.unifiedpush.distributor.sunup.activities.UiAction
 import org.unifiedpush.distributor.sunup.api.data.ClientMessage
 import org.unifiedpush.distributor.sunup.api.data.ServerMessage

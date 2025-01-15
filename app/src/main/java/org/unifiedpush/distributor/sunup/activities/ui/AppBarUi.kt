@@ -13,8 +13,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import org.unifiedpush.distributor.sunup.R
 import org.unifiedpush.android.distributor.ui.R as LibR
+import org.unifiedpush.distributor.sunup.R
 import org.unifiedpush.distributor.sunup.activities.AppAction
 import org.unifiedpush.distributor.sunup.activities.AppBarViewModel
 import org.unifiedpush.distributor.sunup.activities.publishAction
