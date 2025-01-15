@@ -31,7 +31,7 @@ class MainNotificationData(
 
 private val Context.warningChannelData: AppNotification.ChannelData
     get() = AppNotification.ChannelData(
-        "${this.getString(R.string.app_name)}.Warning",
+        "Warning",
         this.getString(LibR.string.warning),
         NotificationManager.IMPORTANCE_HIGH,
         this.resources.getString(LibR.string.warning_notif_description).format(this.getString(R.string.app_name))
@@ -71,7 +71,7 @@ class ForegroundNotification(context: Context) : AppNotification(
         true
     ),
     ChannelData(
-        "${context.getString(R.string.app_name)}.Listener",
+        "Foreground",
         context.getString(LibR.string.foreground_service),
         NotificationManager.IMPORTANCE_LOW,
         context.getString(LibR.string.foreground_notif_description)

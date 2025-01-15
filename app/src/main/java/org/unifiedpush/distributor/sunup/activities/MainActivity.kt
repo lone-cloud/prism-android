@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.unifiedpush.distributor.sunup.EventBus
+import org.unifiedpush.distributor.sunup.Migrations
 import org.unifiedpush.distributor.sunup.activities.ui.MainUi
 import org.unifiedpush.distributor.sunup.activities.ui.theme.AppTheme
 import org.unifiedpush.distributor.sunup.services.RestartWorker
@@ -22,6 +23,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         RestartWorker.startPeriodic(this)
+        Migrations(this).run()
 
         setContent {
             val viewModel =
