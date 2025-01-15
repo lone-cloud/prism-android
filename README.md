@@ -40,6 +40,18 @@ updates.push.domain.tld {
 
 [Autopush]: https://github.com/mozilla-services/autopush-rs
 
+## Signing certificate hash
+
+The package name along with the SHA-256 hash can be found below.
+
+To verify the APK use the [AppVerifier](https://github.com/soupslurpr/AppVerifier) Android application or the [`apksigner`](https://developer.android.com/studio/command-line/apksigner#usage-verify) tool. 
+
+
+```
+org.unifiedpush.distributor.sunup
+3B:33:D7:8A:5B:CA:C1:B9:52:75:6B:08:FE:88:30:CE:D3:87:AB:B6:B9:56:B0:2A:47:EF:80:32:1D:4A:2B:88
+```
+
 ## Developpers
 
 It is possible to configure a few things with build config:
