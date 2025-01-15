@@ -11,6 +11,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
         sourceCompatibility = JavaVersion.VERSION_17
     }
+    dependenciesInfo {
+        // Disables dependency metadata when building APKs and Bundles.
+        includeInApk = false
+        includeInBundle = false
+    }
 
     compileSdk = 35
 
