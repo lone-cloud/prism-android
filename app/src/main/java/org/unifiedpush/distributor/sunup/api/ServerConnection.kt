@@ -19,7 +19,7 @@ import org.unifiedpush.distributor.sunup.AppStore
 import org.unifiedpush.distributor.sunup.DatabaseFactory
 import org.unifiedpush.distributor.sunup.Distributor
 import org.unifiedpush.distributor.sunup.Distributor.sendMessage
-import org.unifiedpush.distributor.sunup.R
+import org.unifiedpush.android.distributor.ui.R as LibR
 import org.unifiedpush.distributor.sunup.activities.UiAction
 import org.unifiedpush.distributor.sunup.api.data.ClientMessage
 import org.unifiedpush.distributor.sunup.api.data.ServerMessage
@@ -93,7 +93,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(
                     context,
-                    context.getString(R.string.toast_url_candidate_success, it),
+                    context.getString(LibR.string.toast_url_candidate_success, it),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -178,7 +178,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(
                     context,
-                    context.getString(R.string.toast_url_candidate_fail, url),
+                    context.getString(LibR.string.toast_url_candidate_fail, url),
                     Toast.LENGTH_SHORT
                 ).show()
             }

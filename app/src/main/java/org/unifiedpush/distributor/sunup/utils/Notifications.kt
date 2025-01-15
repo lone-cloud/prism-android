@@ -6,6 +6,7 @@ import android.content.Context
 import java.util.concurrent.atomic.AtomicBoolean
 import org.unifiedpush.distributor.AppNotification
 import org.unifiedpush.distributor.sunup.R
+import org.unifiedpush.android.distributor.ui.R as LibR
 import org.unifiedpush.distributor.sunup.activities.MainActivity
 import org.unifiedpush.distributor.sunup.services.MainRegistrationCounter
 
@@ -31,9 +32,9 @@ class MainNotificationData(
 private val Context.warningChannelData: AppNotification.ChannelData
     get() = AppNotification.ChannelData(
         "${this.getString(R.string.app_name)}.Warning",
-        "Warning",
+        this.getString(LibR.string.warning),
         NotificationManager.IMPORTANCE_HIGH,
-        this.getString(R.string.warning_notif_description)
+        this.resources.getString(LibR.string.warning_notif_description).format(this.getString(R.string.app_name))
     )
 
 class DisconnectedNotification(context: Context) : AppNotification(
@@ -42,8 +43,10 @@ class DisconnectedNotification(context: Context) : AppNotification(
     NOTIFICATION_ID_WARNING,
     MainNotificationData(
         context.getString(R.string.app_name),
-        context.getString(R.string.warning_notif_content),
-        context.getString(R.string.warning_notif_ticker),
+        context.getString(LibR.string.warning_notif_content).format(
+            context.getString(R.string.app_name)
+        ),
+        context.getString(LibR.string.warning),
         Notification.PRIORITY_HIGH,
         true
     ),
@@ -57,20 +60,21 @@ class ForegroundNotification(context: Context) : AppNotification(
     MainNotificationData(
         context.getString(R.string.app_name),
         if (MainRegistrationCounter.oneOrMore(context)) {
-            context.getString(R.string.foreground_notif_content_with_reg)
-                .format(MainRegistrationCounter.getCount(context))
+            MainRegistrationCounter.getCount(context).let {
+                context.resources.getQuantityString(LibR.plurals.foreground_notif_content_with_reg, it, it)
+            }
         } else {
-            context.getString(R.string.foreground_notif_content_no_reg)
+            context.getString(LibR.string.foreground_notif_content_no_reg)
         },
-        context.getString(R.string.foreground_notif_ticker),
+        context.getString(LibR.string.foreground_service),
         Notification.PRIORITY_LOW,
         true
     ),
     ChannelData(
         "${context.getString(R.string.app_name)}.Listener",
-        "Foreground Service",
+        context.getString(LibR.string.foreground_service),
         NotificationManager.IMPORTANCE_LOW,
-        context.getString(R.string.foreground_notif_description)
+        context.getString(LibR.string.foreground_notif_description)
     )
 )
 

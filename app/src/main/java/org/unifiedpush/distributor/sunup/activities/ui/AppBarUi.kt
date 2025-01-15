@@ -14,6 +14,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import org.unifiedpush.distributor.sunup.R
+import org.unifiedpush.android.distributor.ui.R as LibR
 import org.unifiedpush.distributor.sunup.activities.AppAction
 import org.unifiedpush.distributor.sunup.activities.AppBarViewModel
 import org.unifiedpush.distributor.sunup.activities.publishAction
@@ -42,7 +43,7 @@ fun AppBarUi(appBarViewModel: AppBarViewModel) {
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
-                    contentDescription = stringResource(R.string.app_bar_dropdown_description)
+                    contentDescription = stringResource(LibR.string.app_bar_dropdown_description)
                 )
             }
             Dropdown(
@@ -79,7 +80,7 @@ fun Dropdown(expanded: Boolean, onRestart: () -> Unit, onDismiss: () -> Unit, on
         DropdownMenuItem(
             onClick = onRestart,
             text = {
-                Text(stringResource(R.string.app_dropdown_restart))
+                Text(stringResource(LibR.string.app_dropdown_restart))
             }
         )
         DropdownMenuItem(
@@ -89,7 +90,7 @@ fun Dropdown(expanded: Boolean, onRestart: () -> Unit, onDismiss: () -> Unit, on
             },
             text = {
                 Text(
-                    stringResource(R.string.app_dropdown_change_server)
+                    stringResource(LibR.string.app_dropdown_change_server)
                 )
             }
         )
