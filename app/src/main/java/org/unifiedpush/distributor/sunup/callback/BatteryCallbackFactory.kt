@@ -22,12 +22,22 @@ object BatteryCallbackFactory : CallbackFactory<BatteryCallbackFactory.MainBatte
                 MessageSender.send(context, ClientMessage.MinUrgency(ClientMessage.Urgency.VeryLow))
             }
         }
+
+        /**
+         * Once the battery callback is registered,
+         * we send min urgency depending on the battery level
+         */
+        override fun register(context: Context) {
+            super.register(context)
+            if (isLowBattery()) {
+                onBatteryLow(context)
+            } else {
+                onBatteryOk(context)
+            }
+        }
     }
 
     override fun new(context: Context): MainBatteryCallback {
-        if (BuildConfig.URGENCY) {
-            MessageSender.send(context, ClientMessage.MinUrgency(ClientMessage.Urgency.VeryLow))
-        }
         return MainBatteryCallback()
     }
 
