@@ -19,7 +19,12 @@ steps:
           - mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/sunup.apk
         environment:
           RELEASE_KEY_ALIAS: sunup
-        secrets: [ release_key, release_store_password, release_key_password ]
+          RELEASE_KEY:
+            from_secret: release_key
+          RELEASE_STORE_PASSWORD:
+            from_secret: release_store_password
+          RELEASE_KEY_PASSWORD:
+            from_secret: release_key_password
 
     upload:
         image: codeberg.org/s1m/woodpecker-upload:latest
