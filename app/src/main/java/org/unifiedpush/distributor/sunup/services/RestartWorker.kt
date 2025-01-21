@@ -20,7 +20,7 @@ class RestartWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, params
         // We avoid running twice at the same time
         synchronized(lock) {
             Log.d(TAG, "Working [$id]")
-            if (!NetworkCallbackFactory.hasInternet) {
+            if (!NetworkCallbackFactory.hasInternet()) {
                 Log.d(TAG, "Aborting, no internet.")
                 return Result.success()
             }

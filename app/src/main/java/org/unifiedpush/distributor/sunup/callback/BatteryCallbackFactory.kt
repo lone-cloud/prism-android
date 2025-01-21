@@ -1,6 +1,7 @@
 package org.unifiedpush.distributor.sunup.callback
 
 import android.content.Context
+import java.util.concurrent.atomic.AtomicBoolean
 import org.unifiedpush.distributor.callback.BatteryCallback
 import org.unifiedpush.distributor.callback.CallbackFactory
 import org.unifiedpush.distributor.sunup.BuildConfig
@@ -10,6 +11,7 @@ import org.unifiedpush.distributor.sunup.api.data.ClientMessage
 object BatteryCallbackFactory : CallbackFactory<BatteryCallbackFactory.MainBatteryCallback>() {
 
     class MainBatteryCallback : BatteryCallback() {
+        override val lowBattery = BatteryCallbackFactory.lowBattery
 
         override fun onBatteryLow(context: Context) {
             if (BuildConfig.URGENCY) {
@@ -44,5 +46,9 @@ object BatteryCallbackFactory : CallbackFactory<BatteryCallbackFactory.MainBatte
     /**
      * Default to false
      */
-    val lowBattery: Boolean = instance?.isLowBattery() ?: false
+    private val lowBattery = AtomicBoolean(false)
+
+    fun isLowBattery(): Boolean {
+        return lowBattery.get()
+    }
 }

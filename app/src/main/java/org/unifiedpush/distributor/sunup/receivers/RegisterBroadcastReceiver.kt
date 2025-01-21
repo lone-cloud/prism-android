@@ -20,6 +20,6 @@ class RegisterBroadcastReceiver : DistributorReceiver() {
     }
 
     override fun hasInternet(context: Context): Boolean {
-        return NetworkCallbackFactory.hasInternet
+        return NetworkCallbackFactory.hasInternet()
     }
 }

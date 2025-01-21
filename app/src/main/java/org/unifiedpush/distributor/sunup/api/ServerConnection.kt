@@ -87,6 +87,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
 
     private fun onHello(ws: WebSocket, message: ServerMessage.Hello) {
         Log.d(TAG, "Hello")
+        FailureCounter.debugStarted()
         ApiUrlCandidate.finish()?.let {
             store.apiUrl = it
             Log.d(TAG, "Successfully using $it")
@@ -122,7 +123,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     }
 
     private fun onPing(ws: WebSocket) {
-        FailureCounter.newPing(context)
+        FailureCounter.debugNewPing(context)
         if (!waitingPong.getAndSet(false)) {
             Log.d(TAG, "Sending Pong")
             ClientMessage.Ping.send(ws)
@@ -199,7 +200,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             Log.d(TAG, "StartService not started")
             return false
         }
-        if (!NetworkCallbackFactory.hasInternet) {
+        if (!NetworkCallbackFactory.hasInternet()) {
             Log.d(TAG, "No Internet: do not restart")
             // It will be restarted when Internet is back
             return false
