@@ -16,10 +16,6 @@ object Distributor : UnifiedPushDistributor() {
         return DatabaseFactory.getDb(context)
     }
 
-    override fun getEndpoint(context: Context, connectorToken: String): String? {
-        return getDb(context).getEndpoint(connectorToken)
-    }
-
     @OptIn(ExperimentalUuidApi::class)
     override fun registerChannelIdToServer(
         context: Context,
