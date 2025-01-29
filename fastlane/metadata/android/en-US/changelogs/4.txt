@@ -1,2 +1,2 @@
 - Finish es translation
-- Delay 2 secs before restarting service
+- Delay 2 secs before restarting service when network is back
