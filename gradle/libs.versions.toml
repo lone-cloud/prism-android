@@ -1,6 +1,6 @@
 [versions]
 android-gradle-plugin = "8.7.3"
-androidx-activityCompose = "1.9.3"
+androidx-activityCompose = "1.10.0"
 androidx-animationAndroid = "1.7.6"
 androidx-constraintlayout = "2.2.0"
 androidx-coordinatorlayout = "1.2.0"
