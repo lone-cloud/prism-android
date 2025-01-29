@@ -138,6 +138,7 @@ fun MainPreview() {
     val regList =
         listOf(
             RegistrationState(
+                icon = null,
                 title = "Application 1",
                 token = "tok1",
                 msgCount = 1337,
@@ -145,6 +146,7 @@ fun MainPreview() {
                 copyable = false
             ),
             RegistrationState(
+                icon = null,
                 title = "Application 2",
                 token = "tok2",
                 msgCount = 1,
@@ -152,6 +154,7 @@ fun MainPreview() {
                 copyable = false
             ),
             RegistrationState(
+                icon = null,
                 title = null,
                 token = "tok3",
                 msgCount = 2,
