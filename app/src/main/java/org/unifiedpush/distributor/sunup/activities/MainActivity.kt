@@ -60,6 +60,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        Log.d(TAG, "Resumed")
+        viewModel?.refreshRegistrations(this)
+        super.onResume()
+    }
+
     override fun onDestroy() {
         Log.d(TAG, "Destroy")
         jobs.removeAll {

@@ -140,18 +140,21 @@ fun MainPreview() {
             RegistrationState(
                 title = "Application 1",
                 token = "tok1",
+                msgCount = 1337,
                 description = "tld.app.1",
                 copyable = false
             ),
             RegistrationState(
                 title = "Application 2",
                 token = "tok2",
+                msgCount = 1,
                 description = "tld.app.2",
                 copyable = false
             ),
             RegistrationState(
                 title = null,
                 token = "tok3",
+                msgCount = 2,
                 description = "tld.app.3",
                 copyable = false
             )

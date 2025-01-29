@@ -33,6 +33,7 @@ fun getRegistrationState(context: Context, db: Database, token: String): Registr
     return RegistrationState(
         title = title,
         description = description,
+        msgCount = app.msgCount,
         token = token,
         copyable = false
     )
