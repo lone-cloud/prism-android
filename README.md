@@ -2,6 +2,10 @@
 
 UnifiedPush provider using [Autopush](https://github.com/mozilla-services/autopush-rs)
 
+[<img alt="Get it on F-Droid" src="https://unifiedpush.org/img/f-droid-badge.png" height=100>](https://f-droid.org/en/packages/org.unifiedpush.distributor.sunup/)
+[<img alt="Get it on IzzyOnDroid" src="https://unifiedpush.org/img/IzzyOnDroid-badge.png" height=100 >](https://apt.izzysoft.de/fdroid/index/apk/org.unifiedpush.distributor.sunup)
+[<img alt="Get it on Codeberg" src="https://unifiedpush.org/img/codeberg-badge.png" height=100>](https://codeberg.org/Sunup/android/releases)
+
 ## Usage
 
 1. Install this application
