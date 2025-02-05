@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +25,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         RestartWorker.startPeriodic(this)
         Migrations(this).run()
+
+        enableEdgeToEdge()
 
         setContent {
             val viewModel =
