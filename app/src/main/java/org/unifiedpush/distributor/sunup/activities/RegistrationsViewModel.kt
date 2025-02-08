@@ -27,7 +27,7 @@ fun getRegistrationListState(context: Context): RegistrationListState {
 fun getRegistrationState(context: Context, db: Database, token: String): RegistrationState? {
     val app = db.getAppFromCoToken(token) ?: return null
     val ai = context.appInfoForMetadata(app.packageName)
-    val title = context.getApplicationName(ai) ?: app.packageName
+    val title = ai?.let { context.getApplicationName(it) } ?: app.packageName
     val icon = context.getApplicationIcon(app.packageName)
     val description = if (title == app.packageName) {
         ""
