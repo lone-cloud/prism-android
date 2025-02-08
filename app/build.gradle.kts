@@ -84,7 +84,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.appcompat)
-    implementation(libs.material)
     implementation(libs.okhttp)
     implementation(libs.androidx.material3.android)
     implementation(libs.kotlinx.serialization.json)
