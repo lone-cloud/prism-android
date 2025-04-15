@@ -30,9 +30,10 @@ fun getRegistrationState(context: Context, db: Database, token: String): Registr
     val title = ai?.let { context.getApplicationName(it) } ?: app.packageName
     val icon = context.getApplicationIcon(app.packageName)
     val description = if (title == app.packageName) {
-        ""
+        app.description ?: ""
     } else {
-        app.packageName
+        app.description?.let { "$it — ${app.packageName}" }
+            ?: app.packageName
     }
     return RegistrationState(
         icon = icon,

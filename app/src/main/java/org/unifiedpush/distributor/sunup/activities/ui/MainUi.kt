@@ -158,7 +158,7 @@ fun MainPreview() {
             ),
             RegistrationState(
                 icon = null,
-                title = null,
+                title = "tld.app.3",
                 token = "tok3",
                 msgCount = 2,
                 description = "tld.app.3",
