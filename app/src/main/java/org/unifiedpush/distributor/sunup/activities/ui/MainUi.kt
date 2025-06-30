@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -57,7 +59,8 @@ fun MainUi(viewModel: MainViewModel) {
             } else {
                 AppBarUi(viewModel.appBarViewModel)
             }
-        }
+        },
+        contentWindowInsets = WindowInsets.safeDrawing
     ) { innerPadding ->
         MainUiContent(viewModel, innerPadding)
     }
@@ -68,24 +71,15 @@ fun MainUiContent(viewModel: MainViewModel, innerPadding: PaddingValues) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(
-                0.dp,
-                innerPadding.calculateTopPadding(),
-                0.dp,
-                innerPadding.calculateBottomPadding()
-            )
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .padding(innerPadding)
+        ,
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Column(
             modifier = Modifier
-                .padding(
-                    16.dp,
-                    0.dp,
-                    16.dp,
-                    0.dp
-                ),
+                .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
