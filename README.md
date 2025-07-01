@@ -56,7 +56,7 @@ org.unifiedpush.distributor.sunup
 3B:33:D7:8A:5B:CA:C1:B9:52:75:6B:08:FE:88:30:CE:D3:87:AB:B6:B9:56:B0:2A:47:EF:80:32:1D:4A:2B:88
 ```
 
-## Developpers
+## Developers
 
 It is possible to configure a few things with build config:
 
