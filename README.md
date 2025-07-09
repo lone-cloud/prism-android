@@ -14,7 +14,7 @@ UnifiedPush provider using [Autopush](https://github.com/mozilla-services/autopu
 
 ## Self-host
 
-It is possible to your own Autopush server. Autopush is designed to work with Google BigTable but it is also possible to use it with redis.
+It is possible to host your own Autopush server. Autopush is designed to work with Google BigTable but it is also possible to use it with redis.
 
 For this:
 1. Clone Autopush ([this fork](https://github.com/p1gp1g/autopush-rs) until redis support has been merged).
