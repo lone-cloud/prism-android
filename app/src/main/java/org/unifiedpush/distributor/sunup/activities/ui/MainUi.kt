@@ -72,8 +72,7 @@ fun MainUiContent(viewModel: MainViewModel, innerPadding: PaddingValues) {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(innerPadding)
-        ,
+            .padding(innerPadding),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
