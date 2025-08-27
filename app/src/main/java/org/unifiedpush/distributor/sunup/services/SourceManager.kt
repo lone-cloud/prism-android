@@ -5,10 +5,10 @@ import okhttp3.Request
 import okhttp3.WebSocket
 import okio.ByteString
 import org.unifiedpush.distributor.AppNotification
-import org.unifiedpush.distributor.FailureCounter as FCounter
+import org.unifiedpush.distributor.SourceManager as SManager
 import org.unifiedpush.distributor.sunup.utils.DisconnectedNotification
 
-object FailureCounter : FCounter<WebSocket>() {
+object SourceManager : SManager<WebSocket>() {
     override val foregroundService = FgService.service
 
     override fun disconnectedNotification(context: Context): AppNotification {

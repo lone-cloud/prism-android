@@ -24,7 +24,7 @@ class RestartWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, params
                 Log.d(TAG, "Aborting, no internet.")
                 return Result.success()
             }
-            if (FailureCounter.isRunningWithoutFailure) {
+            if (SourceManager.isRunningWithoutFailure) {
                 Log.d(TAG, "Running without failure")
                 // We send a ping, if it fails it will restart this worker, and wont
                 // pass this check

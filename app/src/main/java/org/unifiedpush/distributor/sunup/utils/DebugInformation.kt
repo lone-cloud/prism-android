@@ -2,8 +2,8 @@ package org.unifiedpush.distributor.sunup.utils
 
 import java.text.SimpleDateFormat
 import org.unifiedpush.distributor.sunup.api.ServerConnection
-import org.unifiedpush.distributor.sunup.services.FailureCounter
 import org.unifiedpush.distributor.sunup.services.FgService
+import org.unifiedpush.distributor.sunup.services.SourceManager
 
 fun getDebugInfo(): String {
     val date = ServerConnection.lastEventDate?.let {
@@ -11,5 +11,5 @@ fun getDebugInfo(): String {
     } ?: "None"
     return "ServiceStarted: ${FgService.isServiceStarted()}\n" +
         "Last Event: $date\n" +
-        FailureCounter.getDebugInfo()
+        SourceManager.getDebugInfo()
 }

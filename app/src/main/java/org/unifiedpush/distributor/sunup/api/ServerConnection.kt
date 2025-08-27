@@ -24,9 +24,9 @@ import org.unifiedpush.distributor.sunup.activities.UiAction
 import org.unifiedpush.distributor.sunup.api.data.ClientMessage
 import org.unifiedpush.distributor.sunup.api.data.ServerMessage
 import org.unifiedpush.distributor.sunup.callback.NetworkCallbackFactory
-import org.unifiedpush.distributor.sunup.services.FailureCounter
 import org.unifiedpush.distributor.sunup.services.FgService
 import org.unifiedpush.distributor.sunup.services.RestartWorker
+import org.unifiedpush.distributor.sunup.services.SourceManager
 import org.unifiedpush.distributor.sunup.utils.TAG
 import org.unifiedpush.distributor.utils.addOnce
 import org.unifiedpush.distributor.utils.removeSync
@@ -53,7 +53,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     }
 
     override fun onOpen(ws: WebSocket, response: Response) {
-        FailureCounter.newSource(context, ws)
+        SourceManager.newSource(context, ws)
         releaseLock()
         try {
             Log.d(TAG, "onOpen: " + response.code)
@@ -87,7 +87,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
 
     private fun onHello(ws: WebSocket, message: ServerMessage.Hello) {
         Log.d(TAG, "Hello")
-        FailureCounter.debugStarted()
+        SourceManager.debugStarted()
         ApiUrlCandidate.finish()?.let {
             store.apiUrl = it
             Log.d(TAG, "Successfully using $it")
@@ -123,7 +123,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     }
 
     private fun onPing(ws: WebSocket) {
-        FailureCounter.debugNewPing(context)
+        SourceManager.debugNewPing(context)
         if (!waitingPong.getAndSet(false)) {
             Log.d(TAG, "Sending Pong")
             ClientMessage.Ping.send(ws)
@@ -150,7 +150,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         Log.d(TAG, "onClosed: $webSocket")
         webSocket.cancel()
         releaseLock()
-        if (shouldRestart() && FailureCounter.addFail(context, webSocket)) {
+        if (shouldRestart() && SourceManager.addFail(context, webSocket)) {
             RestartWorker.run(context, delay = 0)
         }
     }
@@ -165,9 +165,9 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         releaseLock()
         if (failToUseUrlCandidate(context)) return
         if (!shouldRestart()) return
-        if (FailureCounter.addFail(context, webSocket)) {
+        if (SourceManager.addFail(context, webSocket)) {
             // If null, we keep the worker with its 16min
-            val delay = FailureCounter.getTimeout() ?: return
+            val delay = SourceManager.getTimeout() ?: return
             Log.d(TAG, "Retrying in $delay ms")
             RestartWorker.run(context, delay = delay)
         }

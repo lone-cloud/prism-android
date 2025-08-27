@@ -27,7 +27,7 @@ class FgService : ForegroundService() {
     }
 
     override fun shouldAbortNewSync(): Boolean {
-        return FailureCounter.isRunningWithoutFailure || MessageSender.hasPendingMsgs()
+        return SourceManager.isRunningWithoutFailure || MessageSender.hasPendingMsgs()
     }
 
     override fun isConnected(): Boolean {
@@ -44,7 +44,7 @@ class FgService : ForegroundService() {
         override val serviceClass = FgService::class.java
 
         override fun startService(context: Context) {
-            Log.d(FgService.TAG, "nFails: ${FailureCounter.nFails}")
+            Log.d(FgService.TAG, "nFails: ${SourceManager.nFails}")
             super.startService(context)
         }
     }

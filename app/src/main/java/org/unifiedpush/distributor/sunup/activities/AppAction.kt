@@ -8,9 +8,9 @@ import kotlinx.coroutines.launch
 import org.unifiedpush.distributor.sunup.Distributor
 import org.unifiedpush.distributor.sunup.EventBus
 import org.unifiedpush.distributor.sunup.api.ApiUrlCandidate
-import org.unifiedpush.distributor.sunup.services.FailureCounter
 import org.unifiedpush.distributor.sunup.services.FgService
 import org.unifiedpush.distributor.sunup.services.RestartWorker
+import org.unifiedpush.distributor.sunup.services.SourceManager
 import org.unifiedpush.distributor.sunup.utils.TAG
 
 class AppAction(private val action: Action) {
@@ -30,7 +30,7 @@ class AppAction(private val action: Action) {
 
     private fun restartService(context: Context) {
         Log.d(TAG, "Restarting the Listener")
-        FailureCounter.clearFails()
+        SourceManager.clearFails()
         FgService.stopService {
             RestartWorker.run(context, delay = 0)
         }
@@ -38,7 +38,7 @@ class AppAction(private val action: Action) {
 
     private fun newPushServer(context: Context, action: Action.NewPushServer) {
         ApiUrlCandidate.test(action.url)
-        FailureCounter.setFailOnce()
+        SourceManager.setFailOnce()
         RestartWorker.run(context, delay = 0)
     }
 
