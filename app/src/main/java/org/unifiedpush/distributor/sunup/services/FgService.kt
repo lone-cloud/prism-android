@@ -39,6 +39,10 @@ class FgService : ForegroundService() {
         MessageSender.newWs(ws)
     }
 
+    override fun destroyServiceResources() {
+        ServerConnection.destroy()
+    }
+
     companion object : ForegroundServiceFactory {
         override val service = AtomicReference<ForegroundService?>(null)
         override val serviceClass = FgService::class.java

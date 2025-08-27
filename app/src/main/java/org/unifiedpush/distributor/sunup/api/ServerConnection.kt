@@ -47,13 +47,14 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         val request = Request.Builder()
             .url(url)
             .build()
-        return client.newWebSocket(request, this).also {
-            ClientMessage.Hello(uaid).send(it)
+        return client.newWebSocket(request, this).also { ws ->
+            SourceManager.newSource(ws)
+            ClientMessage.Hello(uaid).send(ws)
         }
     }
 
     override fun onOpen(ws: WebSocket, response: Response) {
-        SourceManager.newSource(context, ws)
+        SourceManager.setConnected(context, ws)
         releaseLock()
         try {
             Log.d(TAG, "onOpen: " + response.code)
@@ -211,5 +212,6 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     companion object {
         var lastEventDate: Calendar? = null
         var waitingPong = AtomicBoolean(false)
+        fun destroy() = SourceManager.removeSource()
     }
 }
