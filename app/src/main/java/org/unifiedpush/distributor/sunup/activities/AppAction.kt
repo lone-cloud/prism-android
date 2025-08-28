@@ -51,7 +51,7 @@ class AppAction(private val action: Action) {
 
     private fun deleteRegistration(context: Context, action: Action.DeleteRegistration) {
         action.registrations.forEach {
-            Distributor.deleteApp(context, it) {}
+            Distributor.deleteApp(context, it)
         }
     }
 }

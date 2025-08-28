@@ -15,7 +15,7 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import org.unifiedpush.android.distributor.ui.R as LibR
-import org.unifiedpush.distributor.receiver.DistributorReceiver
+import org.unifiedpush.distributor.ChannelCreationStatus
 import org.unifiedpush.distributor.sunup.AppStore
 import org.unifiedpush.distributor.sunup.DatabaseFactory
 import org.unifiedpush.distributor.sunup.Distributor
@@ -28,8 +28,6 @@ import org.unifiedpush.distributor.sunup.services.FgService
 import org.unifiedpush.distributor.sunup.services.RestartWorker
 import org.unifiedpush.distributor.sunup.services.SourceManager
 import org.unifiedpush.distributor.sunup.utils.TAG
-import org.unifiedpush.distributor.utils.addOnce
-import org.unifiedpush.distributor.utils.removeSync
 
 class ServerConnection(private val context: Context, private val releaseLock: () -> Unit) : WebSocketListener() {
 
@@ -75,7 +73,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             is ServerMessage.Notification -> onNotification(ws, message)
             ServerMessage.Ping -> onPing(ws)
             is ServerMessage.Register -> onRegister(message)
-            is ServerMessage.Unegister -> onUnregister(message)
+            is ServerMessage.Unregister -> onUnregister(message)
             is ServerMessage.Urgency -> {
                 Log.d(TAG, "Urgency status=${message.status}")
             }
@@ -100,10 +98,26 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
                 ).show()
             }
         }
+        val db = DatabaseFactory.getDb(context)
         if (message.uaid != store.uaid) {
             Log.d(TAG, "We received a new uaid")
             store.uaid = message.uaid
-            DatabaseFactory.getDb(context).listAppVapidTokens().forEach { pair ->
+            db.listChannelIdVapid().forEach { pair ->
+                ClientMessage.Register(
+                    channelID = pair.first,
+                    key = pair.second
+                ).send(ws)
+            }
+            db.deleteDisabledApps()
+        } else {
+            // We remove pending unregistrations
+            // and register pending registrations
+            db.listDisabledChannelIds().forEach {
+                Log.d(TAG, "Hello, unregistering $it")
+                ClientMessage.Unregister(channelID = it).send(ws)
+            }
+            db.listPendingChannelIdVapid().forEach { pair ->
+                Log.d(TAG, "Hello, registering: ${pair.first}")
                 ClientMessage.Register(
                     channelID = pair.first,
                     key = pair.second
@@ -135,16 +149,18 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
 
     private fun onRegister(message: ServerMessage.Register) {
         Log.d(TAG, "New endpoint: ${message.pushEndpoint}")
-        DatabaseFactory.getDb(context).saveEndpoint(message.channelID, message.pushEndpoint)
-        Distributor.sendEndpointForChannel(context, message.channelID)
+        Distributor.finishRegistration(
+            context,
+            ChannelCreationStatus.Ok(message.channelID, message.pushEndpoint)
+        )
     }
 
-    private fun onUnregister(message: ServerMessage.Unegister) {
-        val token = DatabaseFactory.getDb(context).getConnectorToken(message.channelID)
-        if (token != null && DistributorReceiver.delQueue.addOnce(token)) {
-            Distributor.deleteAppFromServer(context, token)
-            DistributorReceiver.delQueue.removeSync(token)
-        }
+    private fun onUnregister(message: ServerMessage.Unregister) {
+        DatabaseFactory
+            .getDb(context)
+            .getConnectorToken(message.channelID)?.let { token ->
+                Distributor.deleteAppFromServer(context, token)
+            }
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
@@ -157,9 +173,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-        Log.d(TAG, "onFailure")
-        webSocket.cancel()
-        Log.d(TAG, "An error occurred: $t")
+        Log.d(TAG, "onFailure: An error occurred: $t")
         response?.let {
             Log.d(TAG, "onFailure: ${it.code}")
         }

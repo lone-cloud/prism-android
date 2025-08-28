@@ -27,7 +27,7 @@ class FgService : ForegroundService() {
     }
 
     override fun shouldAbortNewSync(): Boolean {
-        return SourceManager.isRunningWithoutFailure || MessageSender.hasPendingMsgs()
+        return SourceManager.isRunningWithoutFailure
     }
 
     override fun isConnected(): Boolean {

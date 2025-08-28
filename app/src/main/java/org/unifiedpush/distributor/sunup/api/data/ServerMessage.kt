@@ -49,7 +49,7 @@ sealed class ServerMessage {
      */
     @Serializable
     @SerialName("unregister")
-    data class Unegister(val channelID: String, val status: UInt) : ServerMessage()
+    data class Unregister(val channelID: String, val status: UInt) : ServerMessage()
 
     /**
      *     Broadcast {
