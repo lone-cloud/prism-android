@@ -13,7 +13,6 @@ import org.unifiedpush.android.distributor.ui.compose.BatteryOptimisationViewMod
 import org.unifiedpush.android.distributor.ui.compose.RegistrationsViewModel
 import org.unifiedpush.android.distributor.ui.compose.state.RegistrationListState
 import org.unifiedpush.distributor.sunup.AppStore
-import org.unifiedpush.distributor.sunup.activities.ui.AppBarUiState
 import org.unifiedpush.distributor.sunup.activities.ui.MainUiState
 
 class MainViewModel(
@@ -24,7 +23,7 @@ class MainViewModel(
 ) : ViewModel() {
     constructor(context: Context) : this(
         mainUiState = MainUiState(),
-        appBarViewModel = AppBarViewModel(AppBarUiState(AppStore(context).apiUrl)),
+        appBarViewModel = AppBarViewModel(context),
         batteryOptimisationViewModel = BatteryOptimisationViewModel(context),
         registrationsViewModel = RegistrationsViewModel(
             getRegistrationListState(context)
@@ -51,7 +50,7 @@ class MainViewModel(
 
     fun refreshApiUrl(context: Context) {
         viewModelScope.launch {
-            appBarViewModel.state = AppBarUiState(AppStore(context).apiUrl)
+            appBarViewModel.state = appBarViewModel.state.copy(currentApiUrl = AppStore(context).apiUrl)
         }
     }
 

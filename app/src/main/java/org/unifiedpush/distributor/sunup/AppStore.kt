@@ -20,6 +20,17 @@ class AppStore(context: Context) : Store(context, PREF_NAME) {
             .putOrRemove(PREF_API_URL, value)
             .apply()
 
+    /**
+     * Show toasts when a new app is registered or an error occurred
+     */
+    var showToasts: Boolean
+        get() = sharedPreferences
+            .getBoolean(PREF_SHOW_TOASTS, false)
+        set(value) = sharedPreferences
+            .edit()
+            .putBoolean(PREF_SHOW_TOASTS, value)
+            .apply()
+
     override fun wipe() {
         uaid = null
     }
@@ -28,5 +39,6 @@ class AppStore(context: Context) : Store(context, PREF_NAME) {
         internal const val PREF_NAME = "Sunup"
         private const val PREF_UAID = "uaid"
         private const val PREF_API_URL = "api_url"
+        private const val PREF_SHOW_TOASTS = "show_toasts"
     }
 }

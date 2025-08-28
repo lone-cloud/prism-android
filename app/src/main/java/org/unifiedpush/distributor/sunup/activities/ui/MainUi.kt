@@ -161,7 +161,7 @@ fun MainPreview() {
     MainUi(
         MainViewModel(
             MainUiState(),
-            AppBarViewModel(AppBarUiState(BuildConfig.DEFAULT_API_URL)),
+            AppBarViewModel(AppBarUiState(BuildConfig.DEFAULT_API_URL, false)),
             BatteryOptimisationViewModel(true),
             RegistrationsViewModel(RegistrationListState(regList))
         )

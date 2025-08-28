@@ -1,7 +1,10 @@
 package org.unifiedpush.distributor.sunup.activities.ui
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,6 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import org.unifiedpush.android.distributor.ui.R as LibR
 import org.unifiedpush.distributor.sunup.R
@@ -48,6 +53,7 @@ fun AppBarUi(appBarViewModel: AppBarViewModel) {
             }
             Dropdown(
                 state.menuExpanded,
+                state.showToasts,
                 onRestart = {
                     appBarViewModel.publishAction(AppAction(AppAction.Action.RestartService))
                     appBarViewModel.toggleMenu()
@@ -57,6 +63,9 @@ fun AppBarUi(appBarViewModel: AppBarViewModel) {
                 },
                 onChangeServer = {
                     appBarViewModel.toggleChangeServer()
+                },
+                onToggleShowToasts = {
+                    appBarViewModel.toggleShowToasts()
                 }
             )
         }
@@ -72,7 +81,14 @@ fun AppBarUi(appBarViewModel: AppBarViewModel) {
 }
 
 @Composable
-fun Dropdown(expanded: Boolean, onRestart: () -> Unit, onDismiss: () -> Unit, onChangeServer: () -> Unit) {
+fun Dropdown(
+    expanded: Boolean,
+    showToasts: Boolean,
+    onRestart: () -> Unit,
+    onDismiss: () -> Unit,
+    onChangeServer: () -> Unit,
+    onToggleShowToasts: () -> Unit
+) {
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismiss
@@ -92,6 +108,19 @@ fun Dropdown(expanded: Boolean, onRestart: () -> Unit, onDismiss: () -> Unit, on
                 Text(
                     stringResource(LibR.string.app_dropdown_change_server)
                 )
+            }
+        )
+        DropdownMenuItem(
+            onClick = onToggleShowToasts,
+            text = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(LibR.string.app_dropdown_show_toasts))
+                    Spacer(Modifier.weight(1f))
+                    Checkbox(
+                        showToasts,
+                        onCheckedChange = { onToggleShowToasts() }
+                    )
+                }
             }
         )
     }

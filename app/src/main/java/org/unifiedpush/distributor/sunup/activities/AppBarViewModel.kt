@@ -1,5 +1,6 @@
 package org.unifiedpush.distributor.sunup.activities
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,6 +14,10 @@ import org.unifiedpush.distributor.sunup.activities.ui.AppBarUiState
 import org.unifiedpush.distributor.sunup.utils.TAG
 
 class AppBarViewModel(appBarUiState: AppBarUiState) : ViewModel() {
+
+    constructor(context: Context) : this(
+        AppBarUiState.from(context)
+    )
 
     var state by mutableStateOf(appBarUiState)
 
@@ -47,6 +52,13 @@ class AppBarViewModel(appBarUiState: AppBarUiState) : ViewModel() {
             } catch (e: Exception) {
                 Log.d(TAG, "Ignoring url: $url : $e:w")
             }
+        }
+    }
+
+    fun toggleShowToasts() {
+        viewModelScope.launch {
+            state = state.copy(showToasts = !state.showToasts)
+            publishAction(AppAction(AppAction.Action.ShowToasts(state.showToasts)))
         }
     }
 }

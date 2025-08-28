@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import org.unifiedpush.distributor.sunup.AppStore
 import org.unifiedpush.distributor.sunup.Distributor
 import org.unifiedpush.distributor.sunup.EventBus
 import org.unifiedpush.distributor.sunup.api.ApiUrlCandidate
@@ -17,6 +18,7 @@ class AppAction(private val action: Action) {
     sealed class Action {
         data object RestartService : Action()
         class NewPushServer(val url: String) : Action()
+        class ShowToasts(val enable: Boolean) : Action()
         class DeleteRegistration(val registrations: List<String>) : Action()
     }
 
@@ -24,6 +26,7 @@ class AppAction(private val action: Action) {
         when (action) {
             is Action.RestartService -> restartService(context)
             is Action.NewPushServer -> newPushServer(context, action)
+            is Action.ShowToasts -> showToasts(context, action)
             is Action.DeleteRegistration -> deleteRegistration(context, action)
         }
     }
@@ -40,6 +43,10 @@ class AppAction(private val action: Action) {
         ApiUrlCandidate.test(action.url)
         SourceManager.setFailOnce()
         RestartWorker.run(context, delay = 0)
+    }
+
+    private fun showToasts(context: Context, action: Action.ShowToasts) {
+        AppStore(context).showToasts = action.enable
     }
 
     private fun deleteRegistration(context: Context, action: Action.DeleteRegistration) {
