@@ -14,7 +14,7 @@ object Distributor : UnifiedPushDistributor() {
         return DatabaseFactory.getDb(context)
     }
 
-    override fun registerChannelIdToServer(
+    override fun backendRegisterNewChannelId(
         context: Context,
         packageName: String,
         channelId: String,
@@ -32,7 +32,16 @@ object Distributor : UnifiedPushDistributor() {
         )
     }
 
-    override fun unregisterChannelIdToServer(context: Context, channelId: String) {
+    override fun backendUpdateChannelId(
+        context: Context,
+        packageName: String,
+        channelId: String,
+        title: String?,
+        vapid: String?,
+        description: String?
+    ) = backendRegisterNewChannelId(context, packageName, channelId, title, vapid, description)
+
+    override fun backendUnregisterChannelId(context: Context, channelId: String) {
         MessageSender.send(
             context,
             ClientMessage.Unregister(
