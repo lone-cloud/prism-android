@@ -156,11 +156,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     }
 
     private fun onUnregister(message: ServerMessage.Unregister) {
-        DatabaseFactory
-            .getDb(context)
-            .getConnectorToken(message.channelID)?.let { token ->
-                Distributor.deleteAppFromServer(context, token)
-            }
+        Distributor.deleteChannelFromServer(context, message.channelID)
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
