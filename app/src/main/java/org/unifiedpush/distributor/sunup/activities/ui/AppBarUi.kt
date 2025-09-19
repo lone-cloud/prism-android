@@ -55,6 +55,7 @@ fun AppBarUi(appBarViewModel: AppBarViewModel) {
             Dropdown(
                 state.menuExpanded,
                 state.showToasts,
+                state.showMigrations,
                 onRestart = {
                     appBarViewModel.publishAction(AppAction(AppAction.Action.RestartService))
                     appBarViewModel.toggleMenu()
@@ -85,13 +86,16 @@ fun AppBarUi(appBarViewModel: AppBarViewModel) {
             onConfirmation = { appBarViewModel.newPushServer(it) }
         )
     }
-    DistribMigrationUi(appBarViewModel.migrationViewModel)
+    if (state.showMigrations) {
+        DistribMigrationUi(appBarViewModel.migrationViewModel)
+    }
 }
 
 @Composable
 fun Dropdown(
     expanded: Boolean,
     showToasts: Boolean,
+    showMigrations: Boolean,
     onRestart: () -> Unit,
     onDismiss: () -> Unit,
     onChangeServer: () -> Unit,
@@ -133,28 +137,30 @@ fun Dropdown(
                 }
             }
         )
-        DropdownMenuItem(
-            onClick = {
-                onSetFallbackService()
-                onDismiss()
-            },
-            text = {
-                Text(
-                    stringResource(LibR.string.dialog_fallback_title)
-                )
-            }
-        )
-        DropdownMenuItem(
-            onClick = {
-                onMigrateToDistrib()
-                onDismiss()
-            },
-            text = {
-                Text(
-                    color = MaterialTheme.colorScheme.error,
-                    text = stringResource(LibR.string.dialog_migration_title)
-                )
-            }
-        )
+        if (showMigrations) {
+            DropdownMenuItem(
+                onClick = {
+                    onSetFallbackService()
+                    onDismiss()
+                },
+                text = {
+                    Text(
+                        stringResource(LibR.string.dialog_fallback_title)
+                    )
+                }
+            )
+            DropdownMenuItem(
+                onClick = {
+                    onMigrateToDistrib()
+                    onDismiss()
+                },
+                text = {
+                    Text(
+                        color = MaterialTheme.colorScheme.error,
+                        text = stringResource(LibR.string.dialog_migration_title)
+                    )
+                }
+            )
+        }
     }
 }
