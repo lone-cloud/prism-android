@@ -8,25 +8,17 @@ import org.unifiedpush.distributor.sunup.DatabaseFactory
 
 fun getRegistrationListState(context: Context): RegistrationListState {
     return RegistrationListState(
-        list = emptyList<RegistrationState?>()
-            .toMutableList().also { appList ->
-                DatabaseFactory.getDb(context).let { db ->
-                    db.listTokens().forEach {
-                        appList.add(
-                            getRegistrationState(context, db, it)
-                        )
-                    }
-                }
-            }.filterNotNull()
+        list = DatabaseFactory.getDb(context).listApps().map { app ->
+            getRegistrationState(context, app)
+        }
     )
 }
 
-fun getRegistrationState(context: Context, db: Database, token: String): RegistrationState? {
-    val app = db.getAppFromCoToken(token) ?: return null
-   return RegistrationState(
+fun getRegistrationState(context: Context, app: Database.App): RegistrationState {
+    return RegistrationState(
         app = context.applicationRowState(app.packageName, app.description),
         msgCount = app.msgCount,
-        token = token,
+        token = app.connectorToken,
         copyable = false
     )
 }

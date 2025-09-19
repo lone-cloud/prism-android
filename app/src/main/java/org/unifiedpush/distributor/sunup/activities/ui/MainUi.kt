@@ -31,8 +31,10 @@ import org.unifiedpush.android.distributor.ui.compose.RegistrationList
 import org.unifiedpush.android.distributor.ui.compose.RegistrationListHeading
 import org.unifiedpush.android.distributor.ui.compose.UnregisterBarUi
 import org.unifiedpush.android.distributor.ui.compose.previewRegistrationsViewModel
+import org.unifiedpush.android.distributor.ui.compose.state.DistribMigrationState
 import org.unifiedpush.distributor.sunup.BuildConfig
 import org.unifiedpush.distributor.sunup.activities.AppBarViewModel
+import org.unifiedpush.distributor.sunup.activities.DistribMigrationViewModel
 import org.unifiedpush.distributor.sunup.activities.MainViewModel
 import org.unifiedpush.distributor.sunup.utils.getDebugInfo
 
@@ -132,7 +134,10 @@ fun MainPreview() {
     MainUi(
         MainViewModel(
             MainUiState(),
-            AppBarViewModel(AppBarUiState(BuildConfig.DEFAULT_API_URL, false)),
+            AppBarViewModel(
+                AppBarUiState(BuildConfig.DEFAULT_API_URL, false),
+                DistribMigrationViewModel(DistribMigrationState())
+            ),
             BatteryOptimisationViewModel(true),
             previewRegistrationsViewModel()
         )

@@ -41,6 +41,7 @@ class MainViewModel(
         viewModelScope.launch {
             mainUiState = mainUiState.copy(showPermissionDialog = false)
         }
+        appBarViewModel.migrationViewModel.mayShowFallbackIntro()
     }
     fun refreshRegistrations(context: Context) {
         viewModelScope.launch {

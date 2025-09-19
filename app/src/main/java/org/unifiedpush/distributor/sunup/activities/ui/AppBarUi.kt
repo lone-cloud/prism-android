@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import org.unifiedpush.android.distributor.ui.R as LibR
+import org.unifiedpush.android.distributor.ui.compose.DistribMigrationUi
 import org.unifiedpush.distributor.sunup.R
 import org.unifiedpush.distributor.sunup.activities.AppAction
 import org.unifiedpush.distributor.sunup.activities.AppBarViewModel
@@ -78,6 +79,7 @@ fun AppBarUi(appBarViewModel: AppBarViewModel) {
             onConfirmation = { appBarViewModel.newPushServer(it) }
         )
     }
+    DistribMigrationUi(appBarViewModel.migrationViewModel)
 }
 
 @Composable

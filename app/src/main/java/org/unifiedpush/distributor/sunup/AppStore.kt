@@ -20,6 +20,22 @@ class AppStore(context: Context) : Store(context, PREF_NAME) {
             .putOrRemove(PREF_API_URL, value)
             .apply()
 
+    var fallbackIntroShown: Boolean
+        get() = sharedPreferences
+            .getBoolean(PREF_FALLBACK_INTRO_SHOWN, false)
+        set(value) = sharedPreferences
+            .edit()
+            .putBoolean(PREF_FALLBACK_INTRO_SHOWN, value)
+            .apply()
+
+    var fallbackService: String?
+        get() = sharedPreferences
+            .getString(PREF_FALLBACK_SERVICE, null)
+        set(value) = sharedPreferences
+            .edit()
+            .putOrRemove(PREF_FALLBACK_SERVICE, value)
+            .apply()
+
     /**
      * Show toasts when a new app is registered or an error occurred
      */
@@ -39,6 +55,8 @@ class AppStore(context: Context) : Store(context, PREF_NAME) {
         internal const val PREF_NAME = "Sunup"
         private const val PREF_UAID = "uaid"
         private const val PREF_API_URL = "api_url"
+        private const val PREF_FALLBACK_INTRO_SHOWN = "fallback_intro_shown"
+        private const val PREF_FALLBACK_SERVICE = "fallback_service"
         private const val PREF_SHOW_TOASTS = "show_toasts"
     }
 }

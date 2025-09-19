@@ -13,10 +13,20 @@ import org.unifiedpush.distributor.sunup.BuildConfig
 import org.unifiedpush.distributor.sunup.activities.ui.AppBarUiState
 import org.unifiedpush.distributor.sunup.utils.TAG
 
-class AppBarViewModel(appBarUiState: AppBarUiState) : ViewModel() {
+/**
+ * Controls AppBar and dialogs open from the app bar
+ *
+ * The AppBar controls the MigrationView model because it provides
+ * the migration entry
+ */
+class AppBarViewModel(
+    appBarUiState: AppBarUiState,
+    val migrationViewModel: DistribMigrationViewModel
+) : ViewModel() {
 
     constructor(context: Context) : this(
-        AppBarUiState.from(context)
+        AppBarUiState.from(context),
+        DistribMigrationViewModel(context)
     )
 
     var state by mutableStateOf(appBarUiState)

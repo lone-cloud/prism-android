@@ -20,6 +20,9 @@ class AppAction(private val action: Action) {
         class NewPushServer(val url: String) : Action()
         class ShowToasts(val enable: Boolean) : Action()
         class DeleteRegistration(val registrations: List<String>) : Action()
+        data object FallbackIntroShown : Action()
+        class FallbackDistribSelected(val distributor: String?) : Action()
+        class MigrateToDistrib(val distributor: String) : Action()
     }
 
     fun handle(context: Context) {
@@ -28,6 +31,9 @@ class AppAction(private val action: Action) {
             is Action.NewPushServer -> newPushServer(context, action)
             is Action.ShowToasts -> showToasts(context, action)
             is Action.DeleteRegistration -> deleteRegistration(context, action)
+            is Action.FallbackIntroShown -> fallbackIntroShown(context)
+            is Action.FallbackDistribSelected -> fallbackDistribSelected(context, action)
+            is Action.MigrateToDistrib -> migrateToDistrib(context, action)
         }
     }
 
@@ -53,6 +59,33 @@ class AppAction(private val action: Action) {
         action.registrations.forEach {
             Distributor.deleteApp(context, it)
         }
+    }
+
+    private fun fallbackIntroShown(context: Context) {
+        AppStore(context).fallbackIntroShown = true
+    }
+
+    /**
+     * Save fallback service
+     *
+     * If fallback is disabled and we have already send TEMP_UNAVAILABLE:
+     * we send the endpoint again
+     */
+    private fun fallbackDistribSelected(context: Context, action: Action.FallbackDistribSelected) {
+        AppStore(context).fallbackService = action.distributor
+        action.distributor?.let {
+            // Fallback is set
+            if (SourceManager.shouldSendFallback) {
+                Distributor.sendTempFallbackToAll(context, it)
+            }
+        } ?: run {
+            // Fallback is disabled
+            Distributor.sendEndpointToAll(context)
+        }
+    }
+
+    private fun migrateToDistrib(context: Context, action: Action.MigrateToDistrib) {
+        Distributor.migrateAll(context, action.distributor)
     }
 }
 
