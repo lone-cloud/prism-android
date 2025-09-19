@@ -2,6 +2,7 @@ package org.unifiedpush.distributor.sunup.activities.ui
 
 import android.content.Context
 import org.unifiedpush.distributor.sunup.AppStore
+import org.unifiedpush.distributor.sunup.BuildConfig
 import org.unifiedpush.distributor.utils.listOtherDistributors
 
 data class AppBarUiState(
@@ -20,7 +21,7 @@ data class AppBarUiState(
             return AppBarUiState(
                 store.apiUrl,
                 store.showToasts,
-                showMigrations = context.listOtherDistributors().any()
+                showMigrations = BuildConfig.SUPPORT_MIGRATIONS && context.listOtherDistributors().any()
             )
         }
     }

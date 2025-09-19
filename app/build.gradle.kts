@@ -29,6 +29,7 @@ android {
         // buildConfigField("String", "DEFAULT_API_URL", "\"http://10.0.2.2:8088\"")
         buildConfigField("String", "DEFAULT_API_URL", "\"https://push.services.mozilla.com\"")
         buildConfigField("Boolean", "URGENCY", "false")
+        buildConfigField("Boolean", "SUPPORT_MIGRATIONS", "false")
     }
 
     buildFeatures {
