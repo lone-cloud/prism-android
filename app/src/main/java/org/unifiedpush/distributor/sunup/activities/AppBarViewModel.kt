@@ -71,4 +71,8 @@ class AppBarViewModel(
             publishAction(AppAction(AppAction.Action.ShowToasts(state.showToasts)))
         }
     }
+
+    fun toggleMigrationDialog() {
+        migrationViewModel.toggleMigrationSelection()
+    }
 }

@@ -67,6 +67,9 @@ fun AppBarUi(appBarViewModel: AppBarViewModel) {
                 },
                 onToggleShowToasts = {
                     appBarViewModel.toggleShowToasts()
+                },
+                onMigrateToDistrib = {
+                    appBarViewModel.toggleMigrationDialog()
                 }
             )
         }
@@ -89,7 +92,8 @@ fun Dropdown(
     onRestart: () -> Unit,
     onDismiss: () -> Unit,
     onChangeServer: () -> Unit,
-    onToggleShowToasts: () -> Unit
+    onToggleShowToasts: () -> Unit,
+    onMigrateToDistrib: () -> Unit
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -123,6 +127,18 @@ fun Dropdown(
                         onCheckedChange = { onToggleShowToasts() }
                     )
                 }
+            }
+        )
+        DropdownMenuItem(
+            onClick = {
+                onMigrateToDistrib()
+                onDismiss()
+            },
+            text = {
+                Text(
+                    color = MaterialTheme.colorScheme.error,
+                    text = stringResource(LibR.string.dialog_migration_title)
+                )
             }
         )
     }
