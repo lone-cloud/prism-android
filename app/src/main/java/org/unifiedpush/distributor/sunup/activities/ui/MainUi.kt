@@ -29,10 +29,8 @@ import org.unifiedpush.android.distributor.ui.compose.CardDisableBatteryOptimisa
 import org.unifiedpush.android.distributor.ui.compose.PermissionsUi
 import org.unifiedpush.android.distributor.ui.compose.RegistrationList
 import org.unifiedpush.android.distributor.ui.compose.RegistrationListHeading
-import org.unifiedpush.android.distributor.ui.compose.RegistrationsViewModel
 import org.unifiedpush.android.distributor.ui.compose.UnregisterBarUi
-import org.unifiedpush.android.distributor.ui.compose.state.RegistrationListState
-import org.unifiedpush.android.distributor.ui.compose.state.RegistrationState
+import org.unifiedpush.android.distributor.ui.compose.previewRegistrationsViewModel
 import org.unifiedpush.distributor.sunup.BuildConfig
 import org.unifiedpush.distributor.sunup.activities.AppBarViewModel
 import org.unifiedpush.distributor.sunup.activities.MainViewModel
@@ -131,39 +129,12 @@ fun DebugDialog(onDismissRequest: () -> Unit) {
 @Preview
 @Composable
 fun MainPreview() {
-    val regList =
-        listOf(
-            RegistrationState(
-                icon = null,
-                title = "Application 1",
-                token = "tok1",
-                msgCount = 1337,
-                description = "tld.app.1",
-                copyable = false
-            ),
-            RegistrationState(
-                icon = null,
-                title = "Application 2",
-                token = "tok2",
-                msgCount = 1,
-                description = "tld.app.2",
-                copyable = false
-            ),
-            RegistrationState(
-                icon = null,
-                title = "tld.app.3",
-                token = "tok3",
-                msgCount = 2,
-                description = "tld.app.3",
-                copyable = false
-            )
-        )
     MainUi(
         MainViewModel(
             MainUiState(),
             AppBarViewModel(AppBarUiState(BuildConfig.DEFAULT_API_URL, false)),
             BatteryOptimisationViewModel(true),
-            RegistrationsViewModel(RegistrationListState(regList))
+            previewRegistrationsViewModel()
         )
     )
 }
