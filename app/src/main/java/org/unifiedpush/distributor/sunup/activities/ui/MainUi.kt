@@ -74,7 +74,7 @@ fun MainUiContent(viewModel: MainViewModel, innerPadding: PaddingValues) {
             .verticalScroll(rememberScrollState())
             .padding(innerPadding),
         horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         Column(
             modifier = Modifier
