@@ -68,6 +68,9 @@ fun AppBarUi(appBarViewModel: AppBarViewModel) {
                 onToggleShowToasts = {
                     appBarViewModel.toggleShowToasts()
                 },
+                onSetFallbackService = {
+                    appBarViewModel.toggleSetFallbackServiceDialog()
+                },
                 onMigrateToDistrib = {
                     appBarViewModel.toggleMigrationDialog()
                 }
@@ -93,6 +96,7 @@ fun Dropdown(
     onDismiss: () -> Unit,
     onChangeServer: () -> Unit,
     onToggleShowToasts: () -> Unit,
+    onSetFallbackService: () -> Unit,
     onMigrateToDistrib: () -> Unit
 ) {
     DropdownMenu(
@@ -127,6 +131,17 @@ fun Dropdown(
                         onCheckedChange = { onToggleShowToasts() }
                     )
                 }
+            }
+        )
+        DropdownMenuItem(
+            onClick = {
+                onSetFallbackService()
+                onDismiss()
+            },
+            text = {
+                Text(
+                    stringResource(LibR.string.dialog_fallback_title)
+                )
             }
         )
         DropdownMenuItem(

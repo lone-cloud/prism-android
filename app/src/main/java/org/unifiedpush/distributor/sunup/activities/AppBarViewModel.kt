@@ -72,6 +72,10 @@ class AppBarViewModel(
         }
     }
 
+    fun toggleSetFallbackServiceDialog() {
+        migrationViewModel.toggleFallbackSelection()
+    }
+
     fun toggleMigrationDialog() {
         migrationViewModel.toggleMigrationSelection()
     }
