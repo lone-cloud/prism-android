@@ -29,6 +29,19 @@ class DistribMigrationViewModel(state: DistribMigrationState) : UPDistribMigrati
         )
     }
 
+    fun refreshDistributors(context: Context) {
+        refreshDistributors {
+            val store = AppStore(context)
+            val fallbackDistrib = store.fallbackService
+            return@refreshDistributors context.listOtherDistributors()
+                .map { packageName ->
+                    context.applicationRowState(packageName).copy(
+                        selected = fallbackDistrib == packageName
+                    )
+                }.toSet()
+        }
+    }
+
     companion object {
         fun stateFrom(context: Context): DistribMigrationState {
             val store = AppStore(context)

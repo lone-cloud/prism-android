@@ -73,10 +73,12 @@ class AppBarViewModel(
     }
 
     fun toggleSetFallbackServiceDialog() {
+        UiAction.publish(UiAction.Action.RefreshDistributors)
         migrationViewModel.toggleFallbackSelection()
     }
 
     fun toggleMigrationDialog() {
+        UiAction.publish(UiAction.Action.RefreshDistributors)
         migrationViewModel.toggleMigrationSelection()
     }
 }

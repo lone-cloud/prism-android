@@ -57,6 +57,11 @@ class MainActivity : ComponentActivity() {
                         UiAction.Action.RefreshApiUrl -> viewModel?.refreshApiUrl(
                             this@MainActivity
                         )
+
+                        UiAction.Action.RefreshDistributors -> viewModel
+                            ?.appBarViewModel
+                            ?.migrationViewModel
+                            ?.refreshDistributors(this@MainActivity)
                     }
                 }
             }
