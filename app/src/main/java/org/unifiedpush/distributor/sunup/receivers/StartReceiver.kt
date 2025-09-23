@@ -8,7 +8,9 @@ import org.unifiedpush.distributor.sunup.services.RestartWorker
 class StartReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
+        if (intent.action == Intent.ACTION_BOOT_COMPLETED ||
+            intent.action == Intent.ACTION_MY_PACKAGE_REPLACED
+        ) {
             RestartWorker.startPeriodic(context)
         }
     }
