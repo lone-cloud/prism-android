@@ -20,11 +20,7 @@ class RegisterBroadcastReceiver : DistributorReceiver() {
         return true
     }
 
-    override fun hasInternet(context: Context): Boolean {
-        return NetworkCallbackFactory.hasInternet()
-    }
+    override fun hasInternet(context: Context): Boolean = NetworkCallbackFactory.hasInternet()
 
-    override fun showToasts(context: Context): Boolean {
-        return AppStore(context).showToasts
-    }
+    override fun showToasts(context: Context): Boolean = AppStore(context).showToasts
 }

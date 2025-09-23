@@ -12,9 +12,7 @@ import org.unifiedpush.distributor.sunup.api.data.ClientMessage
 object Distributor : UnifiedPushDistributor() {
     override val receiverComponentName = "org.unifiedpush.distributor.sunup.receivers.RegisterBroadcastReceiver"
 
-    override fun getDb(context: Context): Database {
-        return DatabaseFactory.getDb(context)
-    }
+    override fun getDb(context: Context): Database = DatabaseFactory.getDb(context)
 
     override fun backendRegisterNewChannelId(
         context: Context,

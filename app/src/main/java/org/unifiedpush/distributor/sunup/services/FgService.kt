@@ -2,6 +2,7 @@ package org.unifiedpush.distributor.sunup.services
 
 import android.content.Context
 import android.util.Log
+import java.util.concurrent.atomic.AtomicReference
 import org.unifiedpush.distributor.service.ForegroundService
 import org.unifiedpush.distributor.service.ForegroundServiceFactory
 import org.unifiedpush.distributor.sunup.api.MessageSender
@@ -11,7 +12,6 @@ import org.unifiedpush.distributor.sunup.callback.NetworkCallbackFactory
 import org.unifiedpush.distributor.sunup.utils.ForegroundNotification
 import org.unifiedpush.distributor.sunup.utils.NOTIFICATION_ID_FOREGROUND
 import org.unifiedpush.distributor.sunup.utils.TAG
-import java.util.concurrent.atomic.AtomicReference
 
 class FgService : ForegroundService() {
 
@@ -26,13 +26,9 @@ class FgService : ForegroundService() {
         startForeground(NOTIFICATION_ID_FOREGROUND, notification)
     }
 
-    override fun shouldAbortNewSync(): Boolean {
-        return SourceManager.isRunningWithoutFailure
-    }
+    override fun shouldAbortNewSync(): Boolean = SourceManager.isRunningWithoutFailure
 
-    override fun isConnected(): Boolean {
-        return true
-    }
+    override fun isConnected(): Boolean = true
 
     override fun sync(releaseLock: () -> Unit) {
         val ws = ServerConnection(this, releaseLock).start()

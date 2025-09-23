@@ -12,8 +12,8 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
-import org.unifiedpush.distributor.sunup.R
 import org.unifiedpush.android.distributor.ui.R as LibR
+import org.unifiedpush.distributor.sunup.R
 
 @Composable
 fun PrivacyPolicyDialog(onDismiss: () -> Unit) {

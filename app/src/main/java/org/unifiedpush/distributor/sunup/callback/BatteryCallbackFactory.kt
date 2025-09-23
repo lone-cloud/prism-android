@@ -39,16 +39,12 @@ object BatteryCallbackFactory : CallbackFactory<BatteryCallbackFactory.MainBatte
         }
     }
 
-    override fun new(context: Context): MainBatteryCallback {
-        return MainBatteryCallback()
-    }
+    override fun new(context: Context): MainBatteryCallback = MainBatteryCallback()
 
     /**
      * Default to false
      */
     private val lowBattery = AtomicBoolean(false)
 
-    fun isLowBattery(): Boolean {
-        return lowBattery.get()
-    }
+    fun isLowBattery(): Boolean = lowBattery.get()
 }

@@ -52,10 +52,7 @@ sealed class ClientMessage {
      */
     @Serializable
     @SerialName("unregister")
-    class Unregister(
-        val channelID: String,
-        val code: UInt? = null
-    ) : ClientMessage()
+    class Unregister(val channelID: String, val code: UInt? = null) : ClientMessage()
 
     /**
      *     BroadcastSubscribe {

@@ -25,7 +25,11 @@ sealed class ServerMessage {
      */
     @Serializable
     @SerialName("hello")
-    data class Hello(val uaid: String?, val status: UInt, val use_webpush: Boolean) : ServerMessage()
+    data class Hello(
+        val uaid: String?,
+        val status: UInt,
+        val use_webpush: Boolean
+    ) : ServerMessage()
 
     /**
      *     Register {
@@ -38,7 +42,11 @@ sealed class ServerMessage {
      */
     @Serializable
     @SerialName("register")
-    data class Register(val channelID: String, val status: UInt, val pushEndpoint: String) : ServerMessage()
+    data class Register(
+        val channelID: String,
+        val status: UInt,
+        val pushEndpoint: String
+    ) : ServerMessage()
 
     /**
      *     Unregister {

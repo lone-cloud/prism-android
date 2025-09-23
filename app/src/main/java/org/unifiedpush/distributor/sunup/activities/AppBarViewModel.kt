@@ -19,10 +19,7 @@ import org.unifiedpush.distributor.sunup.utils.TAG
  * The AppBar controls the MigrationView model because it provides
  * the migration entry
  */
-class AppBarViewModel(
-    appBarUiState: AppBarUiState,
-    val migrationViewModel: DistribMigrationViewModel
-) : ViewModel() {
+class AppBarViewModel(appBarUiState: AppBarUiState, val migrationViewModel: DistribMigrationViewModel) : ViewModel() {
 
     constructor(
         context: Context,

@@ -16,7 +16,5 @@ object MainRegistrationCounter : RegistrationCounter() {
         UiAction.publish(UiAction.Action.RefreshRegistrations)
     }
 
-    override fun getDb(context: Context): Database {
-        return DatabaseFactory.getDb(context)
-    }
+    override fun getDb(context: Context): Database = DatabaseFactory.getDb(context)
 }
