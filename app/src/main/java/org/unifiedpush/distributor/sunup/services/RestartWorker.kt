@@ -6,6 +6,8 @@ import android.content.Context
 import android.util.Log
 import androidx.work.*
 import org.unifiedpush.distributor.WorkerCompanion
+import org.unifiedpush.distributor.sunup.AppStore
+import org.unifiedpush.distributor.sunup.Distributor
 import org.unifiedpush.distributor.sunup.api.MessageSender
 import org.unifiedpush.distributor.sunup.callback.NetworkCallbackFactory
 import org.unifiedpush.distributor.sunup.utils.TAG
@@ -39,11 +41,22 @@ class RestartWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, params
 
     companion object : WorkerCompanion(RestartWorker::class.java) {
         private val lock = Object()
+
         override fun canRun(context: Context): Boolean {
             // We don't have any credential requirement, if we don't have
             // a uaid yet, it will be created during the initial sync
-            return true
+            // So, as soon as the user hasn't migrated, we can run
+            return !AppStore(context).migrated
         }
+
         override fun isServiceStarted(context: Context): Boolean = FgService.isServiceStarted()
+
+        override fun enableComponents(context: Context) {
+            Distributor.enableComponents(context)
+        }
+
+        override fun disableComponents(context: Context) {
+            Distributor.disableComponents(context)
+        }
     }
 }

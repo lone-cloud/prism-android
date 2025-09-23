@@ -29,6 +29,12 @@ class DistribMigrationViewModel(state: DistribMigrationState) : UPDistribMigrati
         )
     }
 
+    override fun onServiceReactivated() {
+        publishAction(
+            AppAction(AppAction.Action.ReactivateUnifiedPush)
+        )
+    }
+
     fun refreshDistributors(context: Context) {
         refreshDistributors {
             val store = AppStore(context)

@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val viewModel =
                 viewModel {
-                    MainViewModel(this@MainActivity)
+                    MainViewModel.from(this@MainActivity)
                 }.also {
                     viewModel = it
                 }
@@ -58,10 +58,11 @@ class MainActivity : ComponentActivity() {
                             this@MainActivity
                         )
 
-                        UiAction.Action.RefreshDistributors -> viewModel
-                            ?.appBarViewModel
-                            ?.migrationViewModel
-                            ?.refreshDistributors(this@MainActivity)
+                        UiAction.Action.RefreshDistributors ->
+                            viewModel
+                                ?.appBarViewModel
+                                ?.migrationViewModel
+                                ?.refreshDistributors(this@MainActivity)
                     }
                 }
             }

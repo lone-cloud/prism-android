@@ -10,6 +10,8 @@ import org.unifiedpush.distributor.sunup.api.data.ClientMessage
  * These functions are used to send messages to other apps
  */
 object Distributor : UnifiedPushDistributor() {
+    override val receiverComponentName = "org.unifiedpush.distributor.sunup.receivers.RegisterBroadcastReceiver"
+
     override fun getDb(context: Context): Database {
         return DatabaseFactory.getDb(context)
     }

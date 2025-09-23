@@ -17,18 +17,11 @@ import org.unifiedpush.distributor.sunup.activities.ui.MainUiState
 
 class MainViewModel(
     mainUiState: MainUiState,
+    val migrationViewModel: DistribMigrationViewModel,
     val appBarViewModel: AppBarViewModel,
     val batteryOptimisationViewModel: BatteryOptimisationViewModel,
     val registrationsViewModel: RegistrationsViewModel
 ) : ViewModel() {
-    constructor(context: Context) : this(
-        mainUiState = MainUiState(),
-        appBarViewModel = AppBarViewModel(context),
-        batteryOptimisationViewModel = BatteryOptimisationViewModel(context),
-        registrationsViewModel = RegistrationsViewModel(
-            getRegistrationListState(context)
-        )
-    )
 
     var mainUiState by mutableStateOf(mainUiState)
         private set
@@ -43,6 +36,7 @@ class MainViewModel(
         }
         appBarViewModel.migrationViewModel.mayShowFallbackIntro()
     }
+
     fun refreshRegistrations(context: Context) {
         viewModelScope.launch {
             registrationsViewModel.state = getRegistrationListState(context)
@@ -86,5 +80,20 @@ class MainViewModel(
 
     fun dismissDebugInfo() {
         mainUiState = mainUiState.copy(showDebugInfo = false)
+    }
+
+    companion object {
+        fun from(context: Context): MainViewModel {
+            val migrationViewModel = DistribMigrationViewModel(context)
+            return MainViewModel(
+                mainUiState = MainUiState(),
+                migrationViewModel = migrationViewModel,
+                appBarViewModel = AppBarViewModel(context, migrationViewModel),
+                batteryOptimisationViewModel = BatteryOptimisationViewModel(context),
+                registrationsViewModel = RegistrationsViewModel(
+                    getRegistrationListState(context)
+                )
+            )
+        }
     }
 }

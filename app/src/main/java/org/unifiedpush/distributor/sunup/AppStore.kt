@@ -37,6 +37,17 @@ class AppStore(context: Context) : Store(context, PREF_NAME) {
             .apply()
 
     /**
+     * Whether the registrations have been migrated to another app by the user
+     */
+    var migrated: Boolean
+        get() = sharedPreferences
+            .getBoolean(PREF_MIGRATED, false)
+        set(value) = sharedPreferences
+            .edit()
+            .putBoolean(PREF_MIGRATED, value)
+            .apply()
+
+    /**
      * Show toasts when a new app is registered or an error occurred
      */
     var showToasts: Boolean
@@ -57,6 +68,7 @@ class AppStore(context: Context) : Store(context, PREF_NAME) {
         private const val PREF_API_URL = "api_url"
         private const val PREF_FALLBACK_INTRO_SHOWN = "fallback_intro_shown"
         private const val PREF_FALLBACK_SERVICE = "fallback_service"
+        private const val PREF_MIGRATED = "migrated"
         private const val PREF_SHOW_TOASTS = "show_toasts"
     }
 }

@@ -24,9 +24,12 @@ class AppBarViewModel(
     val migrationViewModel: DistribMigrationViewModel
 ) : ViewModel() {
 
-    constructor(context: Context) : this(
+    constructor(
+        context: Context,
+        migrationViewModel: DistribMigrationViewModel
+    ) : this(
         AppBarUiState.from(context),
-        DistribMigrationViewModel(context)
+        migrationViewModel
     )
 
     var state by mutableStateOf(appBarUiState)

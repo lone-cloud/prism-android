@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.unifiedpush.android.distributor.ui.compose.BatteryOptimisationViewModel
 import org.unifiedpush.android.distributor.ui.compose.CardDisableBatteryOptimisation
+import org.unifiedpush.android.distributor.ui.compose.CardDisabledForMigration
 import org.unifiedpush.android.distributor.ui.compose.PermissionsUi
 import org.unifiedpush.android.distributor.ui.compose.RegistrationList
 import org.unifiedpush.android.distributor.ui.compose.RegistrationListHeading
@@ -84,6 +85,13 @@ fun MainUiContent(viewModel: MainViewModel, innerPadding: PaddingValues) {
         ) {
             Spacer(Modifier)
 
+            if (viewModel.migrationViewModel.state.migrated) {
+                CardDisabledForMigration {
+                    viewModel.migrationViewModel.reactivateUnifiedPush()
+                }
+                return
+            }
+
             CardDisableBatteryOptimisation(viewModel.batteryOptimisationViewModel)
 
             RegistrationListHeading(
@@ -131,12 +139,14 @@ fun DebugDialog(onDismissRequest: () -> Unit) {
 @Preview
 @Composable
 fun MainPreview() {
+    val migrationVM = DistribMigrationViewModel(DistribMigrationState())
     MainUi(
         MainViewModel(
             MainUiState(),
+            migrationViewModel = migrationVM,
             AppBarViewModel(
                 AppBarUiState(BuildConfig.DEFAULT_API_URL, false),
-                DistribMigrationViewModel(DistribMigrationState())
+                migrationVM
             ),
             BatteryOptimisationViewModel(true),
             previewRegistrationsViewModel()

@@ -23,6 +23,7 @@ class AppAction(private val action: Action) {
         data object FallbackIntroShown : Action()
         class FallbackDistribSelected(val distributor: String?) : Action()
         class MigrateToDistrib(val distributor: String) : Action()
+        data object ReactivateUnifiedPush : Action()
     }
 
     fun handle(context: Context) {
@@ -34,6 +35,7 @@ class AppAction(private val action: Action) {
             is Action.FallbackIntroShown -> fallbackIntroShown(context)
             is Action.FallbackDistribSelected -> fallbackDistribSelected(context, action)
             is Action.MigrateToDistrib -> migrateToDistrib(context, action)
+            is Action.ReactivateUnifiedPush -> reactivateUnifiedPush(context)
         }
     }
 
@@ -86,6 +88,13 @@ class AppAction(private val action: Action) {
 
     private fun migrateToDistrib(context: Context, action: Action.MigrateToDistrib) {
         Distributor.migrateAll(context, action.distributor)
+        Distributor.disableComponents(context)
+        AppStore(context).migrated = true
+    }
+
+    private fun reactivateUnifiedPush(context: Context) {
+        AppStore(context).migrated = false
+        Distributor.enableComponents(context)
     }
 }
 
