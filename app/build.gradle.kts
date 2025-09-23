@@ -22,7 +22,7 @@ android {
     defaultConfig {
         applicationId = "org.unifiedpush.distributor.sunup"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 10
         versionName = "1.1.0"
 
