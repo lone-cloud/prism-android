@@ -46,6 +46,12 @@ class AppBarViewModel(
         }
     }
 
+    fun togglePrivacyPolicy() {
+        viewModelScope.launch {
+            state = state.copy(showPrivacyPolicy = !state.showPrivacyPolicy)
+        }
+    }
+
     fun newPushServer(url: String) {
         var url = url
         viewModelScope.launch {

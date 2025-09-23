@@ -63,6 +63,9 @@ fun AppBarUi(appBarViewModel: AppBarViewModel) {
                 onDismiss = {
                     appBarViewModel.toggleMenu()
                 },
+                onShowPrivacyPolicy = {
+                    appBarViewModel.togglePrivacyPolicy()
+                },
                 onChangeServer = {
                     appBarViewModel.toggleChangeServer()
                 },
@@ -89,6 +92,11 @@ fun AppBarUi(appBarViewModel: AppBarViewModel) {
     if (state.showMigrations) {
         DistribMigrationUi(appBarViewModel.migrationViewModel)
     }
+    if (state.showPrivacyPolicy) {
+        PrivacyPolicyDialog {
+            appBarViewModel.togglePrivacyPolicy()
+        }
+    }
 }
 
 @Composable
@@ -96,6 +104,7 @@ fun Dropdown(
     expanded: Boolean,
     showToasts: Boolean,
     showMigrations: Boolean,
+    onShowPrivacyPolicy: () -> Unit,
     onRestart: () -> Unit,
     onDismiss: () -> Unit,
     onChangeServer: () -> Unit,
@@ -107,6 +116,15 @@ fun Dropdown(
         expanded = expanded,
         onDismissRequest = onDismiss
     ) {
+        DropdownMenuItem(
+            onClick = {
+                onShowPrivacyPolicy()
+                onDismiss()
+            },
+            text = {
+                Text(stringResource(LibR.string.privacy_policy))
+            }
+        )
         DropdownMenuItem(
             onClick = onRestart,
             text = {

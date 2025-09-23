@@ -9,6 +9,7 @@ data class AppBarUiState(
     val currentApiUrl: String,
     val showToasts: Boolean,
     val menuExpanded: Boolean = false,
+    val showPrivacyPolicy: Boolean = false,
     val showChangeServerDialog: Boolean = false,
     /**
      * Used for the fallback service dialog and migration dialog
