@@ -17,7 +17,7 @@ android {
         includeInBundle = false
     }
 
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "org.unifiedpush.distributor.sunup"

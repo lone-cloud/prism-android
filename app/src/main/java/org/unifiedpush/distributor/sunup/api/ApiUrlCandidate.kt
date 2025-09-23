@@ -1,6 +1,6 @@
 package org.unifiedpush.distributor.sunup.api
 
-import androidx.lifecycle.AtomicReference
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Candidate for a new API url
