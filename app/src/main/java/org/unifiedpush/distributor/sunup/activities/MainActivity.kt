@@ -11,7 +11,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.unifiedpush.distributor.sunup.EventBus
 import org.unifiedpush.distributor.sunup.Migrations
-import org.unifiedpush.distributor.sunup.activities.ui.MainUi
+import org.unifiedpush.distributor.sunup.activities.ui.App
 import org.unifiedpush.distributor.sunup.activities.ui.theme.AppTheme
 import org.unifiedpush.distributor.sunup.services.RestartWorker
 import org.unifiedpush.distributor.sunup.utils.TAG
@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AppTheme {
-                MainUi(MainViewModel.from(this.application))
+                App(ViewModelFactory(this.application))
             }
             subscribeActions()
         }

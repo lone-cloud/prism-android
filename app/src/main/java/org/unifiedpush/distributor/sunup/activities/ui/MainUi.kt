@@ -4,17 +4,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -26,53 +20,33 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.unifiedpush.android.distributor.ui.compose.BatteryOptimisationViewModel
 import org.unifiedpush.android.distributor.ui.compose.CardDisableBatteryOptimisation
 import org.unifiedpush.android.distributor.ui.compose.CardDisabledForMigration
 import org.unifiedpush.android.distributor.ui.compose.PermissionsUi
 import org.unifiedpush.android.distributor.ui.compose.RegistrationList
 import org.unifiedpush.android.distributor.ui.compose.RegistrationListHeading
 import org.unifiedpush.android.distributor.ui.compose.UnregisterBarUi
-import org.unifiedpush.android.distributor.ui.compose.previewRegistrationsViewModel
-import org.unifiedpush.android.distributor.ui.compose.state.DistribMigrationState
-import org.unifiedpush.distributor.sunup.BuildConfig
 import org.unifiedpush.distributor.sunup.EventBus
-import org.unifiedpush.distributor.sunup.activities.AppBarViewModel
-import org.unifiedpush.distributor.sunup.activities.DistribMigrationViewModel
 import org.unifiedpush.distributor.sunup.activities.MainViewModel
+import org.unifiedpush.distributor.sunup.activities.PreviewFactory
 import org.unifiedpush.distributor.sunup.activities.UiAction
 import org.unifiedpush.distributor.sunup.utils.getDebugInfo
 
 @Composable
-fun MainUi(viewModel: MainViewModel) {
-    val state = viewModel.mainUiState
+fun MainAppBar(viewModel: MainViewModel) {
     val registrationsState = viewModel.registrationsViewModel.state
-
-    if (state.showPermissionDialog) {
-        PermissionsUi {
-            viewModel.closePermissionDialog()
-        }
-    }
-
-    Scaffold(
-        topBar = {
-            if (registrationsState.selectionCount > 0) {
-                UnregisterBarUi(
-                    viewModel = viewModel.registrationsViewModel,
-                    onDelete = { viewModel.deleteSelection() }
-                )
-            } else {
-                AppBarUi(viewModel.appBarViewModel)
-            }
-        },
-        contentWindowInsets = WindowInsets.safeDrawing
-    ) { innerPadding ->
-        MainUiContent(viewModel, innerPadding)
+    if (registrationsState.selectionCount > 0) {
+        UnregisterBarUi(
+            viewModel = viewModel.registrationsViewModel,
+            onDelete = { viewModel.deleteSelection() }
+        )
+    } else {
+        MainAppBar(viewModel.appBarViewModel)
     }
 }
 
 @Composable
-fun MainUiContent(viewModel: MainViewModel, innerPadding: PaddingValues) {
+fun MainUiContent(viewModel: MainViewModel) {
     LaunchedEffect(Unit) {
         EventBus.subscribe<UiAction> {
             it.handle { type ->
@@ -85,9 +59,7 @@ fun MainUiContent(viewModel: MainViewModel, innerPadding: PaddingValues) {
     }
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(innerPadding),
+            .fillMaxSize(),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
@@ -122,6 +94,11 @@ fun MainUiContent(viewModel: MainViewModel, innerPadding: PaddingValues) {
             // We don't have copyable endpoint
         }
     }
+    if (viewModel.mainUiState.showPermissionDialog) {
+        PermissionsUi {
+            viewModel.closePermissionDialog()
+        }
+    }
     if (viewModel.mainUiState.showDebugInfo) {
         DebugDialog {
             viewModel.dismissDebugInfo()
@@ -153,17 +130,6 @@ fun DebugDialog(onDismissRequest: () -> Unit) {
 @Preview
 @Composable
 fun MainPreview() {
-    val migrationVM = DistribMigrationViewModel(DistribMigrationState())
-    MainUi(
-        MainViewModel(
-            MainUiState(),
-            migrationViewModel = migrationVM,
-            AppBarViewModel(
-                AppBarUiState(BuildConfig.DEFAULT_API_URL, false),
-                migrationVM
-            ),
-            BatteryOptimisationViewModel(true),
-            previewRegistrationsViewModel(LocalContext.current)
-        )
-    )
+    val vm = PreviewFactory(LocalContext.current).create(MainViewModel::class.java)
+    MainUiContent(vm)
 }

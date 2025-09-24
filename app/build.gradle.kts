@@ -89,5 +89,7 @@ dependencies {
     implementation(libs.androidx.material3.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.ui.tooling.preview.android)
+    implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.androidx.navigation.compose)
     debugImplementation(libs.androidx.ui.tooling)
 }

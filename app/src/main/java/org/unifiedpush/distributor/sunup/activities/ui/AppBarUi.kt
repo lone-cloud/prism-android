@@ -1,8 +1,11 @@
 package org.unifiedpush.distributor.sunup.activities.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
@@ -27,9 +30,13 @@ import org.unifiedpush.distributor.sunup.activities.publishAction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppBarUi(appBarViewModel: AppBarViewModel) {
-    val state = appBarViewModel.state
-
+fun AppBar(
+    @StringRes title: Int,
+    canNavigateBack: Boolean,
+    navigateUp: () -> Unit,
+    modifier: Modifier = Modifier,
+    actions: @Composable RowScope.() -> Unit = {}
+) {
     TopAppBar(
         colors = TopAppBarDefaults
             .topAppBarColors(
@@ -38,9 +45,33 @@ fun AppBarUi(appBarViewModel: AppBarViewModel) {
             ),
         title = {
             Text(
-                stringResource(R.string.app_name)
+                stringResource(title)
             )
         },
+        modifier = modifier,
+        navigationIcon = {
+            if (canNavigateBack) {
+                IconButton(onClick = navigateUp) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(LibR.string.back_button)
+                    )
+                }
+            }
+        },
+        actions = actions
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainAppBar(appBarViewModel: AppBarViewModel) {
+    val state = appBarViewModel.state
+
+    AppBar(
+        R.string.app_name,
+        false,
+        {},
         actions = {
             IconButton(
                 onClick = {
