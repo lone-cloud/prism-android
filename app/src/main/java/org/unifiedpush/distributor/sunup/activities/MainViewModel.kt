@@ -1,6 +1,6 @@
 package org.unifiedpush.distributor.sunup.activities
 
-import android.content.Context
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -20,7 +20,8 @@ class MainViewModel(
     val migrationViewModel: DistribMigrationViewModel,
     val appBarViewModel: AppBarViewModel,
     val batteryOptimisationViewModel: BatteryOptimisationViewModel,
-    val registrationsViewModel: RegistrationsViewModel
+    val registrationsViewModel: RegistrationsViewModel,
+    val application: Application? = null
 ) : ViewModel() {
 
     var mainUiState by mutableStateOf(mainUiState)
@@ -37,15 +38,19 @@ class MainViewModel(
         appBarViewModel.migrationViewModel.mayShowFallbackIntro()
     }
 
-    fun refreshRegistrations(context: Context) {
+    fun refreshRegistrations() {
         viewModelScope.launch {
-            registrationsViewModel.state = getRegistrationListState(context)
+            application?.let {
+                registrationsViewModel.state = getRegistrationListState(it)
+            }
         }
     }
 
-    fun refreshApiUrl(context: Context) {
+    fun refreshApiUrl() {
         viewModelScope.launch {
-            appBarViewModel.state = appBarViewModel.state.copy(currentApiUrl = AppStore(context).apiUrl)
+            application?.let {
+                appBarViewModel.state = appBarViewModel.state.copy(currentApiUrl = AppStore(it).apiUrl)
+            }
         }
     }
 
@@ -83,16 +88,17 @@ class MainViewModel(
     }
 
     companion object {
-        fun from(context: Context): MainViewModel {
-            val migrationViewModel = DistribMigrationViewModel(context)
+        fun from(application: Application): MainViewModel {
+            val migrationViewModel = DistribMigrationViewModel(application)
             return MainViewModel(
                 mainUiState = MainUiState(),
                 migrationViewModel = migrationViewModel,
-                appBarViewModel = AppBarViewModel(context, migrationViewModel),
-                batteryOptimisationViewModel = BatteryOptimisationViewModel(context),
+                appBarViewModel = AppBarViewModel(application, migrationViewModel),
+                batteryOptimisationViewModel = BatteryOptimisationViewModel(application),
                 registrationsViewModel = RegistrationsViewModel(
-                    getRegistrationListState(context)
-                )
+                    getRegistrationListState(application)
+                ),
+                application
             )
         }
     }

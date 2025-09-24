@@ -18,9 +18,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,9 +36,11 @@ import org.unifiedpush.android.distributor.ui.compose.UnregisterBarUi
 import org.unifiedpush.android.distributor.ui.compose.previewRegistrationsViewModel
 import org.unifiedpush.android.distributor.ui.compose.state.DistribMigrationState
 import org.unifiedpush.distributor.sunup.BuildConfig
+import org.unifiedpush.distributor.sunup.EventBus
 import org.unifiedpush.distributor.sunup.activities.AppBarViewModel
 import org.unifiedpush.distributor.sunup.activities.DistribMigrationViewModel
 import org.unifiedpush.distributor.sunup.activities.MainViewModel
+import org.unifiedpush.distributor.sunup.activities.UiAction
 import org.unifiedpush.distributor.sunup.utils.getDebugInfo
 
 @Composable
@@ -69,6 +73,16 @@ fun MainUi(viewModel: MainViewModel) {
 
 @Composable
 fun MainUiContent(viewModel: MainViewModel, innerPadding: PaddingValues) {
+    LaunchedEffect(Unit) {
+        EventBus.subscribe<UiAction> {
+            it.handle { type ->
+                when (type) {
+                    UiAction.Action.RefreshRegistrations -> viewModel.refreshRegistrations()
+                    UiAction.Action.RefreshApiUrl -> viewModel.refreshApiUrl()
+                }
+            }
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -149,7 +163,7 @@ fun MainPreview() {
                 migrationVM
             ),
             BatteryOptimisationViewModel(true),
-            previewRegistrationsViewModel()
+            previewRegistrationsViewModel(LocalContext.current)
         )
     )
 }

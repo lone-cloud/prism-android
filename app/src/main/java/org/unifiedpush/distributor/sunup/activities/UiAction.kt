@@ -7,7 +7,6 @@ import org.unifiedpush.distributor.sunup.EventBus
 
 class UiAction(val action: Action) {
     enum class Action {
-        RefreshDistributors,
         RefreshRegistrations,
         RefreshApiUrl
     }

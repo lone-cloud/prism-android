@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -18,7 +17,6 @@ import org.unifiedpush.distributor.sunup.services.RestartWorker
 import org.unifiedpush.distributor.sunup.utils.TAG
 
 class MainActivity : ComponentActivity() {
-    private var viewModel: MainViewModel? = null
     private var jobs: MutableList<Job> = emptyList<Job>().toMutableList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,14 +27,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            val viewModel =
-                viewModel {
-                    MainViewModel.from(this@MainActivity)
-                }.also {
-                    viewModel = it
-                }
             AppTheme {
-                MainUi(viewModel)
+                MainUi(MainViewModel.from(this.application))
             }
             subscribeActions()
         }
@@ -47,31 +39,11 @@ class MainActivity : ComponentActivity() {
         jobs += CoroutineScope(Dispatchers.IO).launch {
             EventBus.subscribe<AppAction> { it.handle(this@MainActivity) }
         }
-        jobs += CoroutineScope(Dispatchers.IO).launch {
-            EventBus.subscribe<UiAction> {
-                it.handle { type ->
-                    when (type) {
-                        UiAction.Action.RefreshRegistrations -> viewModel?.refreshRegistrations(
-                            this@MainActivity
-                        )
-                        UiAction.Action.RefreshApiUrl -> viewModel?.refreshApiUrl(
-                            this@MainActivity
-                        )
-
-                        UiAction.Action.RefreshDistributors ->
-                            viewModel
-                                ?.appBarViewModel
-                                ?.migrationViewModel
-                                ?.refreshDistributors(this@MainActivity)
-                    }
-                }
-            }
-        }
     }
 
     override fun onResume() {
         Log.d(TAG, "Resumed")
-        viewModel?.refreshRegistrations(this)
+        UiAction.publish(UiAction.Action.RefreshRegistrations)
         super.onResume()
     }
 

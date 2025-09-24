@@ -79,12 +79,12 @@ class AppBarViewModel(appBarUiState: AppBarUiState, val migrationViewModel: Dist
     }
 
     fun toggleSetFallbackServiceDialog() {
-        UiAction.publish(UiAction.Action.RefreshDistributors)
+        migrationViewModel.refreshDistributors()
         migrationViewModel.toggleFallbackSelection()
     }
 
     fun toggleMigrationDialog() {
-        UiAction.publish(UiAction.Action.RefreshDistributors)
+        migrationViewModel.refreshDistributors()
         migrationViewModel.toggleMigrationSelection()
     }
 }
