@@ -48,9 +48,7 @@ class AppAction(private val action: Action) {
     }
 
     private fun newPushServer(context: Context, action: Action.NewPushServer) {
-        ApiUrlCandidate.test(action.url)
-        SourceManager.setFailOnce()
-        RestartWorker.run(context, delay = 0)
+        ApiUrlCandidate.test(context, action.url)
     }
 
     private fun showToasts(context: Context, action: Action.ShowToasts) {

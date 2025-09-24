@@ -1,5 +1,9 @@
 package org.unifiedpush.distributor.sunup.api
 
+import android.content.Context
+import org.unifiedpush.distributor.sunup.DatabaseFactory
+import org.unifiedpush.distributor.sunup.services.RestartWorker
+import org.unifiedpush.distributor.sunup.services.SourceManager
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -16,13 +20,36 @@ sealed class ApiUrlCandidate {
     private data class Testing(val url: String) : ApiUrlCandidate()
 
     companion object {
+        private const val FAKE_TOKEN = "fake_token"
         private var instance = AtomicReference<ApiUrlCandidate>(None)
 
         /**
          * Set [New] candidate for [url]
+         *
+         * 2 strategies to test:
+         * - If there is no registrations, add one and it will try to connect
+         * - Else, fail once and restart
          */
-        fun test(url: String) {
+        fun test(context: Context, url: String) {
             instance.set(New(url))
+            DatabaseFactory.getDb(context).run {
+                if (countApps() == 0) {
+                    // registerApp update the counter which restart the service
+                    registerApp(
+                        context.packageName,
+                        FAKE_TOKEN,
+                        FAKE_TOKEN,
+                        null,
+                        null,
+                        null
+                    )
+                } else {
+                    // Else
+                    SourceManager.setFailOnce()
+                    // We restart in 1sec if it hasn't been replaced until then, as setFailOnce should call RestartWorker.run
+                    RestartWorker.run(context, delay = 1_000)
+                }
+            }
         }
 
         /**
@@ -43,7 +70,8 @@ sealed class ApiUrlCandidate {
          * Returns the url testing if it is a [Testing] candidate
          * and change to a [None] candidate
          */
-        fun finish(): String? {
+        fun finish(context: Context): String? {
+            DatabaseFactory.getDb(context).unregisterApp(FAKE_TOKEN)
             val candidate = instance.get()
             if (candidate is Testing) {
                 instance.set(None)

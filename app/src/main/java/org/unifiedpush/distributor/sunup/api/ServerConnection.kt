@@ -87,7 +87,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     private fun onHello(ws: WebSocket, message: ServerMessage.Hello) {
         Log.d(TAG, "Hello")
         SourceManager.debugStarted()
-        ApiUrlCandidate.finish()?.let {
+        ApiUrlCandidate.finish(context)?.let {
             store.apiUrl = it
             Log.d(TAG, "Successfully using $it")
             Handler(Looper.getMainLooper()).post {
@@ -185,7 +185,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     }
 
     private fun failToUseUrlCandidate(context: Context): Boolean {
-        ApiUrlCandidate.finish()?.let { url ->
+        ApiUrlCandidate.finish(context)?.let { url ->
             Log.d(TAG, "Fail to use $url")
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(
