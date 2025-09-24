@@ -22,7 +22,7 @@ import org.unifiedpush.distributor.sunup.BuildConfig
 fun ChangeServerUi(currentValue: String = BuildConfig.DEFAULT_API_URL, onValueChange: (String) -> Unit = {}) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(
-            stringResource(R.string.custom_push_server)
+            stringResource(R.string.push_server)
         )
         TextField(
             value = currentValue,
@@ -43,7 +43,7 @@ fun ChangeServerDialog(
     var value by remember { mutableStateOf(currentValue) }
     AlertDialog(
         title = {
-            stringResource(R.string.custom_push_server)
+            stringResource(R.string.push_server)
         },
         text = {
             ChangeServerUi(value) {

@@ -24,13 +24,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import org.unifiedpush.android.distributor.ui.compose.AppBar
 import org.unifiedpush.distributor.sunup.R
+import org.unifiedpush.distributor.sunup.activities.DistribMigrationViewModel
 import org.unifiedpush.distributor.sunup.activities.MainViewModel
 import org.unifiedpush.distributor.sunup.activities.PreviewFactory
+import org.unifiedpush.distributor.sunup.activities.SettingsViewModel
+import org.unifiedpush.android.distributor.ui.R as LibR
 
 enum class AppScreen(@StringRes val title: Int) {
     Main(R.string.app_name),
-    Settings(R.string.app_name)
+    Settings(LibR.string.settings)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,12 +70,12 @@ inline fun <reified VM : ViewModel> sharedViewModel(
 
 @Composable
 fun App(factory: ViewModelProvider.Factory, navController: NavHostController = rememberNavController()) {
-    // Get current back stack entry
     val backStackEntry by navController.currentBackStackEntryAsState()
-    // Get the name of the current screen
     val currentScreen = AppScreen.valueOf(
         backStackEntry?.destination?.route ?: AppScreen.Main.name
     )
+    // shared with all views, no need to scope it
+    val migrationViewModel = viewModel<DistribMigrationViewModel>(factory = factory)
 
     Scaffold(
         topBar = {
@@ -82,7 +86,9 @@ fun App(factory: ViewModelProvider.Factory, navController: NavHostController = r
                         currentScreen,
                         factory
                     )?.let {
-                        MainAppBar(it)
+                        MainAppBarOrSelection(it, onGoToSettings = {
+                            navController.navigate(AppScreen.Settings.name)
+                        })
                     }
                 }
                 else -> null
@@ -104,7 +110,12 @@ fun App(factory: ViewModelProvider.Factory, navController: NavHostController = r
         ) {
             composable(route = AppScreen.Main.name) {
                 sharedViewModel<MainViewModel>(navController, currentScreen, factory)?.let {
-                    MainUiContent(it)
+                    MainScreen(it, migrationViewModel)
+                }
+            }
+            composable(route = AppScreen.Settings.name) {
+                sharedViewModel<SettingsViewModel>(navController, currentScreen, factory)?.let {
+                    SettingsScreen(it, migrationViewModel)
                 }
             }
         }

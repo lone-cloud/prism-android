@@ -12,13 +12,10 @@ import kotlinx.coroutines.launch
 import org.unifiedpush.android.distributor.ui.compose.BatteryOptimisationViewModel
 import org.unifiedpush.android.distributor.ui.compose.RegistrationsViewModel
 import org.unifiedpush.android.distributor.ui.compose.state.RegistrationListState
-import org.unifiedpush.distributor.sunup.AppStore
 import org.unifiedpush.distributor.sunup.activities.ui.MainUiState
 
 class MainViewModel(
     mainUiState: MainUiState,
-    val migrationViewModel: DistribMigrationViewModel,
-    val appBarViewModel: AppBarViewModel,
     val batteryOptimisationViewModel: BatteryOptimisationViewModel,
     val registrationsViewModel: RegistrationsViewModel,
     val application: Application? = null
@@ -35,21 +32,12 @@ class MainViewModel(
         viewModelScope.launch {
             mainUiState = mainUiState.copy(showPermissionDialog = false)
         }
-        appBarViewModel.migrationViewModel.mayShowFallbackIntro()
     }
 
     fun refreshRegistrations() {
         viewModelScope.launch {
             application?.let {
                 registrationsViewModel.state = getRegistrationListState(it)
-            }
-        }
-    }
-
-    fun refreshApiUrl() {
-        viewModelScope.launch {
-            application?.let {
-                appBarViewModel.state = appBarViewModel.state.copy(currentApiUrl = AppStore(it).apiUrl)
             }
         }
     }
@@ -87,13 +75,14 @@ class MainViewModel(
         mainUiState = mainUiState.copy(showDebugInfo = false)
     }
 
+    fun restartService() {
+        publishAction(AppAction(AppAction.Action.RestartService))
+    }
+
     companion object {
         fun from(application: Application): MainViewModel {
-            val migrationViewModel = DistribMigrationViewModel(application)
             return MainViewModel(
                 mainUiState = MainUiState(),
-                migrationViewModel = migrationViewModel,
-                appBarViewModel = AppBarViewModel(application, migrationViewModel),
                 batteryOptimisationViewModel = BatteryOptimisationViewModel(application),
                 registrationsViewModel = RegistrationsViewModel(
                     getRegistrationListState(application)

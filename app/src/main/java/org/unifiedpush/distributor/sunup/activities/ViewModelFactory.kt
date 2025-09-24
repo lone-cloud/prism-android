@@ -8,12 +8,16 @@ import org.unifiedpush.android.distributor.ui.compose.BatteryOptimisationViewMod
 import org.unifiedpush.android.distributor.ui.compose.previewRegistrationsViewModel
 import org.unifiedpush.android.distributor.ui.compose.state.DistribMigrationState
 import org.unifiedpush.distributor.sunup.BuildConfig
-import org.unifiedpush.distributor.sunup.activities.ui.AppBarUiState
 import org.unifiedpush.distributor.sunup.activities.ui.MainUiState
+import org.unifiedpush.distributor.sunup.activities.ui.SettingsState
 
 class ViewModelFactory(val application: Application) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
         modelClass.isAssignableFrom(MainViewModel::class.java) -> MainViewModel.from(application)
+        modelClass.isAssignableFrom(SettingsViewModel::class.java) -> SettingsViewModel(
+            application
+        )
+        modelClass.isAssignableFrom(DistribMigrationViewModel::class.java) -> DistribMigrationViewModel(application)
         else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     } as T
 }
@@ -21,17 +25,22 @@ class ViewModelFactory(val application: Application) : ViewModelProvider.Factory
 class PreviewFactory(val context: Context) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
         modelClass.isAssignableFrom(MainViewModel::class.java) -> {
-            val migrationVM = DistribMigrationViewModel(DistribMigrationState())
             MainViewModel(
                 MainUiState(),
-                migrationViewModel = migrationVM,
-                AppBarViewModel(
-                    AppBarUiState(BuildConfig.DEFAULT_API_URL, false),
-                    migrationVM
-                ),
                 BatteryOptimisationViewModel(true),
                 previewRegistrationsViewModel(context)
             )
+        }
+        modelClass.isAssignableFrom(SettingsViewModel::class.java) -> {
+            SettingsViewModel(
+                SettingsState(
+                BuildConfig.DEFAULT_API_URL,
+                    false
+                ),
+            )
+        }
+        modelClass.isAssignableFrom(DistribMigrationViewModel::class.java) -> {
+            DistribMigrationViewModel(DistribMigrationState())
         }
         else -> throw IllegalArgumentException("Unknown ViewModel class")
     } as T

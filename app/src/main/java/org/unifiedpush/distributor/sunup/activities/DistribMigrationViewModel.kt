@@ -5,6 +5,7 @@ import android.content.Context
 import org.unifiedpush.android.distributor.ui.compose.DistribMigrationViewModel as UPDistribMigrationViewModel
 import org.unifiedpush.android.distributor.ui.compose.state.DistribMigrationState
 import org.unifiedpush.distributor.sunup.AppStore
+import org.unifiedpush.distributor.sunup.BuildConfig
 import org.unifiedpush.distributor.utils.listOtherDistributors
 
 class DistribMigrationViewModel(state: DistribMigrationState, val application: Application? = null) : UPDistribMigrationViewModel(state) {
@@ -37,6 +38,16 @@ class DistribMigrationViewModel(state: DistribMigrationState, val application: A
         )
     }
 
+    fun toggleSetFallbackServiceDialog() {
+        refreshDistributors()
+        toggleFallbackSelection()
+    }
+
+    fun toggleMigrationDialog() {
+        refreshDistributors()
+        toggleMigrationSelection()
+    }
+
     fun refreshDistributors() {
         application?.let { context ->
             refreshDistributors {
@@ -63,7 +74,9 @@ class DistribMigrationViewModel(state: DistribMigrationState, val application: A
             }.toSet()
             return DistribMigrationState(
                 distributors,
-                store.fallbackIntroShown
+                store.fallbackIntroShown,
+                migrated = store.migrated,
+                showMigrations = BuildConfig.SUPPORT_MIGRATIONS && distributors.any()
             )
         }
     }
