@@ -47,12 +47,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onResume() {
-        Log.d(TAG, "Resumed")
-        UiAction.publish(UiAction.Action.RefreshRegistrations)
-        super.onResume()
-    }
-
     override fun onDestroy() {
         Log.d(TAG, "Destroy")
         jobs.removeAll {
