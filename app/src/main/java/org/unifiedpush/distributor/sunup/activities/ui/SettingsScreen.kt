@@ -1,5 +1,6 @@
 package org.unifiedpush.distributor.sunup.activities.ui
 
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import org.unifiedpush.android.distributor.ui.compose.AboutHeading
 import org.unifiedpush.android.distributor.ui.compose.DistribMigrationUi
 import org.unifiedpush.android.distributor.ui.compose.Heading
@@ -36,7 +38,11 @@ import org.unifiedpush.distributor.sunup.activities.UiAction
 import org.unifiedpush.android.distributor.ui.R as LibR
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel, migrationViewModel: DistribMigrationViewModel) {
+fun SettingsScreen(
+    viewModel: SettingsViewModel,
+    themeViewModel: ThemeViewModel,
+    migrationViewModel: DistribMigrationViewModel
+) {
     val state = viewModel.state
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
@@ -85,6 +91,17 @@ fun SettingsScreen(viewModel: SettingsViewModel, migrationViewModel: DistribMigr
                 viewModel.toggleShowToasts()
             }
         )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ) {
+            Preference(
+                stringResource(LibR.string.dynamic_colors),
+                stringResource(LibR.string.clicklabel_dynamic_colors),
+                switched = themeViewModel.dynamicColors,
+                onSelect = {
+                    themeViewModel.toggleDynamicColors()
+                }
+            )
+        }
 
         if (migrationViewModel.state.showMigrations) {
             OtherDistribHeading()
@@ -185,7 +202,9 @@ fun Preference(
 @Preview
 @Composable
 fun PreviewSettingsScreen() {
-    val settVM = PreviewFactory(LocalContext.current).create(SettingsViewModel::class.java)
-    val migrationVM = PreviewFactory(LocalContext.current).create(DistribMigrationViewModel::class.java)
-    SettingsScreen(settVM, migrationVM)
+    val factory = PreviewFactory(LocalContext.current)
+    val settVM = viewModel<SettingsViewModel>(factory = factory)
+    val themeVM = viewModel<ThemeViewModel>(factory = factory)
+    val migrationVM = viewModel<DistribMigrationViewModel>(factory = factory)
+    SettingsScreen(settVM, themeVM, migrationVM)
 }

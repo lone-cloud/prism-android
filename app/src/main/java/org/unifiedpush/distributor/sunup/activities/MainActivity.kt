@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -12,6 +13,7 @@ import kotlinx.coroutines.launch
 import org.unifiedpush.distributor.sunup.EventBus
 import org.unifiedpush.distributor.sunup.Migrations
 import org.unifiedpush.distributor.sunup.activities.ui.App
+import org.unifiedpush.distributor.sunup.activities.ui.ThemeViewModel
 import org.unifiedpush.distributor.sunup.activities.ui.theme.AppTheme
 import org.unifiedpush.distributor.sunup.services.RestartWorker
 import org.unifiedpush.distributor.sunup.utils.TAG
@@ -27,8 +29,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            AppTheme {
-                App(ViewModelFactory(this.application))
+            val factory = ViewModelFactory(this.application)
+            val themeViewModel = viewModel<ThemeViewModel>(factory = factory)
+            AppTheme(
+                dynamicColor = themeViewModel.dynamicColors
+            ) {
+                App(factory, themeViewModel)
             }
             subscribeActions()
         }

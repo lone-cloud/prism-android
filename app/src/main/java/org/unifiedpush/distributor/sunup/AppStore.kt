@@ -47,6 +47,14 @@ class AppStore(context: Context) : Store(context, PREF_NAME) {
             .putBoolean(PREF_MIGRATED, value)
             .apply()
 
+    var dynamicColors: Boolean
+        get() = sharedPreferences
+            .getBoolean(PREF_DYNAMIC_COLORS, false)
+        set(value) = sharedPreferences
+            .edit()
+            .putBoolean(PREF_DYNAMIC_COLORS, value)
+            .apply()
+
     /**
      * Show toasts when a new app is registered or an error occurred
      */
@@ -69,6 +77,7 @@ class AppStore(context: Context) : Store(context, PREF_NAME) {
         private const val PREF_FALLBACK_INTRO_SHOWN = "fallback_intro_shown"
         private const val PREF_FALLBACK_SERVICE = "fallback_service"
         private const val PREF_MIGRATED = "migrated"
+        private const val PREF_DYNAMIC_COLORS = "dynamic_colors"
         private const val PREF_SHOW_TOASTS = "show_toasts"
     }
 }

@@ -69,7 +69,11 @@ inline fun <reified VM : ViewModel> sharedViewModel(
 }
 
 @Composable
-fun App(factory: ViewModelProvider.Factory, navController: NavHostController = rememberNavController()) {
+fun App(
+    factory: ViewModelProvider.Factory,
+    themeViewModel: ThemeViewModel = viewModel<ThemeViewModel>(factory = factory),
+    navController: NavHostController = rememberNavController()
+) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = AppScreen.valueOf(
         backStackEntry?.destination?.route ?: AppScreen.Main.name
@@ -115,7 +119,7 @@ fun App(factory: ViewModelProvider.Factory, navController: NavHostController = r
             }
             composable(route = AppScreen.Settings.name) {
                 sharedViewModel<SettingsViewModel>(navController, currentScreen, factory)?.let {
-                    SettingsScreen(it, migrationViewModel)
+                    SettingsScreen(it, themeViewModel, migrationViewModel)
                 }
             }
         }

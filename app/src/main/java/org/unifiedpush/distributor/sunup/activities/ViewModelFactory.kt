@@ -10,6 +10,7 @@ import org.unifiedpush.android.distributor.ui.compose.state.DistribMigrationStat
 import org.unifiedpush.distributor.sunup.BuildConfig
 import org.unifiedpush.distributor.sunup.activities.ui.MainUiState
 import org.unifiedpush.distributor.sunup.activities.ui.SettingsState
+import org.unifiedpush.distributor.sunup.activities.ui.ThemeViewModel
 
 class ViewModelFactory(val application: Application) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
@@ -17,6 +18,7 @@ class ViewModelFactory(val application: Application) : ViewModelProvider.Factory
         modelClass.isAssignableFrom(SettingsViewModel::class.java) -> SettingsViewModel(
             application
         )
+        modelClass.isAssignableFrom(ThemeViewModel::class.java) -> ThemeViewModel(application)
         modelClass.isAssignableFrom(DistribMigrationViewModel::class.java) -> DistribMigrationViewModel(application)
         else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     } as T
@@ -39,6 +41,7 @@ class PreviewFactory(val context: Context) : ViewModelProvider.Factory {
                 ),
             )
         }
+        modelClass.isAssignableFrom(ThemeViewModel::class.java) -> ThemeViewModel()
         modelClass.isAssignableFrom(DistribMigrationViewModel::class.java) -> {
             DistribMigrationViewModel(DistribMigrationState())
         }
