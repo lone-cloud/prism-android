@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import org.unifiedpush.android.distributor.ui.compose.AppBar
 import org.unifiedpush.android.distributor.ui.R as LibR
 import org.unifiedpush.android.distributor.ui.compose.CardDisableBatteryOptimisation
@@ -223,7 +224,8 @@ fun DebugDialog(onDismissRequest: () -> Unit) {
 @Preview
 @Composable
 fun MainPreview() {
-    val mainVM = PreviewFactory(LocalContext.current).create(MainViewModel::class.java)
-    val migrationVM = PreviewFactory(LocalContext.current).create(DistribMigrationViewModel::class.java)
+    val factory = PreviewFactory(LocalContext.current)
+    val mainVM = viewModel<MainViewModel>(factory = factory)
+    val migrationVM = viewModel<DistribMigrationViewModel>(factory = factory)
     MainScreen(mainVM, migrationVM)
 }
