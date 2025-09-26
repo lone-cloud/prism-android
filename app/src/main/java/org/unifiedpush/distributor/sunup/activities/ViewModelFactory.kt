@@ -8,13 +8,13 @@ import org.unifiedpush.android.distributor.ui.compose.BatteryOptimisationViewMod
 import org.unifiedpush.android.distributor.ui.compose.previewRegistrationsViewModel
 import org.unifiedpush.android.distributor.ui.compose.state.DistribMigrationState
 import org.unifiedpush.distributor.sunup.BuildConfig
+import org.unifiedpush.distributor.sunup.activities.ThemeViewModel
 import org.unifiedpush.distributor.sunup.activities.ui.MainUiState
 import org.unifiedpush.distributor.sunup.activities.ui.SettingsState
-import org.unifiedpush.distributor.sunup.activities.ui.ThemeViewModel
 
 class ViewModelFactory(val application: Application) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
-        modelClass.isAssignableFrom(MainViewModel::class.java) -> MainViewModel.from(application)
+        modelClass.isAssignableFrom(MainViewModel::class.java) -> MainViewModel(application)
         modelClass.isAssignableFrom(SettingsViewModel::class.java) -> SettingsViewModel(
             application
         )
@@ -36,9 +36,9 @@ class PreviewFactory(val context: Context) : ViewModelProvider.Factory {
         modelClass.isAssignableFrom(SettingsViewModel::class.java) -> {
             SettingsViewModel(
                 SettingsState(
-                BuildConfig.DEFAULT_API_URL,
+                    BuildConfig.DEFAULT_API_URL,
                     false
-                ),
+                )
             )
         }
         modelClass.isAssignableFrom(ThemeViewModel::class.java) -> ThemeViewModel()

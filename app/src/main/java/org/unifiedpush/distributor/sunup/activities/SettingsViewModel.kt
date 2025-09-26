@@ -7,17 +7,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import java.net.URL
 import kotlinx.coroutines.launch
 import org.unifiedpush.distributor.sunup.AppStore
 import org.unifiedpush.distributor.sunup.BuildConfig
 import org.unifiedpush.distributor.sunup.activities.ui.SettingsState
 import org.unifiedpush.distributor.sunup.utils.TAG
-import java.net.URL
 
-class SettingsViewModel(
-    state: SettingsState,
-    val application: Application? = null
-): ViewModel() {
+class SettingsViewModel(state: SettingsState, val application: Application? = null) : ViewModel() {
     constructor(application: Application) : this(
         SettingsState.from(application),
         application
@@ -26,10 +23,9 @@ class SettingsViewModel(
     var state by mutableStateOf(state)
         private set
 
-
     fun toggleChangeServer() {
         viewModelScope.launch {
-            state = state.copy(showChangeServerDialog = !state.showChangeServerDialog,)
+            state = state.copy(showChangeServerDialog = !state.showChangeServerDialog)
         }
     }
 
@@ -52,7 +48,7 @@ class SettingsViewModel(
                 URL(url)
                 state = state.copy(
                     currentApiUrl = url,
-                    showChangeServerDialog = false,
+                    showChangeServerDialog = false
                 )
                 publishAction(AppAction(AppAction.Action.NewPushServer(url)))
             } catch (e: Exception) {

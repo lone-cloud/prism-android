@@ -159,7 +159,11 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         Distributor.deleteChannelFromServer(context, message.channelID)
     }
 
-    override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+    override fun onClosed(
+        webSocket: WebSocket,
+        code: Int,
+        reason: String
+    ) {
         Log.d(TAG, "onClosed: $webSocket")
         webSocket.cancel()
         releaseLock()
@@ -168,7 +172,11 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         }
     }
 
-    override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+    override fun onFailure(
+        webSocket: WebSocket,
+        t: Throwable,
+        response: Response?
+    ) {
         Log.d(TAG, "onFailure: An error occurred: $t")
         response?.let {
             Log.d(TAG, "onFailure: ${it.code}")

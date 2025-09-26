@@ -25,6 +25,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import org.unifiedpush.android.distributor.ui.R as LibR
 import org.unifiedpush.android.distributor.ui.compose.AboutHeading
 import org.unifiedpush.android.distributor.ui.compose.DistribMigrationUi
 import org.unifiedpush.android.distributor.ui.compose.Heading
@@ -34,8 +35,8 @@ import org.unifiedpush.distributor.sunup.R
 import org.unifiedpush.distributor.sunup.activities.DistribMigrationViewModel
 import org.unifiedpush.distributor.sunup.activities.PreviewFactory
 import org.unifiedpush.distributor.sunup.activities.SettingsViewModel
+import org.unifiedpush.distributor.sunup.activities.ThemeViewModel
 import org.unifiedpush.distributor.sunup.activities.UiAction
-import org.unifiedpush.android.distributor.ui.R as LibR
 
 @Composable
 fun SettingsScreen(
@@ -92,7 +93,7 @@ fun SettingsScreen(
             }
         )
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             Preference(
                 stringResource(LibR.string.dynamic_colors),
                 stringResource(LibR.string.clicklabel_dynamic_colors),
@@ -162,7 +163,7 @@ fun Preference(
     warning: Boolean = false,
     onSelect: () -> Unit
 ) {
-    Row (
+    Row(
         Modifier.clickable(
             true,
             onclickLabel,

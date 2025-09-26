@@ -34,8 +34,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import org.unifiedpush.android.distributor.ui.compose.AppBar
 import org.unifiedpush.android.distributor.ui.R as LibR
+import org.unifiedpush.android.distributor.ui.compose.AppBar
 import org.unifiedpush.android.distributor.ui.compose.CardDisableBatteryOptimisation
 import org.unifiedpush.android.distributor.ui.compose.CardDisabledForMigration
 import org.unifiedpush.android.distributor.ui.compose.DistribMigrationUi
@@ -66,7 +66,6 @@ fun MainAppBarOrSelection(viewModel: MainViewModel, onGoToSettings: () -> Unit) 
         )
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

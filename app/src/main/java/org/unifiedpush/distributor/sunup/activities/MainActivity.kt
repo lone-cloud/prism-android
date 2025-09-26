@@ -12,8 +12,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.unifiedpush.distributor.sunup.EventBus
 import org.unifiedpush.distributor.sunup.Migrations
+import org.unifiedpush.distributor.sunup.activities.ThemeViewModel
 import org.unifiedpush.distributor.sunup.activities.ui.App
-import org.unifiedpush.distributor.sunup.activities.ui.ThemeViewModel
 import org.unifiedpush.distributor.sunup.activities.ui.theme.AppTheme
 import org.unifiedpush.distributor.sunup.services.RestartWorker
 import org.unifiedpush.distributor.sunup.utils.TAG

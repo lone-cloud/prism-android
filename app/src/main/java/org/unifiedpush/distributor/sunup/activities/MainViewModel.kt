@@ -20,6 +20,14 @@ class MainViewModel(
     val registrationsViewModel: RegistrationsViewModel,
     val application: Application? = null
 ) : ViewModel() {
+    constructor(application: Application) : this(
+        mainUiState = MainUiState(),
+        batteryOptimisationViewModel = BatteryOptimisationViewModel(application),
+        registrationsViewModel = RegistrationsViewModel(
+            getRegistrationListState(application)
+        ),
+        application
+    )
 
     var mainUiState by mutableStateOf(mainUiState)
         private set
@@ -77,18 +85,5 @@ class MainViewModel(
 
     fun restartService() {
         publishAction(AppAction(AppAction.Action.RestartService))
-    }
-
-    companion object {
-        fun from(application: Application): MainViewModel {
-            return MainViewModel(
-                mainUiState = MainUiState(),
-                batteryOptimisationViewModel = BatteryOptimisationViewModel(application),
-                registrationsViewModel = RegistrationsViewModel(
-                    getRegistrationListState(application)
-                ),
-                application
-            )
-        }
     }
 }

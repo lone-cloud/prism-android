@@ -1,10 +1,10 @@
 package org.unifiedpush.distributor.sunup.api
 
 import android.content.Context
+import java.util.concurrent.atomic.AtomicReference
 import org.unifiedpush.distributor.sunup.DatabaseFactory
 import org.unifiedpush.distributor.sunup.services.RestartWorker
 import org.unifiedpush.distributor.sunup.services.SourceManager
-import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Candidate for a new API url
