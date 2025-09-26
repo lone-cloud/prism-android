@@ -11,7 +11,7 @@ object MainRegistrationCounter : RegistrationCounter() {
 
     override val workerCompanion = RestartWorker.Companion
 
-    override fun hasFailed(): Boolean = SourceManager.hasFailed
+    override fun hasManyFails(): Boolean = SourceManager.nFails > 1
 
     override fun onCountRefreshed(context: Context) {
         ForegroundNotification(context).update()
