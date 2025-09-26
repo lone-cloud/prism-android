@@ -2,6 +2,13 @@ package org.unifiedpush.distributor.sunup.activities.ui
 
 import android.annotation.SuppressLint
 import androidx.annotation.StringRes
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -50,6 +57,24 @@ private fun DefaultTopBar(
     modifier
 )
 
+private enum class Dir {
+    Left,
+    Right
+}
+
+private fun Dir.transform(it: Int): Int = when (this) {
+    Dir.Left -> it
+    Dir.Right -> -it
+}
+
+private fun slideInTo(dir: Dir): EnterTransition = slideInHorizontally(
+    animationSpec = tween(durationMillis = 200)
+) { dir.transform(it) } + fadeIn(initialAlpha = 1f)
+
+private fun slideOutFrom(dir: Dir): ExitTransition = slideOutHorizontally(
+    animationSpec = tween(durationMillis = 200)
+) { dir.transform(it) } + fadeOut(targetAlpha = 1f)
+
 @Composable
 fun App(
     factory: ViewModelProvider.Factory,
@@ -92,13 +117,33 @@ fun App(
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
         ) {
-            composable(route = AppScreen.Main.name) {
+            composable(
+                route = AppScreen.Main.name,
+                exitTransition = {
+                    when (targetState.destination.route) {
+                        AppScreen.Settings.name -> slideOutFrom(
+                            Dir.Right
+                        )
+                        else -> fadeOut()
+                    }
+                },
+                popEnterTransition = {
+                    when (initialState.destination.route) {
+                        AppScreen.Settings.name -> slideInTo(Dir.Right)
+                        else -> fadeIn()
+                    }
+                }
+            ) {
                 MainScreen(
                     mainViewModel,
                     migrationViewModel
                 )
             }
-            composable(route = AppScreen.Settings.name) {
+            composable(
+                route = AppScreen.Settings.name,
+                enterTransition = { slideInTo(Dir.Left) },
+                popExitTransition = { slideOutFrom(Dir.Left) }
+            ) {
                 val vm = viewModel<SettingsViewModel>(factory = factory)
                 SettingsScreen(vm, themeViewModel, migrationViewModel)
             }
