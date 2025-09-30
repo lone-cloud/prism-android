@@ -1,22 +1,12 @@
 package org.unifiedpush.distributor.sunup.activities.ui
 
-import android.os.Build
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,8 +18,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import org.unifiedpush.android.distributor.ui.R as LibR
 import org.unifiedpush.android.distributor.ui.compose.AboutHeading
 import org.unifiedpush.android.distributor.ui.compose.DistribMigrationUi
+import org.unifiedpush.android.distributor.ui.compose.DynamicColorsPreferences
 import org.unifiedpush.android.distributor.ui.compose.Heading
-import org.unifiedpush.android.distributor.ui.compose.OtherDistribHeading
+import org.unifiedpush.android.distributor.ui.compose.MigrationPreferences
+import org.unifiedpush.android.distributor.ui.compose.Preference
+import org.unifiedpush.android.distributor.ui.compose.ShowToastsPreference
 import org.unifiedpush.distributor.sunup.EventBus
 import org.unifiedpush.distributor.sunup.R
 import org.unifiedpush.distributor.sunup.activities.DistribMigrationViewModel
@@ -79,58 +72,21 @@ fun SettingsScreen(
             }
         )
 
-        Preference(
-            stringResource(LibR.string.show_toasts_label),
-            if (state.showToasts) {
-                stringResource(LibR.string.clicklabel_show_toasts)
-            } else {
-                stringResource(LibR.string.cliclabel_not_show_toasts)
-            },
-            stringResource(LibR.string.show_toasts_description),
-            state.showToasts,
-            onSelect = {
-                viewModel.toggleShowToasts()
-            }
-        )
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            Preference(
-                stringResource(LibR.string.dynamic_colors),
-                stringResource(LibR.string.clicklabel_dynamic_colors),
-                switched = themeViewModel.dynamicColors,
-                onSelect = {
-                    themeViewModel.toggleDynamicColors()
-                }
-            )
+        ShowToastsPreference(viewModel.state.showToasts) {
+            viewModel.toggleShowToasts()
         }
 
-        if (migrationViewModel.state.showMigrations) {
-            OtherDistribHeading()
-
-            Preference(
-                stringResource(LibR.string.dialog_fallback_title),
-                stringResource(LibR.string.clicklabel_select_fallback),
-                stringResource(LibR.string.select_fallback_description),
-                onSelect = {
-                    migrationViewModel.toggleSetFallbackServiceDialog()
-                }
-            )
-
-            Preference(
-                stringResource(LibR.string.dialog_migration_title),
-                stringResource(LibR.string.clicklabel_dialog_to_migrate),
-                stringResource(LibR.string.migration_description),
-                warning = true,
-                onSelect = {
-                    migrationViewModel.toggleMigrationDialog()
-                }
-            )
+        DynamicColorsPreferences(themeViewModel.dynamicColors) {
+            themeViewModel.toggleDynamicColors()
         }
+
+        MigrationPreferences(migrationViewModel)
 
         AboutHeading()
+
         Preference(
             stringResource(LibR.string.privacy_policy),
-            "Todo",
+            stringResource(LibR.string.open_privacy_policy_clicklabel),
             onSelect = {
                 viewModel.togglePrivacyPolicy()
             }
@@ -151,52 +107,6 @@ fun SettingsScreen(
     }
     if (migrationViewModel.state.showMigrations) {
         DistribMigrationUi(migrationViewModel)
-    }
-}
-
-@Composable
-fun Preference(
-    label: String,
-    onclickLabel: String,
-    description: String? = null,
-    switched: Boolean? = null,
-    warning: Boolean = false,
-    onSelect: () -> Unit
-) {
-    Row(
-        Modifier.clickable(
-            true,
-            onclickLabel,
-            onClick = { onSelect() }
-        )
-    ) {
-        Column(
-            Modifier
-                .weight(1f)
-                .align(Alignment.CenterVertically)
-        ) {
-            Text(
-                style = MaterialTheme.typography.titleMedium,
-                text = label,
-                color = if (warning) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    Color.Unspecified
-                }
-            )
-            description?.let {
-                Text(description)
-            } ?: Spacer(Modifier.height(8.dp))
-        }
-        switched?.let {
-            Switch(
-                modifier = Modifier
-                    .scale(0.8f)
-                    .align(Alignment.CenterVertically),
-                checked = switched,
-                onCheckedChange = { onSelect() }
-            )
-        }
     }
 }
 

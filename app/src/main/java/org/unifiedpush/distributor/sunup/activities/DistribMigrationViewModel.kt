@@ -38,17 +38,7 @@ class DistribMigrationViewModel(state: DistribMigrationState, val application: A
         )
     }
 
-    fun toggleSetFallbackServiceDialog() {
-        refreshDistributors()
-        toggleFallbackSelection()
-    }
-
-    fun toggleMigrationDialog() {
-        refreshDistributors()
-        toggleMigrationSelection()
-    }
-
-    fun refreshDistributors() {
+    override fun refreshDistributors() {
         application?.let { context ->
             refreshDistributors {
                 val store = AppStore(context)
@@ -76,7 +66,7 @@ class DistribMigrationViewModel(state: DistribMigrationState, val application: A
                 distributors,
                 store.fallbackIntroShown,
                 migrated = store.migrated,
-                showMigrations = BuildConfig.SUPPORT_MIGRATIONS && distributors.any()
+                featureEnabled = BuildConfig.SUPPORT_MIGRATIONS
             )
         }
     }
