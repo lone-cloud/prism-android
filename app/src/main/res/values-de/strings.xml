@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sunup_privacy_policy">Standardmäßig verwendet %s den Mozilla-Push-Server, der daher deine IP-Adresse kennt.\n\nBei der ersten Verbindung mit dem Server generiert die App eine Identifikationsnummer für dein Gerät, die mit dem Server geteilt wird, um Push-Benachrichtigungen zu erhalten. Diese ID wird für alle folgenden Verbindungen beibehalten, um auch die Benachrichtigungen abrufen zu können, die der Server zwischenspeichert während dein Gerät offline ist.\n\nDer Push-Server speichert das Datum der letzten Verbindung, um ungenutzte Identifikationsnummern entfernen zu können.\n\nDie Mozilla-Server befinden sich in den USA.\n\nWeitere Informationen findest du in der Datenschutzerklärung von Mozilla Firefox – Technische Daten.\n\n</string>
+</resources>

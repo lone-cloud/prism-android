@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sunup_privacy_policy">Par défaut, %s utilise le serveur push de Mozilla qui a donc accès à l\'adresse IP d\'origine des requêtes (provenant de votre téléphone).\n\nLors de la première connexion, l\'application génère un identifiant unique partagé avec le serveur afin de s\'identifier et d\'être reliée aux adresses générées pour les applications. Cet identifiant est conservé lors des reconnexions afin de recevoir les notifications envoyées lorsque l\'appareil est hors ligne.\n\nLe serveur push conserve la date de la dernière connexion afin de pouvoir supprimer les identifiants inutilisés.\n\nLe serveur push Mozilla est hébergé par Google et situé aux États-Unis.\n\nPour plus d\'informations, consultez la politique de confidentialité de Mozilla Firefox - données techniques.\n\n</string>
+</resources>
