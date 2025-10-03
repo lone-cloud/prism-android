@@ -10,6 +10,7 @@ import org.unifiedpush.distributor.sunup.utils.DisconnectedNotification
 
 object SourceManager : SManager<WebSocket>() {
     override val foregroundService = FgService.service
+    override val migrationManager = MigrationManager()
 
     override fun disconnectedNotification(context: Context): AppNotification = DisconnectedNotification(context)
 

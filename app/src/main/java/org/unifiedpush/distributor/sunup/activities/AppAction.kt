@@ -10,6 +10,7 @@ import org.unifiedpush.distributor.sunup.Distributor
 import org.unifiedpush.distributor.sunup.EventBus
 import org.unifiedpush.distributor.sunup.api.ApiUrlCandidate
 import org.unifiedpush.distributor.sunup.services.FgService
+import org.unifiedpush.distributor.sunup.services.MigrationManager
 import org.unifiedpush.distributor.sunup.services.RestartWorker
 import org.unifiedpush.distributor.sunup.services.SourceManager
 import org.unifiedpush.distributor.sunup.utils.TAG
@@ -62,7 +63,7 @@ class AppAction(private val action: Action) {
     }
 
     private fun fallbackIntroShown(context: Context) {
-        AppStore(context).fallbackIntroShown = true
+        MigrationManager().setFallbackIntroShown(context)
     }
 
     /**
@@ -72,27 +73,20 @@ class AppAction(private val action: Action) {
      * we send the endpoint again
      */
     private fun fallbackDistribSelected(context: Context, action: Action.FallbackDistribSelected) {
-        AppStore(context).fallbackService = action.distributor
-        action.distributor?.let {
-            // Fallback is set
-            if (SourceManager.shouldSendFallback) {
-                Distributor.sendTempFallbackToAll(context, it)
-            }
-        } ?: run {
-            // Fallback is disabled
-            Distributor.sendEndpointToAll(context)
-        }
+        MigrationManager()
+            .selectFallbackService(
+                context,
+                action.distributor,
+                SourceManager.shouldSendFallback
+            )
     }
 
     private fun migrateToDistrib(context: Context, action: Action.MigrateToDistrib) {
-        Distributor.migrateAll(context, action.distributor)
-        Distributor.disableComponents(context)
-        AppStore(context).migrated = true
+        MigrationManager().migrate(context, action.distributor)
     }
 
     private fun reactivateUnifiedPush(context: Context) {
-        AppStore(context).migrated = false
-        Distributor.enableComponents(context)
+        MigrationManager().reactivate(context)
     }
 }
 

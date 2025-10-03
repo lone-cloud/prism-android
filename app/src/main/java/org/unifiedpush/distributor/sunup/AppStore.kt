@@ -1,9 +1,12 @@
 package org.unifiedpush.distributor.sunup
 
 import android.content.Context
+import org.unifiedpush.distributor.MigrationManager
 import org.unifiedpush.distributor.Store
 
-class AppStore(context: Context) : Store(context, PREF_NAME) {
+class AppStore(context: Context) :
+    Store(context, PREF_NAME),
+    MigrationManager.MigrationStore {
     var uaid: String?
         get() = sharedPreferences
             .getString(PREF_UAID, null)
@@ -20,7 +23,7 @@ class AppStore(context: Context) : Store(context, PREF_NAME) {
             .putOrRemove(PREF_API_URL, value)
             .apply()
 
-    var fallbackIntroShown: Boolean
+    override var fallbackIntroShown: Boolean
         get() = sharedPreferences
             .getBoolean(PREF_FALLBACK_INTRO_SHOWN, false)
         set(value) = sharedPreferences
@@ -28,7 +31,7 @@ class AppStore(context: Context) : Store(context, PREF_NAME) {
             .putBoolean(PREF_FALLBACK_INTRO_SHOWN, value)
             .apply()
 
-    var fallbackService: String?
+    override var fallbackService: String?
         get() = sharedPreferences
             .getString(PREF_FALLBACK_SERVICE, null)
         set(value) = sharedPreferences
@@ -39,12 +42,23 @@ class AppStore(context: Context) : Store(context, PREF_NAME) {
     /**
      * Whether the registrations have been migrated to another app by the user
      */
-    var migrated: Boolean
+    override var migrated: Boolean
         get() = sharedPreferences
             .getBoolean(PREF_MIGRATED, false)
         set(value) = sharedPreferences
             .edit()
             .putBoolean(PREF_MIGRATED, value)
+            .apply()
+
+    /**
+     * Whether the registrations have been migrated to another app by the user
+     */
+    override var tempMigrated: Boolean
+        get() = sharedPreferences
+            .getBoolean(PREF_TEMP_MIGRATED, false)
+        set(value) = sharedPreferences
+            .edit()
+            .putBoolean(PREF_TEMP_MIGRATED, value)
             .apply()
 
     var dynamicColors: Boolean
@@ -77,6 +91,7 @@ class AppStore(context: Context) : Store(context, PREF_NAME) {
         private const val PREF_FALLBACK_INTRO_SHOWN = "fallback_intro_shown"
         private const val PREF_FALLBACK_SERVICE = "fallback_service"
         private const val PREF_MIGRATED = "migrated"
+        private const val PREF_TEMP_MIGRATED = "temp_migrated"
         private const val PREF_DYNAMIC_COLORS = "dynamic_colors"
         private const val PREF_SHOW_TOASTS = "show_toasts"
     }
