@@ -1,6 +1,7 @@
 package org.unifiedpush.distributor.sunup
 
 import android.content.Context
+import androidx.core.content.edit
 import org.unifiedpush.distributor.MigrationManager
 import org.unifiedpush.distributor.Store
 
@@ -11,33 +12,33 @@ class AppStore(context: Context) :
         get() = sharedPreferences
             .getString(PREF_UAID, null)
         set(value) = sharedPreferences
-            .edit()
-            .putOrRemove(PREF_UAID, value)
-            .apply()
+            .edit {
+                putOrRemove(PREF_UAID, value)
+            }
 
     var apiUrl: String
         get() = sharedPreferences
             .getString(PREF_API_URL, null) ?: BuildConfig.DEFAULT_API_URL
         set(value) = sharedPreferences
-            .edit()
-            .putOrRemove(PREF_API_URL, value)
-            .apply()
+            .edit {
+                putOrRemove(PREF_API_URL, value)
+            }
 
     override var fallbackIntroShown: Boolean
         get() = sharedPreferences
             .getBoolean(PREF_FALLBACK_INTRO_SHOWN, false)
         set(value) = sharedPreferences
-            .edit()
-            .putBoolean(PREF_FALLBACK_INTRO_SHOWN, value)
-            .apply()
+            .edit {
+                putBoolean(PREF_FALLBACK_INTRO_SHOWN, value)
+            }
 
     override var fallbackService: String?
         get() = sharedPreferences
             .getString(PREF_FALLBACK_SERVICE, null)
         set(value) = sharedPreferences
-            .edit()
-            .putOrRemove(PREF_FALLBACK_SERVICE, value)
-            .apply()
+            .edit {
+                putOrRemove(PREF_FALLBACK_SERVICE, value)
+            }
 
     /**
      * Whether the registrations have been migrated to another app by the user
@@ -46,9 +47,9 @@ class AppStore(context: Context) :
         get() = sharedPreferences
             .getBoolean(PREF_MIGRATED, false)
         set(value) = sharedPreferences
-            .edit()
-            .putBoolean(PREF_MIGRATED, value)
-            .apply()
+            .edit {
+                putBoolean(PREF_MIGRATED, value)
+            }
 
     /**
      * Whether the registrations have been migrated to another app by the user
@@ -57,17 +58,17 @@ class AppStore(context: Context) :
         get() = sharedPreferences
             .getBoolean(PREF_TEMP_MIGRATED, false)
         set(value) = sharedPreferences
-            .edit()
-            .putBoolean(PREF_TEMP_MIGRATED, value)
-            .apply()
+            .edit {
+                putBoolean(PREF_TEMP_MIGRATED, value)
+            }
 
     var dynamicColors: Boolean
         get() = sharedPreferences
             .getBoolean(PREF_DYNAMIC_COLORS, false)
         set(value) = sharedPreferences
-            .edit()
-            .putBoolean(PREF_DYNAMIC_COLORS, value)
-            .apply()
+            .edit {
+                putBoolean(PREF_DYNAMIC_COLORS, value)
+            }
 
     /**
      * Show toasts when a new app is registered or an error occurred
@@ -76,9 +77,9 @@ class AppStore(context: Context) :
         get() = sharedPreferences
             .getBoolean(PREF_SHOW_TOASTS, false)
         set(value) = sharedPreferences
-            .edit()
-            .putBoolean(PREF_SHOW_TOASTS, value)
-            .apply()
+            .edit {
+                putBoolean(PREF_SHOW_TOASTS, value)
+            }
 
     override fun wipe() {
         uaid = null
