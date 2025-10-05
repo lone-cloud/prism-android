@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sunup_privacy_policy">Vaikimisi kasutab %s Mozilla tõuketeenuste serverit, millel seetõttu on ligipääs sinu päringute lähteaadressile (sinu nutiseadme IP-aadressile).\n\nEsimese ühenduse ajal loob rakendus unikaalse tunnuse, mida kasutatakse enda tuvastamiseks serveris ja mis seotakse tõuketeenuste jaoks loodud otspunktidega. See tunnus jääb püsivalt kasutusele ka järgnevate ühenduste puhul ja ka teavituste tööshoidmiseks siis, kui sinu seade pole võrgus.\n\nTõuketeenuste server salvestab viimase ühenduse kuupäeva ja see võimaldab kasutamata tunnused eemaldada.\n\nMozilla tõuketeenuste serveril kasutab Google\'i majutusteenust ning asub Ameerika Ühendriikides.\n\nLisateavet leiad Mozilla Firefoxi privaatsusreeglitest ja tehnilisest kirjeldusest.\n\n</string>
+</resources>
