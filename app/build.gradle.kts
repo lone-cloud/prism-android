@@ -57,25 +57,6 @@ android {
     namespace = "org.unifiedpush.distributor.sunup"
 }
 
-if (project.hasProperty("sign")) {
-    android {
-        signingConfigs {
-            create("release") {
-                storeFile = file(System.getenv("RELEASE_STORE_FILE"))
-                storePassword = System.getenv("RELEASE_STORE_PASSWORD")
-                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
-                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
-            }
-        }
-
-        buildTypes {
-            getByName("release") {
-                signingConfig = signingConfigs.getByName("release")
-            }
-        }
-    }
-}
-
 dependencies {
     // implementation(project(":distributor_ui"))
     // implementation(project(":distributor"))
