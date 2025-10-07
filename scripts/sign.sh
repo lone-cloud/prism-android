@@ -12,27 +12,13 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-PASS=$(pass keystore/sunup.key)
-echo "[+] pass copied"
+export KS="$HOME/.password-store/keystore/sunup.jks"
+export KS_PASS=$(pass keystore/sunup.key)
+export KEY_ALIAS="sunup"
+export AAB="$VERSION.aab"
 
-rm -f sunup.apks universal.apks
-
-bundletool build-apks \
-  --bundle="$VERSION.aab" \
-  --ks=$HOME/.password-store/keystore/sunup.jks \
-  --ks-pass="pass:$PASS" \
-  --ks-key-alias=sunup \
-  --output=sunup.apks
-
-bundletool build-apks \
-  --bundle="$VERSION.aab" \
-  --ks=$HOME/.password-store/keystore/sunup.jks \
-  --ks-pass="pass:$PASS" \
-  --ks-key-alias=sunup \
-  --mode=universal \
-  --output=universal.apks
+./gradlew bundletoolBuildApks
 
 unzip -o universal.apks
 mv universal.apk sunup.apk
-rm -f universal.apks "$VERSION.aab"
 echo "[+] Done"
