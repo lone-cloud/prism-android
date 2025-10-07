@@ -1,8 +1,8 @@
 import com.android.SdkConstants
 import com.android.repository.Revision
 import com.android.sdklib.BuildToolInfo
-import org.gradle.kotlin.dsl.register
 import java.nio.file.Paths
+import org.gradle.kotlin.dsl.register
 
 plugins {
     alias(libs.plugins.android.application)
@@ -92,7 +92,7 @@ tasks.register<RunBundletoolTask>("reproduceUniversal") {
     val buildToolsDir = Paths.get(
         androidComponents.sdkComponents.sdkDirectory.get().toString(),
         SdkConstants.FD_BUILD_TOOLS,
-        SdkConstants.CURRENT_BUILD_TOOLS_VERSION,
+        SdkConstants.CURRENT_BUILD_TOOLS_VERSION
     )
     buildToolInfo.set(
         BuildToolInfo.fromStandardDirectoryLayout(
@@ -121,7 +121,7 @@ tasks.register<RunBundletoolTask>("bundletoolBuildApks") {
     val buildToolsDir = Paths.get(
         androidComponents.sdkComponents.sdkDirectory.get().toString(),
         SdkConstants.FD_BUILD_TOOLS,
-        SdkConstants.CURRENT_BUILD_TOOLS_VERSION,
+        SdkConstants.CURRENT_BUILD_TOOLS_VERSION
     )
     buildToolInfo.set(
         BuildToolInfo.fromStandardDirectoryLayout(
