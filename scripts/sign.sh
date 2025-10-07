@@ -17,6 +17,8 @@ export KS_PASS=$(pass keystore/sunup.key)
 export KEY_ALIAS="sunup"
 export AAB="$VERSION.aab"
 
+echo "[+] Pass copied"
+
 ./gradlew bundletoolBuildApks
 
 unzip -o universal.apks
