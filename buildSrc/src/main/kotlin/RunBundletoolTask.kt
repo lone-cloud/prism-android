@@ -1,4 +1,3 @@
-import com.android.SdkConstants
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.repository.Revision
 import com.android.sdklib.BuildToolInfo
@@ -110,16 +109,18 @@ abstract class RunBundletoolTask : DefaultTask() {
     }
 
     companion object {
+        data class BuildTools(val version: String, val fd: String)
+
         @Suppress("NewApi")
-        fun Project.aapt2(androidComponents: ApplicationAndroidComponentsExtension): java.io.File {
+        fun Project.aapt2(androidComponents: ApplicationAndroidComponentsExtension, buildTools: BuildTools): java.io.File {
             val path = if (project.hasProperty("android.aapt2FromMavenOverride")) {
                 project.property("android.aapt2FromMavenOverride") as String
             } else {
-                val buildToolsVersion = SdkConstants.CURRENT_BUILD_TOOLS_VERSION
+                val buildToolsVersion = buildTools.version
                 val buildToolsDir = Paths.get(
                     androidComponents.sdkComponents.sdkDirectory.get().toString(),
-                    SdkConstants.FD_BUILD_TOOLS,
-                    SdkConstants.CURRENT_BUILD_TOOLS_VERSION
+                    buildTools.fd,
+                    buildTools.version
                 )
                 BuildToolInfo.fromStandardDirectoryLayout(
                     Revision.parseRevision(buildToolsVersion),
