@@ -23,4 +23,5 @@ echo "[+] Pass copied"
 
 unzip -o universal.apks
 mv universal.apk sunup.apk
+mv app.apks sunup.apks
 echo "[+] Done"
