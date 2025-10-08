@@ -7,6 +7,7 @@ import com.android.tools.build.bundletool.commands.BuildApksCommand
 import com.android.tools.build.bundletool.model.Password
 import com.android.tools.build.bundletool.model.SigningConfiguration
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.InputFile
@@ -40,7 +41,7 @@ abstract class RunBundletoolTask : DefaultTask() {
     abstract val universalApks: RegularFileProperty
 
     @get:Internal
-    abstract val buildToolInfo: Property<BuildToolInfo>
+    abstract val aapt2: RegularFileProperty
 
     @get:Internal
     abstract val signature: Property<Signature>
@@ -48,10 +49,13 @@ abstract class RunBundletoolTask : DefaultTask() {
     @Suppress("NewApi")
     @TaskAction
     fun generateApks() {
-        val aapt2Path = buildToolInfo.get().getPath(BuildToolInfo.PathId.AAPT2)
-            ?: error("aapt2 not found")
+        val aapt2Path = aapt2.get().asFile.toPath()
+        val aabPath = aabFile.get().asFile.toPath()
 
-        val aapt2Command = Aapt2Command.createFromExecutablePath(Paths.get(aapt2Path))
+        println("➡ Compiling $aabPath")
+        println("➡ Using $aapt2Path")
+
+        val aapt2Command = Aapt2Command.createFromExecutablePath(aapt2Path)
         val signature = signature.get()
         val signingConfig = if (signature is Signature.Signed) {
             SigningConfiguration.extractFromKeystore(
@@ -82,7 +86,7 @@ abstract class RunBundletoolTask : DefaultTask() {
                 .build()
                 .execute()
 
-            println("$outputFile generated")
+            println("✅ $outputFile generated")
         }
         if (defaultApks.isPresent) {
             val outputFile = defaultApks.get().asFile.toPath()
@@ -101,23 +105,28 @@ abstract class RunBundletoolTask : DefaultTask() {
                 .build()
                 .execute()
 
-            println("$outputFile generated")
+            println("✅ $outputFile generated")
         }
     }
 
     companion object {
         @Suppress("NewApi")
-        fun ApplicationAndroidComponentsExtension.buildToolInfo(): BuildToolInfo {
-            val buildToolsVersion = SdkConstants.CURRENT_BUILD_TOOLS_VERSION
-            val buildToolsDir = Paths.get(
-                sdkComponents.sdkDirectory.get().toString(),
-                SdkConstants.FD_BUILD_TOOLS,
-                SdkConstants.CURRENT_BUILD_TOOLS_VERSION
-            )
-            return BuildToolInfo.fromStandardDirectoryLayout(
-                Revision.parseRevision(buildToolsVersion),
-                buildToolsDir
-            )
+        fun Project.aapt2(androidComponents: ApplicationAndroidComponentsExtension): java.io.File {
+            val path = if (project.hasProperty("android.aapt2FromMavenOverride")) {
+                project.property("android.aapt2FromMavenOverride") as String
+            } else {
+                val buildToolsVersion = SdkConstants.CURRENT_BUILD_TOOLS_VERSION
+                val buildToolsDir = Paths.get(
+                    androidComponents.sdkComponents.sdkDirectory.get().toString(),
+                    SdkConstants.FD_BUILD_TOOLS,
+                    SdkConstants.CURRENT_BUILD_TOOLS_VERSION
+                )
+                BuildToolInfo.fromStandardDirectoryLayout(
+                    Revision.parseRevision(buildToolsVersion),
+                    buildToolsDir
+                ).getPath(BuildToolInfo.PathId.AAPT2)
+            }
+            return project.rootDir.resolve(path)
         }
     }
 }
