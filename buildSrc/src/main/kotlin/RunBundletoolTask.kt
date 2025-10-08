@@ -91,7 +91,7 @@ abstract class RunBundletoolTask : DefaultTask() {
                 .setBundlePath(aabFile.get().asFile.toPath())
                 .setOutputFile(outputFile)
                 .setAapt2Command(aapt2Command)
-                .setApkBuildMode(BuildApksCommand.ApkBuildMode.UNIVERSAL)
+                .setApkBuildMode(BuildApksCommand.ApkBuildMode.DEFAULT)
                 .setOverwriteOutput(true)
                 .apply {
                     signingConfig?.let {
