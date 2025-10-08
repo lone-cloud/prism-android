@@ -1,7 +1,4 @@
-import com.android.SdkConstants
-import com.android.repository.Revision
-import com.android.sdklib.BuildToolInfo
-import java.nio.file.Paths
+import RunBundletoolTask.Companion.buildToolInfo
 import org.gradle.kotlin.dsl.register
 
 plugins {
@@ -88,18 +85,7 @@ tasks.register<RunBundletoolTask>("reproduceUniversal") {
     aabFile = project.rootDir.resolve("app/build/outputs/bundle/release/app-release.aab")
     universalApks = project.rootDir.resolve("universal.apks")
     signature.set(RunBundletoolTask.Signature.UnsignedOrDebug)
-    val buildToolsVersion = SdkConstants.CURRENT_BUILD_TOOLS_VERSION
-    val buildToolsDir = Paths.get(
-        androidComponents.sdkComponents.sdkDirectory.get().toString(),
-        SdkConstants.FD_BUILD_TOOLS,
-        SdkConstants.CURRENT_BUILD_TOOLS_VERSION
-    )
-    buildToolInfo.set(
-        BuildToolInfo.fromStandardDirectoryLayout(
-            Revision.parseRevision(buildToolsVersion),
-            buildToolsDir
-        )
-    )
+    buildToolInfo.set(androidComponents.buildToolInfo())
 }
 
 tasks.register<RunBundletoolTask>("bundletoolBuildApks") {
@@ -116,17 +102,5 @@ tasks.register<RunBundletoolTask>("bundletoolBuildApks") {
     val keyAlias = System.getenv("KEY_ALIAS") ?: error("KEY_ALIAS not set")
 
     signature.set(RunBundletoolTask.Signature.Signed(ks, ksPass, keyAlias))
-
-    val buildToolsVersion = SdkConstants.CURRENT_BUILD_TOOLS_VERSION
-    val buildToolsDir = Paths.get(
-        androidComponents.sdkComponents.sdkDirectory.get().toString(),
-        SdkConstants.FD_BUILD_TOOLS,
-        SdkConstants.CURRENT_BUILD_TOOLS_VERSION
-    )
-    buildToolInfo.set(
-        BuildToolInfo.fromStandardDirectoryLayout(
-            Revision.parseRevision(buildToolsVersion),
-            buildToolsDir
-        )
-    )
+    buildToolInfo.set(androidComponents.buildToolInfo())
 }

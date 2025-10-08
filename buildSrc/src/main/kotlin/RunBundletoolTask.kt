@@ -1,3 +1,6 @@
+import com.android.SdkConstants
+import com.android.build.api.variant.ApplicationAndroidComponentsExtension
+import com.android.repository.Revision
 import com.android.sdklib.BuildToolInfo
 import com.android.tools.build.bundletool.androidtools.Aapt2Command
 import com.android.tools.build.bundletool.commands.BuildApksCommand
@@ -99,6 +102,22 @@ abstract class RunBundletoolTask : DefaultTask() {
                 .execute()
 
             println("$outputFile generated")
+        }
+    }
+
+    companion object {
+        @Suppress("NewApi")
+        fun ApplicationAndroidComponentsExtension.buildToolInfo(): BuildToolInfo {
+            val buildToolsVersion = SdkConstants.CURRENT_BUILD_TOOLS_VERSION
+            val buildToolsDir = Paths.get(
+                sdkComponents.sdkDirectory.get().toString(),
+                SdkConstants.FD_BUILD_TOOLS,
+                SdkConstants.CURRENT_BUILD_TOOLS_VERSION
+            )
+            return BuildToolInfo.fromStandardDirectoryLayout(
+                Revision.parseRevision(buildToolsVersion),
+                buildToolsDir
+            )
         }
     }
 }
