@@ -1,4 +1,5 @@
 import RunBundletoolTask.Companion.aapt2
+import com.android.SdkConstants
 import org.gradle.kotlin.dsl.register
 
 plugins {
