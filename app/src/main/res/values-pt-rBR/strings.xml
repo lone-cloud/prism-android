@@ -1,3 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="sunup_privacy_policy">Por padrão, o %s usa o servidor de push da Mozilla, que portanto tem acesso ao endereço de IP de origem das solicitações (do seu celular).\n\nDurante a primeira conexão, o app gera um ID único compartilhado com o servidor utilizado para identificar-se e para ser vinculado com os links de push gerados. Este ID é mantido entre reconexões, com o fim de receber notificações enquanto o dispositivo está off-line.\n\nO servidor de push mantém um registro da data da última conexão, para poder remover IDs não utilizados.\n\nO servidor de push da Mozilla é hospedado pelo Google, e localizado nos Estados Unidos.\n\nPara mais informações, veja a política de privacidade do Mozilla Firefox - dados técnicos.\n\n</string>
 </resources>
