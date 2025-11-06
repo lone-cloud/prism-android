@@ -1,0 +1,5 @@
+Dystrybutor UnifiedPush korzystający z serwera push Mozilli
+
+Aplikacja jest usługą dostarczającą powiadomienia push do aplikacji obsługujących UnifiedPush.
+
+Więcej informacji o UnifiedPush znajdziesz na https://unifiedpush.org .

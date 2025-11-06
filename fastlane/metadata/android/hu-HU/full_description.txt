@@ -1,0 +1,5 @@
+UnifiedPush elosztó, amely a Mozilla push szerverét használja
+
+Ez az almalmazás egy szolgáltatás, amely push értesítéseket küld a UnifiedPush-t támogató alkalmazásoknak.
+
+A UnifiedPush-ról további információkat itt talál: https://unifiedpush.org .

@@ -1,0 +1,5 @@
+Distribuidor do UnifiedPush usando o servidor de push da Mozilla
+
+Este aplicativo é um serviço que fornece notificações push para aplicativos que suportam o UnifiedPush.
+
+Mais informações sobre o UnifiedPush estão em https://unifiedpush.org

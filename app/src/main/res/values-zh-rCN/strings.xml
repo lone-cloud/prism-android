@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sunup_privacy_policy">默认情况下，%s 使用 Mozilla 推送服务器，因此此服务器能够获取请求的原始 IP 地址（来自您的手机）。\n\n首次连接时，应用程序会生成一个唯一 ID 并与服务器共享，用于自我识别并关联到生成的推送端点。此 ID 在重新连接时保持不变，以便在设备离线时接收通知。\n\n推送服务器会记录最后连接日期，以便清理未使用的 ID。\n\nMozilla 推送服务器由 Google 托管，位于美国。\n\n更多信息请参阅 Mozilla Firefox 隐私政策 - 技术数据部分。\n\n</string>
+</resources>

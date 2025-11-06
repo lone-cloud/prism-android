@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sunup_privacy_policy">Alapállapotban, %s a Mozilla push szervereit használja, amelyeknek ezáltal elérhető a (telefonról érkező) lekérések IP címe.\n\nAz első kapcsolódáskor az app generál egy, a szerverrel megosztott, egyedi azonosítót, hogy azonosítsa magát és hozzá legyen kötve a generált push végpontokhoz. Ez az azonosító meg van tartva újracsatlakozáskor, hogy értesítéseket lehessen fogadni akkor is, amikor az eszköz offline.\n\nA push szerver számontartja az utolsó kapcsolódás időpontját, hogy el tudja távolítani a nem használt azonosítókat.\n\nA Mozilla push szervert a Google hosztolja az Amerikai Egyesült Államokban.\n\nTovábbi információkért keresse a Mozilla Firefox adatvédelmi szabályzatát technikai adatokért.\n\n</string>
+</resources>

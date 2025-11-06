@@ -1,0 +1,5 @@
+使用 Mozilla 推送服务器的 UnifiedPush 分发器
+
+此应用是一项服务，为支持 UnifiedPush 的应用程序提供推送通知。
+
+有关 UnifiedPush 的更多信息，请访问 https://unifiedpush.org。
