@@ -1,10 +1,6 @@
 #!/bin/bash -e
 
-[ $# -ne 1 ] && echo "Usage: $0 {version}" && exit 1
-
-VERSION="$1"
-
-[ -f "$VERSION.aab" ] || curl -o "$VERSION.aab" --follow "https://codeberg.org/Sunup/android/releases/download/$VERSION/sunup.aab"
+[ $# -ne 1 ] || [ ! -f $1 ] && echo "Usage: $0 {version.aab}" && exit 1
 
 pass ls | grep sunup.key >/dev/null
 if [ $? -ne 0 ]; then
@@ -15,7 +11,7 @@ fi
 export KS="$HOME/.password-store/keystore/sunup.jks"
 export KS_PASS=$(pass keystore/sunup.key)
 export KEY_ALIAS="sunup"
-export AAB="$VERSION.aab"
+export AAB="$1"
 
 echo "[+] Pass copied"
 
