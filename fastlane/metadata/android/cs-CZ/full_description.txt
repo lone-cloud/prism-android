@@ -1,0 +1,5 @@
+Distributor UnifiedPush používající doručovací server organizace Mozilla
+
+Tato aplikace je službou, která poskytuje doručování oznámení aplikacím podporujícím UnifiedPush.
+
+Více informací o UnifiedPush naleznete na https://unifiedpush.org .
