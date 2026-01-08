@@ -62,8 +62,6 @@ android {
 }
 
 dependencies {
-    // implementation(project(":distributor_ui"))
-    // implementation(project(":distributor"))
     implementation(libs.unifiedpush.distributor)
     implementation(libs.unifiedpush.distributor.ui)
     implementation(libs.androidx.activity.compose)

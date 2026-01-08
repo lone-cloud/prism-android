@@ -1,6 +1,3 @@
-// include(":distributor")
-// include(":distributor_ui")
-
 pluginManagement {
     repositories {
         google()
@@ -19,3 +16,14 @@ dependencyResolutionManagement {
 
 include(":app")
 rootProject.name = "Sunup"
+
+// includeBuild("../android-distributor") {
+//     dependencySubstitution {
+//         substitute(
+//                 module("org.unifiedpush.android:distributor")
+//         ).using(project(":distributor"))
+//         substitute(
+//             module("org.unifiedpush.android:distributor-ui")
+//         ).using(project(":distributor_ui"))
+//     }
+// }
