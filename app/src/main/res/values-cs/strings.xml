@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sunup_privacy_policy">Ve výchozím nastavení používá %s doručovací server organizace Mozilla, který má tím pádem přístup ke zdrojové IP adrese požadavků (z vašeho telefonu).\n\nPři prvním připojení aplikace vygeneruje unikátní ID sdílené se serverem, pomocí kterého se identifikuje a ke kterému jsou přiřazeny vygenerované koncové body doručování. Toto ID je uloženo napříč opětovnými připojeními, abyste získávali oznámení, i když jste offline.\n\nDoručovací server ponechává záznam posledního data připojení, aby byl schopný odstranit nepoužité ID.\n\nDoručovací server organizace Mozilla je hostován společností Google a nachází se v USA.\n\nPro více informací viz zásady ochrany osobních údajů organizace Mozilla – technická data.\n\n</string>
+</resources>
