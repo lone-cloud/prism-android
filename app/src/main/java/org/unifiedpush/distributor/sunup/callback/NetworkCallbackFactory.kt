@@ -16,5 +16,5 @@ object NetworkCallbackFactory : CallbackFactory<NetworkCallbackFactory.MainNetwo
 
     override fun new(context: Context): MainNetworkCallback = MainNetworkCallback(context)
 
-    fun hasInternet(): Boolean = this.instance?.hasInternet() ?: true
+    fun hasInternet(): Boolean = this.instance?.hasInternet ?: true
 }
