@@ -27,7 +27,7 @@ android {
         applicationId = "org.unifiedpush.distributor.sunup"
         minSdk = 24
         targetSdk = 36
-        versionCode = 14
+        versionCode = 15
         versionName = "1.2.3"
 
         // buildConfigField("String", "DEFAULT_API_URL", "\"http://10.0.2.2:8088\"")
