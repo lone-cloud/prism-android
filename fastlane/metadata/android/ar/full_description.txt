@@ -1,0 +1,5 @@
+موزّع UnifiedPush باستخدام خادم دفع Mozilla
+
+هذا التطبيق هو خدمة لتقديم إشعارات الدفع للتطبيقات التي تدعم UnifiedPush.
+
+المزيد من المعلومات حول UnifiedPush على https://unifiedpush.org .
