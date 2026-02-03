@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -114,7 +115,7 @@ fun App(
                 FloatingActionButton(
                     onClick = { mainViewModel.showAddAppDialog() }
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Manual App")
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_manual_app_content_description))
                 }
             }
         },
