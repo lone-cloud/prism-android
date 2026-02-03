@@ -1,0 +1,8 @@
+<network-security-config>
+    <base-config>
+        <trust-anchors>
+            <!-- Trust only system CAs (proper SSL certificates) -->
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
