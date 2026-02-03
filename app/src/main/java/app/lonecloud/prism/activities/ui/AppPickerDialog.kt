@@ -48,7 +48,7 @@ fun AppPickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        modifier = Modifier.fillMaxWidth(0.98f),
+        modifier = Modifier.fillMaxWidth(),
         title = { Text(stringResource(R.string.select_target_app_title)) },
         text = {
             Column {
