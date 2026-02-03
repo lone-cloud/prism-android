@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="prism_server_url_label">Prism Server URL</string>
+    <string name="prism_server_url_placeholder">https://your-prism-server.com</string>
+    <string name="prism_api_key_label">Prism API Key</string>
+    <string name="prism_api_key_placeholder">Your API key</string>
+    <string name="restart_service_button">Restart Push Service</string>
+    <string name="configure_server">Configure Server</string>
+    <string name="prism_server_configured">Prism Server: %s</string>
+    <string name="prism_server_not_configured">Not configured</string>
+    <string name="debug_title">Debug</string>
+    <string name="add_custom_app_title">Add Custom App</string>
+    <string name="app_name_label">App Name</string>
+    <string name="app_name_placeholder">e.g., notifications</string>
+    <string name="add_button">Add</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="select_target_app_title">Select Target App</string>
+    <string name="search_apps_label">Search apps</string>
+    <string name="search_apps_placeholder">App name or package</string>
+    <string name="testing_connection">Testing connection…</string>
+    <string name="connection_successful">Connection successful!</string>
+    <string name="connection_failed">Connection failed: %s</string>
+    <string name="save_button">Save</string>
+    <string name="test_and_save_button">Test &amp; Save</string>
+    <string name="target_app_label">Target App</string>
+    <string name="select_an_app">Select an app</string>
+    <string name="app_dropdown_show_toasts">Show Toasts</string>
+    <string name="bar_unregister_title">Unregister</string>
+    <string name="dialog_unregistering_content">Unregistering…</string>
+    <string name="foreground_notif_ticker">Foreground Service</string>
+    <string name="warning_notif_ticker">Warning</string>
+</resources>

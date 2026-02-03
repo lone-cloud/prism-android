@@ -1,0 +1,37 @@
+build:
+  maxIssues: 1000
+
+style:
+  MagicNumber:
+    active: false
+  ForbiddenComment:
+    active: false
+  UnusedImports:
+    active: false
+  UnusedPrivateMember:
+    active: true
+  UnusedPrivateClass:
+    active: true
+  MaxLineLength:
+    active: false
+  WildcardImport:
+    active: false
+
+naming:
+  FunctionNaming:
+    active: true
+    ignoreAnnotated: ['Composable']
+
+complexity:
+  LongMethod:
+    active: false
+  TooManyFunctions:
+    active: false
+
+potential-bugs:
+  UnsafeCast:
+    active: false
+
+comments:
+  CommentOverPrivateFunction:
+    active: false

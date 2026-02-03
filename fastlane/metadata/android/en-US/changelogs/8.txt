@@ -1,0 +1,2 @@
+- Fix network callback
+- Add et, in, uk translations
