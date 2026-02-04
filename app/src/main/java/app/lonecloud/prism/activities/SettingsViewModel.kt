@@ -36,6 +36,8 @@ class SettingsViewModel(state: SettingsState, val application: Application? = nu
                 if (trimmedUrl.isNotBlank() && state.prismApiKey.isNotBlank()) {
                     publishAction(AppAction(AppAction.Action.RegisterPrismServer))
                 }
+
+                UiAction.publish(UiAction.Action.UpdatePrismServerConfigured)
             }
         }
     }
@@ -50,6 +52,8 @@ class SettingsViewModel(state: SettingsState, val application: Application? = nu
                 if (state.prismServerUrl.isNotBlank() && trimmedKey.isNotBlank()) {
                     publishAction(AppAction(AppAction.Action.RegisterPrismServer))
                 }
+
+                UiAction.publish(UiAction.Action.UpdatePrismServerConfigured)
             }
         }
     }

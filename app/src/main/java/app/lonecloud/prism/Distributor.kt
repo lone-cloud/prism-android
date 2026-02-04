@@ -27,7 +27,7 @@ object Distributor : UnifiedPushDistributor() {
             context,
             ClientMessage.Register(
                 channelID = uuid,
-                key = null
+                key = vapid
             )
         )
     }

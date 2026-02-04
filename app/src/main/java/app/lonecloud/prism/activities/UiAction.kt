@@ -7,7 +7,8 @@ import kotlinx.coroutines.launch
 
 class UiAction(val action: Action) {
     enum class Action {
-        RefreshRegistrations
+        RefreshRegistrations,
+        UpdatePrismServerConfigured
     }
 
     fun handle(action: (Action) -> Unit) {

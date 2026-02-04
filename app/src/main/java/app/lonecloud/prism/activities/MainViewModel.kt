@@ -12,13 +12,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.lonecloud.prism.AppStore
 import app.lonecloud.prism.DatabaseFactory
+import app.lonecloud.prism.EncryptionKeyStore
+import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.activities.ui.InstalledApp
 import app.lonecloud.prism.activities.ui.MainUiState
 import app.lonecloud.prism.api.MessageSender
 import app.lonecloud.prism.api.data.ClientMessage
-import app.lonecloud.prism.sup.PrismServerClient
 import app.lonecloud.prism.utils.TAG
+import app.lonecloud.prism.utils.VapidKeyGenerator
+import app.lonecloud.prism.utils.WebPushEncryptionKeys
 import java.util.UUID
 import kotlinx.coroutines.launch
 import org.unifiedpush.android.distributor.ui.compose.BatteryOptimisationViewModel
@@ -32,7 +36,10 @@ class MainViewModel(
     val application: Application? = null
 ) : ViewModel() {
     constructor(application: Application) : this(
-        mainUiState = MainUiState(),
+        mainUiState = MainUiState(
+            prismServerConfigured = !AppStore(application).prismServerUrl.isNullOrBlank() &&
+                !AppStore(application).prismApiKey.isNullOrBlank()
+        ),
         batteryOptimisationViewModel = BatteryOptimisationViewModel(application),
         registrationsViewModel = RegistrationsViewModel(
             getRegistrationListState(application)
@@ -41,7 +48,10 @@ class MainViewModel(
     )
 
     var mainUiState by mutableStateOf(mainUiState)
-        private set
+
+    fun updatePrismServerConfigured(configured: Boolean) {
+        mainUiState = mainUiState.copy(prismServerConfigured = configured)
+    }
 
     private var lastDebugClickTime by mutableLongStateOf(0L)
 
@@ -178,32 +188,34 @@ class MainViewModel(
 
                 Log.d(TAG, "Creating manual app: $name, token: $connectorToken")
 
+                val vapidKeys = VapidKeyGenerator.generateKeyPair()
+                val encryptionKeys = WebPushEncryptionKeys.generateKeySet()
+
+                val keyStore = EncryptionKeyStore(app)
+                keyStore.storeKeys(channelId, encryptionKeys.privateKey, encryptionKeys.authBytes, encryptionKeys.p256dh)
+
                 val db = DatabaseFactory.getDb(app)
                 db.registerApp(
                     app.packageName,
                     connectorToken,
                     channelId,
                     name,
-                    null,
+                    vapidKeys.publicKey,
                     fullDescription
                 )
 
-                Log.d(TAG, "App registered in DB, sending register message to push server")
-
-                // Send register message directly to existing websocket connection
                 MessageSender.send(
                     app,
                     ClientMessage.Register(
                         channelID = channelId,
-                        key = null
+                        key = vapidKeys.publicKey
                     )
                 )
 
                 refreshRegistrations()
                 hideAddAppDialog()
 
-                // Wait for endpoint and register with sup server
-                var endpoint: String? = null
+                var endpoint: String?
                 var attempts = 0
                 repeat(60) {
                     kotlinx.coroutines.delay(500)
@@ -214,11 +226,13 @@ class MainViewModel(
                     }
                     if (endpoint != null) {
                         Log.d(TAG, "Endpoint received after $attempts attempts: $endpoint")
-                        // Register with sup server
                         PrismServerClient.registerApp(
                             app,
                             name,
-                            endpoint!!
+                            endpoint!!,
+                            vapidPrivateKey = vapidKeys.privateKey,
+                            p256dh = encryptionKeys.p256dh,
+                            auth = encryptionKeys.auth
                         )
                         return@launch
                     }

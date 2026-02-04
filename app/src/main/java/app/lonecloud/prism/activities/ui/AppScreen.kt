@@ -111,7 +111,7 @@ fun App(
             )
         },
         floatingActionButton = {
-            if (currentScreen == AppScreen.Main) {
+            if (currentScreen == AppScreen.Main && mainViewModel.mainUiState.prismServerConfigured) {
                 FloatingActionButton(
                     onClick = { mainViewModel.showAddAppDialog() }
                 ) {

@@ -13,5 +13,6 @@ data class MainUiState(
     val isLoadingEndpoint: Boolean = false,
     val currentEndpoint: String = "",
     val showAddAppDialog: Boolean = false,
-    val installedApps: List<InstalledApp> = emptyList()
+    val installedApps: List<InstalledApp> = emptyList(),
+    val prismServerConfigured: Boolean = false
 )

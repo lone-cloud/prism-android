@@ -5,8 +5,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.lonecloud.prism.AppStore
+import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.Distributor
 import app.lonecloud.prism.EventBus
+import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.services.FgService
 import app.lonecloud.prism.services.MigrationManager
 import app.lonecloud.prism.services.RestartWorker
@@ -52,8 +54,16 @@ class AppAction(private val action: Action) {
     }
 
     private fun deleteRegistration(context: Context, action: Action.DeleteRegistration) {
-        action.registrations.forEach {
-            Distributor.deleteApp(context, it)
+        action.registrations.forEach { token ->
+            val db = DatabaseFactory.getDb(context)
+            val dbApp = db.listApps().find { it.connectorToken == token }
+
+            if (dbApp?.description?.startsWith("target:") == true) {
+                val appName = dbApp.title ?: dbApp.packageName
+                PrismServerClient.deleteApp(context, appName)
+            }
+
+            Distributor.deleteApp(context, token)
         }
     }
 
@@ -85,7 +95,7 @@ class AppAction(private val action: Action) {
     }
 
     private fun registerPrismServer(context: Context) {
-        app.lonecloud.prism.sup.PrismServerClient.registerAllApps(context)
+        app.lonecloud.prism.PrismServerClient.registerAllApps(context)
     }
 }
 

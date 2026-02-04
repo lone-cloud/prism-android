@@ -10,6 +10,7 @@ import app.lonecloud.prism.AppStore
 import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.Distributor
 import app.lonecloud.prism.Distributor.sendMessage
+import app.lonecloud.prism.EncryptionKeyStore
 import app.lonecloud.prism.api.data.ClientMessage
 import app.lonecloud.prism.api.data.ServerMessage
 import app.lonecloud.prism.callback.NetworkCallbackFactory
@@ -17,6 +18,7 @@ import app.lonecloud.prism.services.FgService
 import app.lonecloud.prism.services.RestartWorker
 import app.lonecloud.prism.services.SourceManager
 import app.lonecloud.prism.utils.TAG
+import app.lonecloud.prism.utils.WebPushDecryptor
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -122,10 +124,50 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     }
 
     private fun onNotification(webSocket: WebSocket, message: ServerMessage.Notification) {
+        val encryptedData = Base64.decode(message.data, Base64.URL_SAFE)
+
+        val db = DatabaseFactory.getDb(context)
+        val app = db.listApps().find { app ->
+            app.description?.startsWith("target:") == true
+        }
+
+        val decryptedData = if (app != null) {
+            val keyStore = EncryptionKeyStore(context)
+            val keys = keyStore.getKeys(message.channelID)
+
+            if (keys != null) {
+                val (privateKeyBytes, authSecret, publicKey) = keys
+
+                try {
+                    val publicKeyBytes = Base64.decode(publicKey, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+
+                    val decrypted = WebPushDecryptor.decrypt(
+                        encryptedData,
+                        privateKeyBytes,
+                        publicKeyBytes,
+                        authSecret
+                    )
+
+                    decrypted ?: run {
+                        Log.e(TAG, "Decryption failed for channel ${message.channelID}")
+                        encryptedData
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Decryption error for channel ${message.channelID}: ${e.message}")
+                    encryptedData
+                }
+            } else {
+                Log.d(TAG, "No encryption keys found for manual app ${message.channelID}, message may be unencrypted")
+                encryptedData
+            }
+        } else {
+            encryptedData
+        }
+
         sendMessage(
             context,
             message.channelID,
-            Base64.decode(message.data, Base64.URL_SAFE)
+            decryptedData
         )
         ClientMessage.Ack(
             arrayOf(ClientMessage.ClientAck(message.channelID, message.version))
