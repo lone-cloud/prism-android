@@ -1,4 +1,4 @@
-package app.lonecloud.prism.sup
+package app.lonecloud.prism
 
 import android.content.Context
 import android.util.Base64
@@ -32,7 +32,10 @@ object PrismServerClient {
     fun registerApp(
         context: Context,
         appName: String,
-        upEndpoint: String,
+        webpushUrl: String,
+        vapidPrivateKey: String? = null,
+        p256dh: String? = null,
+        auth: String? = null,
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
@@ -49,17 +52,20 @@ object PrismServerClient {
             try {
                 val json = JSONObject().apply {
                     put("appName", appName)
-                    put("upEndpoint", upEndpoint)
+                    put("webpushUrl", webpushUrl)
+                    vapidPrivateKey?.let { put("vapidPrivateKey", it) }
+                    p256dh?.let { put("p256dh", it) }
+                    auth?.let { put("auth", it) }
                 }
 
                 val request = Request.Builder()
-                    .url("$serverUrl/api/webhook/register")
+                    .url("$serverUrl/webpush/app")
                     .addHeader("Authorization", getAuthHeader(apiKey))
                     .addHeader("Content-Type", "application/json")
                     .post(json.toString().toRequestBody("application/json".toMediaType()))
                     .build()
 
-                Log.d(TAG, "Registering app with sup server: $appName -> $upEndpoint")
+                Log.d(TAG, "Registering app with Prism server: $appName -> $webpushUrl")
 
                 client.newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
@@ -96,7 +102,7 @@ object PrismServerClient {
 
                 val manualApps = apps.filter { it.description?.startsWith("target:") == true }
 
-                Log.d(TAG, "Registering ${manualApps.size} manual apps with sup server")
+                Log.d(TAG, "Registering ${manualApps.size} manual apps with Prism server")
 
                 manualApps.forEach { app ->
                     app.endpoint?.let { endpoint ->
@@ -110,6 +116,84 @@ object PrismServerClient {
                 }
             } catch (e: IOException) {
                 Log.e(TAG, "Error during bulk registration: ${e.message}", e)
+            }
+        }
+    }
+
+    fun deleteApp(
+        context: Context,
+        appName: String,
+        serverUrl: String? = null,
+        apiKey: String? = null,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        val store = AppStore(context)
+        val url = serverUrl ?: store.prismServerUrl
+        val key = apiKey ?: store.prismApiKey
+
+        if (url.isNullOrBlank() || key.isNullOrBlank()) {
+            Log.d(TAG, "Prism server not configured, skipping deletion")
+            return
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val request = Request.Builder()
+                    .url("$url/webpush/app/$appName")
+                    .addHeader("Authorization", getAuthHeader(key))
+                    .delete()
+                    .build()
+
+                Log.d(TAG, "Deleting app from Prism server: $appName")
+
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        Log.d(TAG, "Successfully deleted app: $appName")
+                        onSuccess()
+                    } else {
+                        val error = "Failed to delete app: ${response.code} ${response.message}"
+                        Log.e(TAG, error)
+                        onError(error)
+                    }
+                }
+            } catch (e: IOException) {
+                val error = "Error deleting app: ${e.message}"
+                Log.e(TAG, error, e)
+                onError(error)
+            }
+        }
+    }
+
+    fun deleteAllApps(
+        context: Context,
+        serverUrl: String? = null,
+        apiKey: String? = null
+    ) {
+        val store = AppStore(context)
+        val url = serverUrl ?: store.prismServerUrl
+        val key = apiKey ?: store.prismApiKey
+
+        if (url.isNullOrBlank() || key.isNullOrBlank()) {
+            Log.d(TAG, "Prism server not configured, skipping bulk deletion")
+            return
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val db = DatabaseFactory.getDb(context)
+                val apps = db.listApps()
+
+                val manualApps = apps.filter { it.description?.startsWith("target:") == true }
+
+                Log.d(TAG, "Deleting ${manualApps.size} manual apps from Prism server")
+
+                manualApps.forEach { app ->
+                    val appName = app.title ?: app.packageName
+                    deleteApp(context, appName, url, key)
+                }
+            } catch (e: IOException) {
+                Log.e(TAG, "Error during bulk deletion: ${e.message}", e)
             }
         }
     }

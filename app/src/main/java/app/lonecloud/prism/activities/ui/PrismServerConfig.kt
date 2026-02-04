@@ -80,6 +80,7 @@ fun PrismServerConfigDialog(
     var apiKey by remember { mutableStateOf("") }
     var isTesting by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<String?>(null) }
+    var showServerChangeWarning by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     AlertDialog(
@@ -149,8 +150,28 @@ fun PrismServerConfigDialog(
                         onDismiss()
                         return@Button
                     }
+                    val isServerChanging = initialUrl.isNotBlank() && url.trim() != initialUrl
+                    if (isServerChanging) {
+                        val db = app.lonecloud.prism.DatabaseFactory.getDb(context)
+                        val manualAppsCount = db.listApps()
+                            .count { it.description?.startsWith("target:") == true }
+                        if (manualAppsCount > 0) {
+                            val oldUrl = initialUrl
+                            val oldKey = app.lonecloud.prism.AppStore(context).prismApiKey
+                            if (!oldUrl.isNullOrBlank() && !oldKey.isNullOrBlank()) {
+                                app.lonecloud.prism.PrismServerClient.deleteAllApps(
+                                    context,
+                                    serverUrl = oldUrl,
+                                    apiKey = oldKey
+                                )
+                            }
+                            showServerChangeWarning = true
+                            return@Button
+                        }
+                    }
+
                     isTesting = true
-                    app.lonecloud.prism.sup.PrismServerClient.testConnection(
+                    app.lonecloud.prism.PrismServerClient.testConnection(
                         url,
                         apiKey,
                         onSuccess = {
@@ -175,4 +196,51 @@ fun PrismServerConfigDialog(
             }
         }
     )
+
+    if (showServerChangeWarning) {
+        val db = app.lonecloud.prism.DatabaseFactory.getDb(context)
+        val manualAppsCount = db.listApps()
+            .count { it.description?.startsWith("target:") == true }
+
+        AlertDialog(
+            onDismissRequest = { showServerChangeWarning = false },
+            title = { Text("Change Prism Server?") },
+            text = {
+                Text(
+                    "You have $manualAppsCount manual app${if (manualAppsCount == 1) "" else "s"}" +
+                        " registered with the current server.\n\n" +
+                        "Changing to $url will delete registrations from the old server" +
+                        " and re-register with the new one."
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showServerChangeWarning = false
+                        isTesting = true
+                        app.lonecloud.prism.PrismServerClient.testConnection(
+                            url,
+                            apiKey,
+                            onSuccess = {
+                                isTesting = false
+                                testResult = "Connection successful"
+                                onSave(url, apiKey)
+                            },
+                            onError = { error ->
+                                isTesting = false
+                                testResult = "Connection failed: $error"
+                            }
+                        )
+                    }
+                ) {
+                    Text("Continue")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showServerChangeWarning = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 }

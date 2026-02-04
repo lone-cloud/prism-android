@@ -98,6 +98,7 @@ android {
 dependencies {
     implementation(libs.unifiedpush.distributor)
     implementation(libs.unifiedpush.distributor.ui)
+    implementation(libs.tink.android)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.work.runtime.ktx)

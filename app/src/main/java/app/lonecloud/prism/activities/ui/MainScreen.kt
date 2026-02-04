@@ -24,6 +24,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.lonecloud.prism.AppStore
 import app.lonecloud.prism.EventBus
 import app.lonecloud.prism.R
 import app.lonecloud.prism.activities.DistribMigrationViewModel
@@ -83,6 +84,15 @@ fun MainScreen(viewModel: MainViewModel, migrationViewModel: DistribMigrationVie
             it.handle { type ->
                 when (type) {
                     UiAction.Action.RefreshRegistrations -> viewModel.refreshRegistrations()
+                    UiAction.Action.UpdatePrismServerConfigured -> {
+                        viewModel.application?.let { app ->
+                            val store = AppStore(app)
+                            viewModel.updatePrismServerConfigured(
+                                !store.prismServerUrl.isNullOrBlank() &&
+                                    !store.prismApiKey.isNullOrBlank()
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -103,12 +113,12 @@ fun MainScreen(viewModel: MainViewModel, migrationViewModel: DistribMigrationVie
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+        ) innerColumn@{
             if (migrationViewModel.state.migrated) {
                 CardDisabledForMigration {
                     migrationViewModel.reactivateUnifiedPush()
                 }
-                return@Column
+                return@innerColumn
             }
 
             CardDisableBatteryOptimisation(viewModel.batteryOptimisationViewModel)
