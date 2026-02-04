@@ -127,8 +127,11 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         val encryptedData = Base64.decode(message.data, Base64.URL_SAFE)
 
         val db = DatabaseFactory.getDb(context)
-        val app = db.listApps().find { app ->
-            app.description?.startsWith("target:") == true
+        val allApps = db.listApps()
+        val app = allApps.find { appEntry ->
+            db.listChannelIdVapid().any { (channelId, _) ->
+                channelId == message.channelID && appEntry.description?.startsWith("target:") == true
+            }
         }
 
         val decryptedData = if (app != null) {
