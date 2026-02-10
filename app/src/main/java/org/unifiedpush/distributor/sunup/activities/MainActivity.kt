@@ -12,7 +12,6 @@ import org.unifiedpush.android.distributor.ipc.subscribeUiActions
 import org.unifiedpush.android.distributor.ui.screen.App
 import org.unifiedpush.android.distributor.ui.vm.ThemeViewModel
 import org.unifiedpush.android.distributor.ui.vm.ViewModelFactory
-import org.unifiedpush.distributor.sunup.Migrations
 import org.unifiedpush.distributor.sunup.SunupAppConfig
 import org.unifiedpush.distributor.sunup.activities.ui.theme.AppTheme
 import org.unifiedpush.distributor.sunup.utils.TAG
@@ -21,7 +20,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Migrations(this).run()
         val messenger = InternalMessenger(this)
         val uiFlow = subscribeUiActions(this)
         val appConfig = SunupAppConfig()

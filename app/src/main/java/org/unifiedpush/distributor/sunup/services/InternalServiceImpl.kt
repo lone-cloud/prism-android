@@ -17,6 +17,7 @@ import org.unifiedpush.distributor.sunup.AppStore
 import org.unifiedpush.distributor.sunup.BuildConfig
 import org.unifiedpush.distributor.sunup.DatabaseFactory
 import org.unifiedpush.distributor.sunup.Distributor
+import org.unifiedpush.distributor.sunup.Migrations
 import org.unifiedpush.distributor.sunup.api.ApiUrlCandidate
 import org.unifiedpush.distributor.sunup.api.ServerConnection
 
@@ -42,6 +43,8 @@ class InternalServiceImpl : InternalService() {
             "Last Event: $date\n" +
             org.unifiedpush.distributor.sunup.services.SourceManager.getDebugInfo()
     }
+
+    override fun runAppMigration() = Migrations(context).run()
 
     /**
      * Not used by Sunup
