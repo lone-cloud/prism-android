@@ -14,10 +14,10 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
+import org.unifiedpush.android.distributor.ChannelCreationStatus
+import org.unifiedpush.android.distributor.ipc.ACTION_REFRESH_API_URL
+import org.unifiedpush.android.distributor.ipc.sendUiAction
 import org.unifiedpush.android.distributor.ui.R as LibR
-import org.unifiedpush.distributor.ChannelCreationStatus
-import org.unifiedpush.distributor.ipc.ACTION_REFRESH_API_URL
-import org.unifiedpush.distributor.ipc.sendUiAction
 import org.unifiedpush.distributor.sunup.AppStore
 import org.unifiedpush.distributor.sunup.DatabaseFactory
 import org.unifiedpush.distributor.sunup.Distributor

@@ -1,8 +1,8 @@
 package org.unifiedpush.distributor.sunup.callback
 
 import android.content.Context
-import org.unifiedpush.distributor.callback.BatteryCallback
-import org.unifiedpush.distributor.callback.CallbackFactory
+import org.unifiedpush.android.distributor.callback.BatteryCallback
+import org.unifiedpush.android.distributor.callback.CallbackFactory
 import org.unifiedpush.distributor.sunup.BuildConfig
 import org.unifiedpush.distributor.sunup.api.MessageSender
 import org.unifiedpush.distributor.sunup.api.data.ClientMessage

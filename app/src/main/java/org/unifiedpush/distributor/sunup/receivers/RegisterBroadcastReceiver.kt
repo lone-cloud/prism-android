@@ -3,7 +3,7 @@
 package org.unifiedpush.distributor.sunup.receivers
 
 import android.content.Context
-import org.unifiedpush.distributor.receiver.DistributorReceiver
+import org.unifiedpush.android.distributor.receiver.DistributorReceiver
 import org.unifiedpush.distributor.sunup.AppStore
 import org.unifiedpush.distributor.sunup.Distributor
 import org.unifiedpush.distributor.sunup.callback.NetworkCallbackFactory

@@ -3,8 +3,8 @@ package org.unifiedpush.distributor.sunup.services
 import android.content.Context
 import android.util.Log
 import java.util.concurrent.atomic.AtomicReference
-import org.unifiedpush.distributor.service.ForegroundService
-import org.unifiedpush.distributor.service.ForegroundServiceFactory
+import org.unifiedpush.android.distributor.service.ForegroundService
+import org.unifiedpush.android.distributor.service.ForegroundServiceFactory
 import org.unifiedpush.distributor.sunup.api.MessageSender
 import org.unifiedpush.distributor.sunup.api.ServerConnection
 import org.unifiedpush.distributor.sunup.callback.BatteryCallbackFactory

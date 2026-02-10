@@ -1,9 +1,9 @@
 package org.unifiedpush.distributor.sunup.services
 
 import android.content.Context
-import org.unifiedpush.distributor.Database
-import org.unifiedpush.distributor.RegistrationCounter
-import org.unifiedpush.distributor.ipc.sendUiAction
+import org.unifiedpush.android.distributor.Database
+import org.unifiedpush.android.distributor.RegistrationCounter
+import org.unifiedpush.android.distributor.ipc.sendUiAction
 import org.unifiedpush.distributor.sunup.DatabaseFactory
 import org.unifiedpush.distributor.sunup.utils.ForegroundNotification
 

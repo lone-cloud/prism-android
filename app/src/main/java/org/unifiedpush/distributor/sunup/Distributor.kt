@@ -1,8 +1,8 @@
 package org.unifiedpush.distributor.sunup
 
 import android.content.Context
-import org.unifiedpush.distributor.Database
-import org.unifiedpush.distributor.UnifiedPushDistributor
+import org.unifiedpush.android.distributor.Database
+import org.unifiedpush.android.distributor.UnifiedPushDistributor
 import org.unifiedpush.distributor.sunup.api.MessageSender
 import org.unifiedpush.distributor.sunup.api.data.ClientMessage
 import org.unifiedpush.distributor.sunup.receivers.RegisterBroadcastReceiver

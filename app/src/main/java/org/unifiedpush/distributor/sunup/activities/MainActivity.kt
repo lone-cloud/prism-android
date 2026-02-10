@@ -7,11 +7,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlin.system.exitProcess
+import org.unifiedpush.android.distributor.ipc.InternalMessenger
+import org.unifiedpush.android.distributor.ipc.subscribeUiActions
 import org.unifiedpush.android.distributor.ui.screen.App
 import org.unifiedpush.android.distributor.ui.vm.ThemeViewModel
 import org.unifiedpush.android.distributor.ui.vm.ViewModelFactory
-import org.unifiedpush.distributor.ipc.InternalMessenger
-import org.unifiedpush.distributor.ipc.subscribeUiActions
 import org.unifiedpush.distributor.sunup.Migrations
 import org.unifiedpush.distributor.sunup.SunupAppConfig
 import org.unifiedpush.distributor.sunup.activities.ui.theme.AppTheme

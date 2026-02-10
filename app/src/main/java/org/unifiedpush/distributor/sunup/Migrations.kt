@@ -4,7 +4,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
-import org.unifiedpush.distributor.MigrationFactory
+import org.unifiedpush.android.distributor.MigrationFactory
 
 class Migrations(context: Context) : MigrationFactory(context, AppStore.PREF_NAME) {
 

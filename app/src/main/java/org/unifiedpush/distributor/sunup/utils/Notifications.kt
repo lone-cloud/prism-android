@@ -4,8 +4,8 @@ import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
 import java.util.concurrent.atomic.AtomicBoolean
+import org.unifiedpush.android.distributor.AppNotification
 import org.unifiedpush.android.distributor.ui.R as LibR
-import org.unifiedpush.distributor.AppNotification
 import org.unifiedpush.distributor.sunup.R
 import org.unifiedpush.distributor.sunup.services.MainRegistrationCounter
 

@@ -5,7 +5,7 @@ package org.unifiedpush.distributor.sunup.services
 import android.content.Context
 import android.util.Log
 import androidx.work.*
-import org.unifiedpush.distributor.WorkerCompanion
+import org.unifiedpush.android.distributor.WorkerCompanion
 import org.unifiedpush.distributor.sunup.AppStore
 import org.unifiedpush.distributor.sunup.Distributor
 import org.unifiedpush.distributor.sunup.api.MessageSender

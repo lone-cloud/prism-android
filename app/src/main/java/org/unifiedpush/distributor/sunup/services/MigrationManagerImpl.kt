@@ -1,7 +1,7 @@
 package org.unifiedpush.distributor.sunup.services
 
 import android.content.Context
-import org.unifiedpush.distributor.MigrationManager
+import org.unifiedpush.android.distributor.MigrationManager
 import org.unifiedpush.distributor.sunup.AppStore
 import org.unifiedpush.distributor.sunup.Distributor
 

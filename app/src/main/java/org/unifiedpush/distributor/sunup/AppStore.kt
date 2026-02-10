@@ -2,8 +2,8 @@ package org.unifiedpush.distributor.sunup
 
 import android.content.Context
 import androidx.core.content.edit
-import org.unifiedpush.distributor.MigrationManager
-import org.unifiedpush.distributor.Store
+import org.unifiedpush.android.distributor.MigrationManager
+import org.unifiedpush.android.distributor.Store
 
 class AppStore(context: Context) :
     Store(context, PREF_NAME),

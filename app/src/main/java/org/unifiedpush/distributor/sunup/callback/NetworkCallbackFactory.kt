@@ -1,8 +1,8 @@
 package org.unifiedpush.distributor.sunup.callback
 
 import android.content.Context
-import org.unifiedpush.distributor.callback.CallbackFactory
-import org.unifiedpush.distributor.callback.NetworkCallback
+import org.unifiedpush.android.distributor.callback.CallbackFactory
+import org.unifiedpush.android.distributor.callback.NetworkCallback
 import org.unifiedpush.distributor.sunup.services.MainRegistrationCounter
 import org.unifiedpush.distributor.sunup.services.RestartWorker
 import org.unifiedpush.distributor.sunup.services.SourceManager

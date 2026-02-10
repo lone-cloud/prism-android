@@ -2,7 +2,7 @@ package org.unifiedpush.distributor.sunup
 
 import android.content.Context
 import java.util.concurrent.atomic.AtomicReference
-import org.unifiedpush.distributor.Database as Database
+import org.unifiedpush.android.distributor.Database
 import org.unifiedpush.distributor.sunup.services.MainRegistrationCounter
 
 object DatabaseFactory {
