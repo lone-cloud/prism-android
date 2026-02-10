@@ -6,53 +6,51 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import org.unifiedpush.distributor.sunup.EventBus
+import kotlin.system.exitProcess
+import org.unifiedpush.android.distributor.ui.screen.App
+import org.unifiedpush.android.distributor.ui.vm.ThemeViewModel
+import org.unifiedpush.android.distributor.ui.vm.ViewModelFactory
+import org.unifiedpush.distributor.ipc.InternalMessenger
+import org.unifiedpush.distributor.ipc.subscribeUiActions
 import org.unifiedpush.distributor.sunup.Migrations
-import org.unifiedpush.distributor.sunup.activities.ThemeViewModel
-import org.unifiedpush.distributor.sunup.activities.ui.App
+import org.unifiedpush.distributor.sunup.SunupAppConfig
 import org.unifiedpush.distributor.sunup.activities.ui.theme.AppTheme
-import org.unifiedpush.distributor.sunup.services.RestartWorker
 import org.unifiedpush.distributor.sunup.utils.TAG
 
 class MainActivity : ComponentActivity() {
-    private var jobs: MutableList<Job> = emptyList<Job>().toMutableList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        RestartWorker.startPeriodic(this)
         Migrations(this).run()
+        val messenger = InternalMessenger(this)
+        val uiFlow = subscribeUiActions(this)
+        val appConfig = SunupAppConfig()
 
         enableEdgeToEdge()
 
         setContent {
-            val factory = ViewModelFactory(this.application)
+            val factory = ViewModelFactory(
+                context = this,
+                appConfig = appConfig,
+                messenger = messenger
+            )
             val themeViewModel = viewModel<ThemeViewModel>(factory = factory)
             AppTheme(
                 dynamicColor = themeViewModel.dynamicColors
             ) {
-                App(factory, themeViewModel)
+                App(
+                    appConfig = appConfig,
+                    factory = factory,
+                    themeViewModel = themeViewModel,
+                    uiFlow = uiFlow
+                )
             }
-            subscribeActions()
-        }
-    }
-
-    private fun subscribeActions() {
-        Log.d(TAG, "Subscribing to actions")
-        jobs += CoroutineScope(Dispatchers.IO).launch {
-            EventBus.subscribe<AppAction> { it.handle(this@MainActivity) }
         }
     }
 
     override fun onDestroy() {
         Log.d(TAG, "Destroy")
-        jobs.removeAll {
-            it.cancel()
-            true
-        }
         super.onDestroy()
+        exitProcess(0)
     }
 }

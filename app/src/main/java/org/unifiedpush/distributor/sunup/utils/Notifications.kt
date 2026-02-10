@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import org.unifiedpush.android.distributor.ui.R as LibR
 import org.unifiedpush.distributor.AppNotification
 import org.unifiedpush.distributor.sunup.R
-import org.unifiedpush.distributor.sunup.activities.MainActivity
 import org.unifiedpush.distributor.sunup.services.MainRegistrationCounter
 
 const val NOTIFICATION_ID_FOREGROUND = 51115
@@ -25,8 +24,7 @@ class MainNotificationData(
     text = text,
     ticker = ticker,
     priority = priority,
-    ongoing = ongoing,
-    activity = MainActivity::class.java
+    ongoing = ongoing
 )
 
 private val Context.warningChannelData: AppNotification.ChannelData

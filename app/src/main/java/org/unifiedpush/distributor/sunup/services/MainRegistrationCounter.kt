@@ -3,8 +3,8 @@ package org.unifiedpush.distributor.sunup.services
 import android.content.Context
 import org.unifiedpush.distributor.Database
 import org.unifiedpush.distributor.RegistrationCounter
+import org.unifiedpush.distributor.ipc.sendUiAction
 import org.unifiedpush.distributor.sunup.DatabaseFactory
-import org.unifiedpush.distributor.sunup.activities.UiAction
 import org.unifiedpush.distributor.sunup.utils.ForegroundNotification
 
 object MainRegistrationCounter : RegistrationCounter() {
@@ -15,7 +15,7 @@ object MainRegistrationCounter : RegistrationCounter() {
 
     override fun onCountRefreshed(context: Context) {
         ForegroundNotification(context).update()
-        UiAction.publish(UiAction.Action.RefreshRegistrations)
+        sendUiAction(context, "REFRESH_REGISTRATIONS")
     }
 
     override fun getDb(context: Context): Database = DatabaseFactory.getDb(context)

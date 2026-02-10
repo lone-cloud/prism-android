@@ -21,6 +21,7 @@
         <activity
             android:name=".activities.MainActivity"
             android:windowSoftInputMode="adjustResize"
+            android:process=":ui"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,6 +34,12 @@
             android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
             android:value="This service needs to be constantly connected to the server, to get Server-Sent Events messages from it."/>
+        </service>
+        <service android:name=".services.InternalServiceImpl"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="org.unifiedpush.distributor.internal.service"/>
+            </intent-filter>
         </service>
 
         <receiver

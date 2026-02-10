@@ -5,12 +5,13 @@ import org.unifiedpush.distributor.Database
 import org.unifiedpush.distributor.UnifiedPushDistributor
 import org.unifiedpush.distributor.sunup.api.MessageSender
 import org.unifiedpush.distributor.sunup.api.data.ClientMessage
+import org.unifiedpush.distributor.sunup.receivers.RegisterBroadcastReceiver
 
 /**
  * These functions are used to send messages to other apps
  */
 object Distributor : UnifiedPushDistributor() {
-    override val receiverComponentName = "org.unifiedpush.distributor.sunup.receivers.RegisterBroadcastReceiver"
+    override val receiverComponent = RegisterBroadcastReceiver::class.java
 
     override fun getDb(context: Context): Database = DatabaseFactory.getDb(context)
 
