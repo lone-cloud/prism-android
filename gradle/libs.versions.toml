@@ -5,6 +5,7 @@ androidx-lifecycle = "2.10.0"
 androidx-work = "2.11.0"
 appcompat = "1.7.1"
 unifiedpush_distributor = "0.7.0"
+unifiedpush_distributor_base = "0.7.0"
 unifiedpush_distributor_ui = "0.7.0"
 kotlin = "2.2.20"
 kotlinx_serializationJson = "1.9.0"
@@ -26,6 +27,7 @@ androidx-ui-tooling-preview-android = { group = "androidx.compose.ui", name = "u
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "androidx-work" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 unifiedpush-distributor = { module = "org.unifiedpush.android:distributor", version.ref = "unifiedpush_distributor" }
+unifiedpush-distributor-base = { module = "org.unifiedpush.android:distributor-base", version.ref = "unifiedpush_distributor_base" }
 unifiedpush-distributor-ui = { module = "org.unifiedpush.android:distributor-ui", version.ref = "unifiedpush_distributor_ui" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx_serializationJson" }
