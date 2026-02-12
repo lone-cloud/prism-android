@@ -1,8 +1,8 @@
 package app.lonecloud.prism.callback
 
 import android.content.Context
-import org.unifiedpush.distributor.callback.BatteryCallback
-import org.unifiedpush.distributor.callback.CallbackFactory
+import org.unifiedpush.android.distributor.callback.BatteryCallback
+import org.unifiedpush.android.distributor.callback.CallbackFactory
 
 /**
  * Battery callback - disabled since URGENCY feature is not supported by the Mozilla server

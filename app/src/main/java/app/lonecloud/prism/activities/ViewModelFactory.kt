@@ -2,24 +2,31 @@ package app.lonecloud.prism.activities
 
 import android.app.Application
 import android.content.Context
+import android.os.PowerManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import app.lonecloud.prism.activities.ThemeViewModel
+import app.lonecloud.prism.PrismConfig
 import app.lonecloud.prism.activities.ui.MainUiState
 import app.lonecloud.prism.activities.ui.SettingsState
-import org.unifiedpush.android.distributor.ui.compose.BatteryOptimisationViewModel
-import org.unifiedpush.android.distributor.ui.compose.previewRegistrationsViewModel
-import org.unifiedpush.android.distributor.ui.compose.state.DistribMigrationState
+import org.unifiedpush.android.distributor.ipc.InternalMessenger
+import org.unifiedpush.android.distributor.ui.state.DistribMigrationState
+import org.unifiedpush.android.distributor.ui.vm.DistribMigrationViewModel
 
-class ViewModelFactory(val application: Application) : ViewModelProvider.Factory {
+class ViewModelFactory(val application: Application, val messenger: InternalMessenger) : ViewModelProvider.Factory {
+    private val requireBatteryOptimization =
+        !(application.getSystemService(Context.POWER_SERVICE) as PowerManager)
+            .isIgnoringBatteryOptimizations(application.packageName)
+
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
-        modelClass.isAssignableFrom(MainViewModel::class.java) -> MainViewModel(application)
-        modelClass.isAssignableFrom(SettingsViewModel::class.java) -> SettingsViewModel(
-            application
+        modelClass.isAssignableFrom(MainViewModel::class.java) -> MainViewModel(requireBatteryOptimization, messenger, application)
+        modelClass.isAssignableFrom(SettingsViewModel::class.java) -> SettingsViewModel(messenger, application)
+        modelClass.isAssignableFrom(ThemeViewModel::class.java) -> ThemeViewModel(messenger, application)
+        modelClass.isAssignableFrom(DistribMigrationViewModel::class.java) -> DistribMigrationViewModel(
+            DistribMigrationState(),
+            PrismConfig,
+            messenger
         )
-        modelClass.isAssignableFrom(ThemeViewModel::class.java) -> ThemeViewModel(application)
-        modelClass.isAssignableFrom(DistribMigrationViewModel::class.java) -> DistribMigrationViewModel(application)
         else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     } as T
 }
@@ -30,8 +37,15 @@ class PreviewFactory(val context: Context) : ViewModelProvider.Factory {
         modelClass.isAssignableFrom(MainViewModel::class.java) -> {
             MainViewModel(
                 MainUiState(),
-                BatteryOptimisationViewModel(true),
-                previewRegistrationsViewModel(context)
+                org.unifiedpush.android.distributor.ui.vm.BatteryOptimisationViewModel(false, null),
+                org.unifiedpush.android.distributor.ui.vm.RegistrationsViewModel(
+                    org.unifiedpush.android.distributor.ui.state.RegistrationListState(
+                        emptyList<org.unifiedpush.android.distributor.data.App>()
+                    ),
+                    null
+                ),
+                null,
+                null
             )
         }
         modelClass.isAssignableFrom(SettingsViewModel::class.java) -> {
@@ -40,12 +54,18 @@ class PreviewFactory(val context: Context) : ViewModelProvider.Factory {
                     showToasts = false,
                     prismServerUrl = "",
                     prismApiKey = ""
-                )
+                ),
+                null,
+                null
             )
         }
-        modelClass.isAssignableFrom(ThemeViewModel::class.java) -> ThemeViewModel()
+        modelClass.isAssignableFrom(ThemeViewModel::class.java) -> ThemeViewModel(null, null)
         modelClass.isAssignableFrom(DistribMigrationViewModel::class.java) -> {
-            DistribMigrationViewModel(DistribMigrationState())
+            DistribMigrationViewModel(
+                DistribMigrationState(),
+                PrismConfig,
+                null
+            )
         }
         else -> throw IllegalArgumentException("Unknown ViewModel class")
     } as T

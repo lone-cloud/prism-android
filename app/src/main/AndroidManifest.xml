@@ -21,6 +21,7 @@
         android:networkSecurityConfig="@xml/network_security_config">
         <activity
             android:name=".activities.MainActivity"
+            android:process=":ui"
             android:windowSoftInputMode="adjustResize"
             android:exported="true">
             <intent-filter>
@@ -33,7 +34,16 @@
             android:enabled="true"
             android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-            android:value="This service needs to be constantly connected to the server, to get Server-Sent Events messages from it."/>
+            android:value="This service needs to be constantly connected to the server via WebSocket to receive push notifications."/>
+        </service>
+
+        <service
+            android:name=".services.PrismInternalService"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="org.unifiedpush.distributor.internal.service"/>
+            </intent-filter>
         </service>
 
         <receiver
@@ -43,6 +53,15 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".receivers.PrismConfigReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="app.lonecloud.prism.SET_PRISM_SERVER_URL" />
+                <action android:name="app.lonecloud.prism.SET_PRISM_API_KEY" />
             </intent-filter>
         </receiver>
         <receiver

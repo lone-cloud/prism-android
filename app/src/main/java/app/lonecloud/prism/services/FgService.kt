@@ -10,8 +10,8 @@ import app.lonecloud.prism.utils.ForegroundNotification
 import app.lonecloud.prism.utils.NOTIFICATION_ID_FOREGROUND
 import app.lonecloud.prism.utils.TAG
 import java.util.concurrent.atomic.AtomicReference
-import org.unifiedpush.distributor.service.ForegroundService
-import org.unifiedpush.distributor.service.ForegroundServiceFactory
+import org.unifiedpush.android.distributor.service.ForegroundService
+import org.unifiedpush.android.distributor.service.ForegroundServiceFactory
 
 class FgService : ForegroundService() {
 

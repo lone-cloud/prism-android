@@ -6,19 +6,13 @@ import android.content.Context
 import app.lonecloud.prism.AppStore
 import app.lonecloud.prism.Distributor
 import app.lonecloud.prism.callback.NetworkCallbackFactory
-import org.unifiedpush.distributor.receiver.DistributorReceiver
+import org.unifiedpush.android.distributor.receiver.DistributorReceiver
 
-/**
- * THIS SERVICE IS USED BY OTHER APPS TO REGISTER
- */
 class RegisterBroadcastReceiver : DistributorReceiver() {
 
     override val distributor = Distributor
 
-    override fun isConnected(context: Context): Boolean {
-        // We don't have to care about login
-        return true
-    }
+    override fun isConnected(context: Context): Boolean = true
 
     override fun hasInternet(context: Context): Boolean = NetworkCallbackFactory.hasInternet()
 

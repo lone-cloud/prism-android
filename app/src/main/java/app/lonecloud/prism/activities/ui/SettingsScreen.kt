@@ -14,12 +14,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lonecloud.prism.R
-import app.lonecloud.prism.activities.DistribMigrationViewModel
 import app.lonecloud.prism.activities.PreviewFactory
 import app.lonecloud.prism.activities.SettingsViewModel
 import app.lonecloud.prism.activities.ThemeViewModel
 import org.unifiedpush.android.distributor.ui.compose.DistribMigrationUi
-import org.unifiedpush.android.distributor.ui.compose.MigrationPreferences
+import org.unifiedpush.android.distributor.ui.vm.DistribMigrationViewModel
 
 @Composable
 fun SettingsScreen(
@@ -39,6 +38,7 @@ fun SettingsScreen(
     ) {
         PrismServerConfigButton(
             currentUrl = viewModel.state.prismServerUrl,
+            currentApiKey = viewModel.state.prismApiKey,
             onConfigure = { url, apiKey ->
                 viewModel.updatePrismServerUrl(url)
                 viewModel.updatePrismApiKey(apiKey)
@@ -57,13 +57,11 @@ fun SettingsScreen(
             onCheckedChange = { themeViewModel.toggleDynamicColors() }
         )
 
-        MigrationPreferences(migrationViewModel)
-
         RestartServicesPreference {
             viewModel.restartService()
         }
     }
-    if (migrationViewModel.state.showMigrations) {
+    if (migrationViewModel.state.canMigrate) {
         DistribMigrationUi(migrationViewModel)
     }
 }

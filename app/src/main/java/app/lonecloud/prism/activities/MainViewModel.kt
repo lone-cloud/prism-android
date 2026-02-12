@@ -25,25 +25,31 @@ import app.lonecloud.prism.utils.VapidKeyGenerator
 import app.lonecloud.prism.utils.WebPushEncryptionKeys
 import java.util.UUID
 import kotlinx.coroutines.launch
-import org.unifiedpush.android.distributor.ui.compose.BatteryOptimisationViewModel
-import org.unifiedpush.android.distributor.ui.compose.RegistrationsViewModel
-import org.unifiedpush.android.distributor.ui.compose.state.RegistrationListState
+import org.unifiedpush.android.distributor.data.App
+import org.unifiedpush.android.distributor.ipc.InternalMessenger
+import org.unifiedpush.android.distributor.ipc.InternalOpcode
+import org.unifiedpush.android.distributor.ui.state.RegistrationListState
+import org.unifiedpush.android.distributor.ui.vm.BatteryOptimisationViewModel
+import org.unifiedpush.android.distributor.ui.vm.RegistrationsViewModel
 
 class MainViewModel(
     mainUiState: MainUiState,
     val batteryOptimisationViewModel: BatteryOptimisationViewModel,
     val registrationsViewModel: RegistrationsViewModel,
+    val messenger: InternalMessenger?,
     val application: Application? = null
 ) : ViewModel() {
-    constructor(application: Application) : this(
+    constructor(requireBatteryOpt: Boolean, messenger: InternalMessenger?, application: Application) : this(
         mainUiState = MainUiState(
             prismServerConfigured = !AppStore(application).prismServerUrl.isNullOrBlank() &&
                 !AppStore(application).prismApiKey.isNullOrBlank()
         ),
-        batteryOptimisationViewModel = BatteryOptimisationViewModel(application),
+        batteryOptimisationViewModel = BatteryOptimisationViewModel(requireBatteryOpt, messenger),
         registrationsViewModel = RegistrationsViewModel(
-            getRegistrationListState(application)
+            RegistrationListState(emptyList<App>()),
+            messenger
         ),
+        messenger,
         application
     )
 
@@ -69,9 +75,8 @@ class MainViewModel(
 
     fun refreshRegistrations() {
         viewModelScope.launch {
-            application?.let {
-                registrationsViewModel.state = getRegistrationListState(it)
-            }
+            val apps = messenger?.sendIMessageL(InternalOpcode.REG_LIST, "apps", App::class.java)
+            registrationsViewModel.state = RegistrationListState(apps ?: emptyList())
         }
     }
 
@@ -79,9 +84,7 @@ class MainViewModel(
         viewModelScope.launch {
             val state = registrationsViewModel.state
             val tokenList = state.list.filter { it.selected }.map { it.token }
-            publishAction(
-                AppAction(AppAction.Action.DeleteRegistration(tokenList))
-            )
+            messenger?.sendIMessage(InternalOpcode.REG_DELETE, "regs" to tokenList)
             registrationsViewModel.state = RegistrationListState(
                 list = state.list.filter {
                     !it.selected
@@ -130,7 +133,9 @@ class MainViewModel(
     }
 
     fun restartService() {
-        publishAction(AppAction(AppAction.Action.RestartService))
+        viewModelScope.launch {
+            messenger?.sendIMessage(InternalOpcode.WORKER_RESTART, 0)
+        }
     }
 
     private fun hasUnifiedPushSupport(pm: PackageManager, packageName: String): Boolean {
@@ -238,7 +243,6 @@ class MainViewModel(
                     }
                 }
 
-                // Timeout
                 Log.e(TAG, "Endpoint timeout after 30 seconds for token: $connectorToken")
             }
         }

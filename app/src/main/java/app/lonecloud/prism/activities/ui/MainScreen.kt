@@ -25,13 +25,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lonecloud.prism.AppStore
-import app.lonecloud.prism.EventBus
 import app.lonecloud.prism.R
-import app.lonecloud.prism.activities.DistribMigrationViewModel
 import app.lonecloud.prism.activities.MainViewModel
 import app.lonecloud.prism.activities.PreviewFactory
-import app.lonecloud.prism.activities.UiAction
-import org.unifiedpush.android.distributor.ui.R as LibR
 import org.unifiedpush.android.distributor.ui.compose.AppBar
 import org.unifiedpush.android.distributor.ui.compose.CardDisableBatteryOptimisation
 import org.unifiedpush.android.distributor.ui.compose.CardDisabledForMigration
@@ -40,6 +36,7 @@ import org.unifiedpush.android.distributor.ui.compose.PermissionsUi
 import org.unifiedpush.android.distributor.ui.compose.RegistrationList
 import org.unifiedpush.android.distributor.ui.compose.RegistrationListHeading
 import org.unifiedpush.android.distributor.ui.compose.UnregisterBarUi
+import org.unifiedpush.android.distributor.ui.vm.DistribMigrationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,7 +66,7 @@ fun MainAppBar(onGoToSettings: () -> Unit) {
             ) {
                 Icon(
                     imageVector = Icons.Default.Settings,
-                    contentDescription = stringResource(LibR.string.settings)
+                    contentDescription = stringResource(R.string.settings)
                 )
             }
         }
@@ -77,21 +74,23 @@ fun MainAppBar(onGoToSettings: () -> Unit) {
 }
 
 @Composable
-fun MainScreen(viewModel: MainViewModel, migrationViewModel: DistribMigrationViewModel) {
+fun MainScreen(
+    viewModel: MainViewModel,
+    migrationViewModel: DistribMigrationViewModel,
+    uiActionsFlow: kotlinx.coroutines.flow.Flow<String>?
+) {
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
-        EventBus.subscribe<UiAction> {
-            it.handle { type ->
-                when (type) {
-                    UiAction.Action.RefreshRegistrations -> viewModel.refreshRegistrations()
-                    UiAction.Action.UpdatePrismServerConfigured -> {
-                        viewModel.application?.let { app ->
-                            val store = AppStore(app)
-                            viewModel.updatePrismServerConfigured(
-                                !store.prismServerUrl.isNullOrBlank() &&
-                                    !store.prismApiKey.isNullOrBlank()
-                            )
-                        }
+        uiActionsFlow?.collect { action ->
+            when (action) {
+                "RefreshRegistrations" -> viewModel.refreshRegistrations()
+                "UpdatePrismServerConfigured" -> {
+                    viewModel.application?.let { app ->
+                        val store = AppStore(app)
+                        viewModel.updatePrismServerConfigured(
+                            !store.prismServerUrl.isNullOrBlank() &&
+                                !store.prismApiKey.isNullOrBlank()
+                        )
                     }
                 }
             }
@@ -133,7 +132,7 @@ fun MainScreen(viewModel: MainViewModel, migrationViewModel: DistribMigrationVie
             )
         }
 
-        RegistrationList(viewModel.registrationsViewModel) {}
+        RegistrationList(viewModel.registrationsViewModel)
     }
     if (viewModel.mainUiState.showPermissionDialog) {
         PermissionsUi {
@@ -155,7 +154,7 @@ fun MainScreen(viewModel: MainViewModel, migrationViewModel: DistribMigrationVie
             }
         )
     }
-    if (migrationViewModel.state.showMigrations) {
+    if (migrationViewModel.state.canMigrate) {
         DistribMigrationUi(migrationViewModel)
     }
 }
@@ -166,5 +165,5 @@ fun MainPreview() {
     val factory = PreviewFactory(LocalContext.current)
     val mainVM = viewModel<MainViewModel>(factory = factory)
     val migrationVM = viewModel<DistribMigrationViewModel>(factory = factory)
-    MainScreen(mainVM, migrationVM)
+    MainScreen(mainVM, migrationVM, null)
 }
