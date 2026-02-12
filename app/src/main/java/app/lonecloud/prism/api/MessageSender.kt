@@ -19,7 +19,6 @@ object MessageSender {
     fun send(context: Context, message: ClientMessage) {
         synchronized(this) {
             websocket?.let {
-                // Log.d(TAG, "Sending: ${message.serialize()}")
                 Log.d(TAG, "Sending: ${message::class.java.simpleName}")
                 message.send(it)
             } ?: run {

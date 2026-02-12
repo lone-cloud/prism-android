@@ -3,14 +3,11 @@ package app.lonecloud.prism
 import android.content.Context
 import app.lonecloud.prism.api.MessageSender
 import app.lonecloud.prism.api.data.ClientMessage
-import org.unifiedpush.distributor.Database
-import org.unifiedpush.distributor.UnifiedPushDistributor
+import org.unifiedpush.android.distributor.Database
+import org.unifiedpush.android.distributor.UnifiedPushDistributor
 
-/**
- * These functions are used to send messages to other apps
- */
 object Distributor : UnifiedPushDistributor() {
-    override val receiverComponentName = "app.lonecloud.prism.receivers.RegisterBroadcastReceiver"
+    override val receiverComponent = app.lonecloud.prism.receivers.RegisterBroadcastReceiver::class.java
 
     override fun getDb(context: Context): Database = DatabaseFactory.getDb(context)
 

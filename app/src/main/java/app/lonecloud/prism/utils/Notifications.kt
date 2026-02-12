@@ -4,11 +4,9 @@ import android.app.NotificationManager
 import android.content.Context
 import androidx.core.app.NotificationCompat
 import app.lonecloud.prism.R
-import app.lonecloud.prism.activities.MainActivity
 import app.lonecloud.prism.services.MainRegistrationCounter
 import java.util.concurrent.atomic.AtomicBoolean
-import org.unifiedpush.android.distributor.ui.R as LibR
-import org.unifiedpush.distributor.AppNotification
+import org.unifiedpush.android.distributor.AppNotification
 
 const val NOTIFICATION_ID_FOREGROUND = 51115
 private const val NOTIFICATION_ID_WARNING = 51215
@@ -25,16 +23,15 @@ class MainNotificationData(
     text = text,
     ticker = ticker,
     priority = priority,
-    ongoing = ongoing,
-    activity = MainActivity::class.java
+    ongoing = ongoing
 )
 
 private val Context.warningChannelData: AppNotification.ChannelData
     get() = AppNotification.ChannelData(
         "Warning",
-        this.getString(LibR.string.warning),
+        this.getString(R.string.warning),
         NotificationManager.IMPORTANCE_HIGH,
-        this.resources.getString(LibR.string.warning_notif_description).format(this.getString(R.string.app_name))
+        this.resources.getString(R.string.warning_notif_description).format(this.getString(R.string.app_name))
     )
 
 class DisconnectedNotification(context: Context) :
@@ -44,10 +41,10 @@ class DisconnectedNotification(context: Context) :
         NOTIFICATION_ID_WARNING,
         MainNotificationData(
             context.getString(R.string.app_name),
-            context.getString(LibR.string.warning_notif_content).format(
+            context.getString(R.string.warning_notif_content).format(
                 context.getString(R.string.app_name)
             ),
-            context.getString(LibR.string.warning),
+            context.getString(R.string.warning),
             NotificationCompat.PRIORITY_HIGH,
             true
         ),
@@ -63,20 +60,20 @@ class ForegroundNotification(context: Context) :
             context.getString(R.string.app_name),
             if (MainRegistrationCounter.oneOrMore(context)) {
                 MainRegistrationCounter.getCount(context).let {
-                    context.resources.getQuantityString(LibR.plurals.foreground_notif_content_with_reg, it, it)
+                    context.resources.getQuantityString(R.plurals.foreground_notif_content_with_reg, it, it)
                 }
             } else {
-                context.getString(LibR.string.foreground_notif_content_no_reg)
+                context.getString(R.string.foreground_notif_content_no_reg)
             },
-            context.getString(LibR.string.foreground_service),
+            context.getString(R.string.foreground_service),
             NotificationCompat.PRIORITY_LOW,
             true
         ),
         ChannelData(
             "Foreground",
-            context.getString(LibR.string.foreground_service),
+            context.getString(R.string.foreground_service),
             NotificationManager.IMPORTANCE_LOW,
-            context.getString(LibR.string.foreground_notif_description)
+            context.getString(R.string.foreground_notif_description)
         )
     )
 

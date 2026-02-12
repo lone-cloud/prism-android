@@ -33,17 +33,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import app.lonecloud.prism.R
-import app.lonecloud.prism.activities.DistribMigrationViewModel
 import app.lonecloud.prism.activities.MainViewModel
 import app.lonecloud.prism.activities.PreviewFactory
 import app.lonecloud.prism.activities.SettingsViewModel
 import app.lonecloud.prism.activities.ThemeViewModel
-import org.unifiedpush.android.distributor.ui.R as LibR
+import org.unifiedpush.android.distributor.ipc.subscribeUiActions
 import org.unifiedpush.android.distributor.ui.compose.AppBar
+import org.unifiedpush.android.distributor.ui.vm.DistribMigrationViewModel
 
 enum class AppScreen(@param:StringRes val title: Int) {
     Main(R.string.app_name),
-    Settings(LibR.string.settings)
+    Settings(R.string.settings)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,11 +84,13 @@ fun App(
     themeViewModel: ThemeViewModel = viewModel<ThemeViewModel>(factory = factory),
     navController: NavHostController = rememberNavController()
 ) {
+    val context = LocalContext.current
+    val uiActionsFlow = subscribeUiActions(context)
+
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = AppScreen.valueOf(
         backStackEntry?.destination?.route ?: AppScreen.Main.name
     )
-    // shared with all views, no need to scope it
     val migrationViewModel = viewModel<DistribMigrationViewModel>(factory = factory)
     val mainViewModel = viewModel<MainViewModel>(factory = factory)
 
@@ -147,7 +149,8 @@ fun App(
             ) {
                 MainScreen(
                     mainViewModel,
-                    migrationViewModel
+                    migrationViewModel,
+                    uiActionsFlow
                 )
             }
             composable(

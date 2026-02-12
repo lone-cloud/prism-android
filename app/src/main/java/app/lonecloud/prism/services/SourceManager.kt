@@ -5,8 +5,8 @@ import app.lonecloud.prism.utils.DisconnectedNotification
 import okhttp3.Request
 import okhttp3.WebSocket
 import okio.ByteString
-import org.unifiedpush.distributor.AppNotification
-import org.unifiedpush.distributor.SourceManager as SManager
+import org.unifiedpush.android.distributor.AppNotification
+import org.unifiedpush.android.distributor.SourceManager as SManager
 
 object SourceManager : SManager<WebSocket>() {
     override val foregroundService = FgService.service

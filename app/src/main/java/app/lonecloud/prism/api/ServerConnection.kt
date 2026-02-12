@@ -11,6 +11,7 @@ import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.Distributor
 import app.lonecloud.prism.Distributor.sendMessage
 import app.lonecloud.prism.EncryptionKeyStore
+import app.lonecloud.prism.R
 import app.lonecloud.prism.api.data.ClientMessage
 import app.lonecloud.prism.api.data.ServerMessage
 import app.lonecloud.prism.callback.NetworkCallbackFactory
@@ -27,8 +28,7 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
-import org.unifiedpush.android.distributor.ui.R as LibR
-import org.unifiedpush.distributor.ChannelCreationStatus
+import org.unifiedpush.android.distributor.ChannelCreationStatus
 
 class ServerConnection(private val context: Context, private val releaseLock: () -> Unit) : WebSocketListener() {
 
@@ -90,7 +90,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(
                     context,
-                    context.getString(LibR.string.toast_url_candidate_success, it),
+                    context.getString(R.string.toast_url_candidate_success, it),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -239,7 +239,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(
                     context,
-                    context.getString(LibR.string.toast_url_candidate_fail, url),
+                    context.getString(R.string.toast_url_candidate_fail, url),
                     Toast.LENGTH_SHORT
                 ).show()
             }

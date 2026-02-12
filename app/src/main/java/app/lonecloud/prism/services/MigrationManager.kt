@@ -3,7 +3,7 @@ package app.lonecloud.prism.services
 import android.content.Context
 import app.lonecloud.prism.AppStore
 import app.lonecloud.prism.Distributor
-import org.unifiedpush.distributor.MigrationManager as MManager
+import org.unifiedpush.android.distributor.MigrationManager as MManager
 
 class MigrationManager : MManager() {
     override val distrib = Distributor

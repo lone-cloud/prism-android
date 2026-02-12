@@ -10,7 +10,7 @@ import app.lonecloud.prism.Distributor
 import app.lonecloud.prism.api.MessageSender
 import app.lonecloud.prism.callback.NetworkCallbackFactory
 import app.lonecloud.prism.utils.TAG
-import org.unifiedpush.distributor.WorkerCompanion
+import org.unifiedpush.android.distributor.WorkerCompanion
 
 class RestartWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, params) {
 

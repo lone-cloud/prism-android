@@ -34,7 +34,6 @@ sealed class ApiUrlCandidate {
             instance.set(New(url))
             DatabaseFactory.getDb(context).run {
                 if (countApps() == 0) {
-                    // registerApp update the counter which restart the service
                     registerApp(
                         context.packageName,
                         FAKE_TOKEN,
@@ -44,9 +43,7 @@ sealed class ApiUrlCandidate {
                         null
                     )
                 } else {
-                    // Else
                     SourceManager.setFailOnce()
-                    // We restart in 1sec if it hasn't been replaced until then, as setFailOnce should call RestartWorker.run
                     RestartWorker.run(context, delay = 1_000)
                 }
             }

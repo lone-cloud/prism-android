@@ -29,7 +29,11 @@ import androidx.compose.ui.unit.dp
 import app.lonecloud.prism.R
 
 @Composable
-fun PrismServerConfigButton(currentUrl: String, onConfigure: (url: String, apiKey: String) -> Unit) {
+fun PrismServerConfigButton(
+    currentUrl: String,
+    currentApiKey: String,
+    onConfigure: (url: String, apiKey: String) -> Unit
+) {
     var showDialog by remember { mutableStateOf(false) }
 
     Surface(
@@ -61,6 +65,7 @@ fun PrismServerConfigButton(currentUrl: String, onConfigure: (url: String, apiKe
     if (showDialog) {
         PrismServerConfigDialog(
             initialUrl = currentUrl,
+            initialApiKey = currentApiKey,
             onDismiss = { showDialog = false },
             onSave = { url, apiKey ->
                 onConfigure(url, apiKey)
@@ -73,11 +78,12 @@ fun PrismServerConfigButton(currentUrl: String, onConfigure: (url: String, apiKe
 @Composable
 fun PrismServerConfigDialog(
     initialUrl: String,
+    initialApiKey: String,
     onDismiss: () -> Unit,
     onSave: (url: String, apiKey: String) -> Unit
 ) {
     var url by remember { mutableStateOf(initialUrl) }
-    var apiKey by remember { mutableStateOf("") }
+    var apiKey by remember { mutableStateOf(initialApiKey) }
     var isTesting by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<String?>(null) }
     var showServerChangeWarning by remember { mutableStateOf(false) }

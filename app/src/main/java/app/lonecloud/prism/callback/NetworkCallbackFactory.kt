@@ -4,8 +4,8 @@ import android.content.Context
 import app.lonecloud.prism.services.MainRegistrationCounter
 import app.lonecloud.prism.services.RestartWorker
 import app.lonecloud.prism.services.SourceManager
-import org.unifiedpush.distributor.callback.CallbackFactory
-import org.unifiedpush.distributor.callback.NetworkCallback
+import org.unifiedpush.android.distributor.callback.CallbackFactory
+import org.unifiedpush.android.distributor.callback.NetworkCallback
 
 object NetworkCallbackFactory : CallbackFactory<NetworkCallbackFactory.MainNetworkCallback>() {
     class MainNetworkCallback(val context: Context) : NetworkCallback() {
