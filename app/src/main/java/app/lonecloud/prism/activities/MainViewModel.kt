@@ -82,15 +82,23 @@ class MainViewModel(
 
     fun deleteSelection() {
         viewModelScope.launch {
-            val state = registrationsViewModel.state
-            val tokenList = state.list.filter { it.selected }.map { it.token }
-            messenger?.sendIMessage(InternalOpcode.REG_DELETE, "regs" to tokenList)
-            registrationsViewModel.state = RegistrationListState(
-                list = state.list.filter {
-                    !it.selected
-                },
-                selectionCount = 0
-            )
+            Log.d(TAG, "deleteSelection called")
+            application?.let { app ->
+                val selectedTokens = registrationsViewModel.state.list
+                    .filter { it.selected }
+                    .map { it.token }
+                
+                Log.d(TAG, "Deleting ${selectedTokens.size} apps: $selectedTokens")
+                
+                selectedTokens.forEach { token ->
+                    val intent = android.content.Intent("org.unifiedpush.android.distributor.UNREGISTER")
+                    intent.setPackage(app.packageName)
+                    intent.putExtra("token", token)
+                    app.sendBroadcast(intent)
+                }
+                
+                registrationsViewModel.unselectAll()
+            }
         }
     }
 

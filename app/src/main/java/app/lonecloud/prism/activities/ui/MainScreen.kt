@@ -44,7 +44,10 @@ fun MainAppBarOrSelection(viewModel: MainViewModel, onGoToSettings: () -> Unit) 
     val registrationsState = viewModel.registrationsViewModel.state
     if (registrationsState.selectionCount > 0) {
         UnregisterBarUi(
-            viewModel = viewModel.registrationsViewModel
+            viewModel = viewModel.registrationsViewModel,
+            onDelete = {
+                viewModel.deleteSelection()
+            }
         )
     } else {
         MainAppBar(

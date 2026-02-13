@@ -65,13 +65,6 @@ class PrismInternalService : InternalService() {
     override fun registrations() = object : IRegistrations {
         override fun delete(registrations: List<String>) {
             registrations.forEach { token ->
-                // Prism's custom logic: delete from Prism server if it's a "target:" app
-                val dbApp = db.listApps().find { it.connectorToken == token }
-                if (dbApp?.description?.startsWith("target:") == true) {
-                    val appName = dbApp.title ?: dbApp.packageName
-                    PrismServerClient.deleteApp(context, appName)
-                }
-
                 distributor.deleteApp(context, token)
             }
         }
