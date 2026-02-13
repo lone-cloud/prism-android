@@ -6,7 +6,6 @@ import androidx.core.graphics.drawable.toBitmap
 import app.lonecloud.prism.AppStore
 import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.Distributor
-import app.lonecloud.prism.PrismServerClient
 import org.unifiedpush.android.distributor.Database
 import org.unifiedpush.android.distributor.MigrationManager
 import org.unifiedpush.android.distributor.SourceManager

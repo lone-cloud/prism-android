@@ -45,7 +45,7 @@ object Distributor : UnifiedPushDistributor() {
             val appName = app.title ?: app.packageName
             PrismServerClient.deleteApp(context, appName)
         }
-        
+
         MessageSender.send(
             context,
             ClientMessage.Unregister(
