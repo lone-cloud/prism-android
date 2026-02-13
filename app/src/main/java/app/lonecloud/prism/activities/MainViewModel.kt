@@ -87,16 +87,16 @@ class MainViewModel(
                 val selectedTokens = registrationsViewModel.state.list
                     .filter { it.selected }
                     .map { it.token }
-                
+
                 Log.d(TAG, "Deleting ${selectedTokens.size} apps: $selectedTokens")
-                
+
                 selectedTokens.forEach { token ->
                     val intent = android.content.Intent("org.unifiedpush.android.distributor.UNREGISTER")
                     intent.setPackage(app.packageName)
                     intent.putExtra("token", token)
                     app.sendBroadcast(intent)
                 }
-                
+
                 registrationsViewModel.unselectAll()
             }
         }
