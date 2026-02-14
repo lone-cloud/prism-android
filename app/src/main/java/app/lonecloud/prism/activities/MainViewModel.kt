@@ -12,9 +12,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.lonecloud.prism.PrismPreferences
- import app.lonecloud.prism.DatabaseFactory
+import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.EncryptionKeyStore
+import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.activities.ui.InstalledApp
 import app.lonecloud.prism.activities.ui.MainUiState

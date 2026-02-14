@@ -111,7 +111,7 @@ fun PrismServerConfigDialog(
                 val annotatedString = buildAnnotatedString {
                     append(description)
                     append("\n\n")
-                    
+
                     val linkStart = length
                     withStyle(
                         style = SpanStyle(
@@ -128,7 +128,7 @@ fun PrismServerConfigDialog(
                         end = length
                     )
                 }
-                
+
                 ClickableText(
                     text = annotatedString,
                     style = MaterialTheme.typography.bodySmall.copy(

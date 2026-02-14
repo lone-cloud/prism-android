@@ -5,8 +5,8 @@ package app.lonecloud.prism.services
 import android.content.Context
 import android.util.Log
 import androidx.work.*
-import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.Distributor
+import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.api.MessageSender
 import app.lonecloud.prism.callback.NetworkCallbackFactory
 import app.lonecloud.prism.utils.TAG
@@ -40,9 +40,7 @@ class RestartWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, params
     companion object : WorkerCompanion(RestartWorker::class.java) {
         private val lock = Object()
 
-        override fun canRun(context: Context): Boolean {
-            return !PrismPreferences(context).migrated
-        }
+        override fun canRun(context: Context): Boolean = !PrismPreferences(context).migrated
 
         override fun isServiceStarted(context: Context): Boolean = FgService.isServiceStarted()
 

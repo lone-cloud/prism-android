@@ -1,10 +1,9 @@
 package app.lonecloud.prism
 
 import android.content.Context
-import android.util.Base64
 import android.util.Log
-import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.DatabaseFactory
+import app.lonecloud.prism.PrismPreferences
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
