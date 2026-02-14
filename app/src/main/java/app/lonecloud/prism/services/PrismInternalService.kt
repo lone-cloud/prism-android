@@ -3,9 +3,9 @@ package app.lonecloud.prism.services
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.core.graphics.drawable.toBitmap
-import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.Distributor
+import app.lonecloud.prism.PrismPreferences
 import org.unifiedpush.android.distributor.Database
 import org.unifiedpush.android.distributor.MigrationManager
 import org.unifiedpush.android.distributor.SourceManager

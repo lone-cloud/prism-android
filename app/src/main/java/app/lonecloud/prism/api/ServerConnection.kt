@@ -6,11 +6,11 @@ import android.os.Looper
 import android.util.Base64
 import android.util.Log
 import android.widget.Toast
-import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.Distributor
 import app.lonecloud.prism.Distributor.sendMessage
 import app.lonecloud.prism.EncryptionKeyStore
+import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.R
 import app.lonecloud.prism.api.data.ClientMessage
 import app.lonecloud.prism.api.data.ServerMessage
