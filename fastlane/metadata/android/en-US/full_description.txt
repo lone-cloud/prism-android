@@ -1,5 +1,0 @@
-UnifiedPush distributor using Mozilla's push server
-
-This application is a service to provide push notifications to applications supporting UnifiedPush.
-
-More information about UnifiedPush at https://unifiedpush.org .

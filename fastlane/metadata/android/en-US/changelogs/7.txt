@@ -1,3 +1,0 @@
-- Fix a crash when listing an uninstalled app
-- Improve UI
-- Add pt-rBR translation
