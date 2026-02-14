@@ -6,4 +6,4 @@
 
 </div>
 
-A notification provider to use with [Prism](https://github.com/lone-cloud/prism)
+A notification provider for [Prism](https://github.com/lone-cloud/prism) and [UnifiedPush](https://unifiedpush.org/) applications.

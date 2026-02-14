@@ -6,7 +6,7 @@ import android.os.Looper
 import android.util.Base64
 import android.util.Log
 import android.widget.Toast
-import app.lonecloud.prism.AppStore
+import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.Distributor
 import app.lonecloud.prism.Distributor.sendMessage
@@ -32,7 +32,7 @@ import org.unifiedpush.android.distributor.ChannelCreationStatus
 
 class ServerConnection(private val context: Context, private val releaseLock: () -> Unit) : WebSocketListener() {
 
-    private val store = AppStore(context)
+    private val store = PrismPreferences(context)
 
     fun start(): WebSocket {
         val client = OkHttpClient.Builder()
@@ -107,8 +107,6 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             }
             db.deleteDisabledApps()
         } else {
-            // We remove pending unregistrations
-            // and register pending registrations
             db.listDisabledChannelIds().forEach {
                 Log.d(TAG, "Hello, unregistering $it")
                 ClientMessage.Unregister(channelID = it).send(webSocket)
@@ -226,7 +224,6 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         if (failToUseUrlCandidate(context)) return
         if (!shouldRestart()) return
         if (SourceManager.addFail(context, webSocket)) {
-            // If null, we keep the worker with its 16min
             val delay = SourceManager.getTimeout() ?: return
             Log.d(TAG, "Retrying in $delay ms")
             RestartWorker.run(context, delay = delay)
@@ -262,7 +259,6 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         }
         if (!NetworkCallbackFactory.hasInternet()) {
             Log.d(TAG, "No Internet: do not restart")
-            // It will be restarted when Internet is back
             return false
         }
         return true

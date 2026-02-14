@@ -3,7 +3,7 @@ package app.lonecloud.prism
 import android.content.Context
 import android.util.Base64
 import android.util.Log
-import app.lonecloud.prism.AppStore
+import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.DatabaseFactory
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -23,11 +23,7 @@ object PrismServerClient {
         .readTimeout(10, TimeUnit.SECONDS)
         .build()
 
-    private fun getAuthHeader(apiKey: String): String {
-        val credentials = ":$apiKey"
-        val encoded = Base64.encodeToString(credentials.toByteArray(), Base64.NO_WRAP)
-        return "Basic $encoded"
-    }
+    private fun getAuthHeader(apiKey: String): String = "Bearer $apiKey"
 
     fun registerApp(
         context: Context,
@@ -39,7 +35,7 @@ object PrismServerClient {
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
-        val store = AppStore(context)
+        val store = PrismPreferences(context)
         val serverUrl = store.prismServerUrl
         val apiKey = store.prismApiKey
 
@@ -86,7 +82,7 @@ object PrismServerClient {
     }
 
     fun registerAllApps(context: Context) {
-        val store = AppStore(context)
+        val store = PrismPreferences(context)
         val serverUrl = store.prismServerUrl
         val apiKey = store.prismApiKey
 
@@ -128,7 +124,7 @@ object PrismServerClient {
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
-        val store = AppStore(context)
+        val store = PrismPreferences(context)
         val url = serverUrl ?: store.prismServerUrl
         val key = apiKey ?: store.prismApiKey
 
@@ -170,7 +166,7 @@ object PrismServerClient {
         serverUrl: String? = null,
         apiKey: String? = null
     ) {
-        val store = AppStore(context)
+        val store = PrismPreferences(context)
         val url = serverUrl ?: store.prismServerUrl
         val key = apiKey ?: store.prismApiKey
 
@@ -206,8 +202,9 @@ object PrismServerClient {
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                val healthUrl = "$serverUrl/api/health"
                 val request = Request.Builder()
-                    .url(serverUrl)
+                    .url(healthUrl)
                     .addHeader("Authorization", getAuthHeader(apiKey))
                     .get()
                     .build()

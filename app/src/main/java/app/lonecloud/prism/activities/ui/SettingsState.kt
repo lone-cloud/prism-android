@@ -1,7 +1,7 @@
 package app.lonecloud.prism.activities.ui
 
 import android.content.Context
-import app.lonecloud.prism.AppStore
+import app.lonecloud.prism.PrismPreferences
 
 data class SettingsState(
     val showToasts: Boolean,
@@ -10,7 +10,7 @@ data class SettingsState(
 ) {
     companion object {
         fun from(context: Context): SettingsState {
-            val store = AppStore(context)
+            val store = PrismPreferences(context)
             return SettingsState(
                 showToasts = store.showToasts,
                 prismServerUrl = store.prismServerUrl ?: "",

@@ -5,7 +5,7 @@ import androidx.core.content.edit
 import org.unifiedpush.android.distributor.MigrationManager
 import org.unifiedpush.android.distributor.Store
 
-class AppStore(context: Context) :
+class PrismPreferences(context: Context) :
     Store(context, PREF_NAME),
     MigrationManager.MigrationStore {
     var uaid: String?

@@ -3,7 +3,7 @@ package app.lonecloud.prism.services
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.core.graphics.drawable.toBitmap
-import app.lonecloud.prism.AppStore
+import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.Distributor
 import org.unifiedpush.android.distributor.Database
@@ -28,7 +28,7 @@ class PrismInternalService : InternalService() {
     override val distributor: UnifiedPushDistributor = Distributor
     override val db: Database by lazy { DatabaseFactory.getDb(this) }
 
-    private val appStore by lazy { AppStore(this) }
+    private val appStore by lazy { PrismPreferences(this) }
 
     override var themeDynamicColors: Boolean
         get() = appStore.dynamicColors
@@ -44,9 +44,7 @@ class PrismInternalService : InternalService() {
 
     override fun getDebugInfo(): String = "Prism Distributor"
 
-    override fun runAppMigration() {
-        // No app migration needed for Prism currently
-    }
+    override fun runAppMigration() {}
 
     override fun account(): IAccount = object : IAccount {
         override fun get(): String? = null
@@ -55,22 +53,20 @@ class PrismInternalService : InternalService() {
     }
 
     override fun api(): IApi = object : IApi {
-        override fun newPushServer(url: String?) {
-            // Prism uses fixed Mozilla server, but can be customized
-        }
+        override fun newPushServer(url: String?) {}
         override fun getUrl(): String = appStore.apiUrl
     }
 
     override fun registrations() = object : IRegistrations {
         override fun delete(registrations: List<String>) {
             registrations.forEach { token ->
-                distributor.deleteApp(context, token)
+                distributor.deleteApp(this@PrismInternalService, token)
             }
         }
 
         override fun list(): List<App> = db
             .listApps().map {
-                val pm = context.packageManager
+                val pm = this@PrismInternalService.packageManager
 
                 val isManualApp = it.description?.startsWith("target:") == true
                 val targetPackage = if (isManualApp) {
@@ -96,22 +92,20 @@ class PrismInternalService : InternalService() {
                     vapidKey = it.vapidKey,
                     title = displayTitle,
                     msgCount = it.msgCount,
-                    description = if (it.packageName == context.packageName) {
+                    description = if (it.packageName == this@PrismInternalService.packageName) {
                         Description.LocalChannel
                     } else {
                         Description.StringDescription(packageToResolve)
                     },
                     icon = getApplicationIcon(packageToResolve)?.toBitmap(),
-                    isLocal = it.packageName == context.packageName
+                    isLocal = it.packageName == this@PrismInternalService.packageName
                 )
             }
 
         override fun copyEndpoint(token: String?) {
-            super@PrismInternalService.registrations().copyEndpoint(token)
         }
 
         override fun addLocal(title: String) {
-            super@PrismInternalService.registrations().addLocal(title)
         }
     }
 }

@@ -24,7 +24,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import app.lonecloud.prism.AppStore
+import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.R
 import app.lonecloud.prism.activities.MainViewModel
 import app.lonecloud.prism.activities.PreviewFactory
@@ -89,7 +89,7 @@ fun MainScreen(
                 "RefreshRegistrations" -> viewModel.refreshRegistrations()
                 "UpdatePrismServerConfigured" -> {
                     viewModel.application?.let { app ->
-                        val store = AppStore(app)
+                        val store = PrismPreferences(app)
                         viewModel.updatePrismServerConfigured(
                             !store.prismServerUrl.isNullOrBlank() &&
                                 !store.prismApiKey.isNullOrBlank()
