@@ -1,1 +1,0 @@
-UnifiedPush provider using Mozilla's push server

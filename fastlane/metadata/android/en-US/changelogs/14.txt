@@ -1,2 +1,0 @@
-- Fix network callback with VPN killswitch - should finally be robust
-- Add/Update cs, nl, pt-BR translations

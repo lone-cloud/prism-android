@@ -1,3 +1,0 @@
-- Fix database for new install
-- Start foreground service after application upgrade
-- Update known registrations without endpoint

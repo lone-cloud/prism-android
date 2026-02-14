@@ -1,3 +1,0 @@
-- Increase font size for registration list
-- Add fr, gl, es translations
-- Remove google blobs from signing block

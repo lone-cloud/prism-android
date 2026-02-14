@@ -1,2 +1,0 @@
-- Fix network callback with a VPN
-- Add/Update es, hu, pt-BR, zh-CN, ar, it, pl translations

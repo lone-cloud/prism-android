@@ -1,3 +1,0 @@
-- Add message count
-- Add app icons to registration list
-- Add it and zh-rCN translations

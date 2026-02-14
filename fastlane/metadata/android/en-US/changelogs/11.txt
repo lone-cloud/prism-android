@@ -1,8 +1,0 @@
-- New UI with dynamic colors and a settings page
-- Target SDK 36
-- Reduce number of notifs for disconnection
-- Bump Dependencies
-- Internal improvements & bug fixes
-- Add support for Migration & temporary fallbacks, will be enabled when enough apps support it
-
-Thanks @Turtlepaw for the UI suggestions

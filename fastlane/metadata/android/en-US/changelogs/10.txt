@@ -1,4 +1,0 @@
-- Save registration description
-- Improve network callback
-- Ensure the RaiseToForeground service is bound before sending push msg
-- Update et translation
