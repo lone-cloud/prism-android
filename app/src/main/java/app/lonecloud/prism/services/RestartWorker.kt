@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2024 p1gp1g
+ * Modified by lone-cloud under AGPL v3.0
+ *
+ * Original work: https://codeberg.org/Sunup/android
+ * Licensed under Apache License 2.0
+ */
+
 @file:Suppress("ktlint:standard:no-wildcard-imports", "WildcardImport")
 
 package app.lonecloud.prism.services
