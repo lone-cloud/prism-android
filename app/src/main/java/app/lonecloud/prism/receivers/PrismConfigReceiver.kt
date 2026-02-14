@@ -3,12 +3,12 @@ package app.lonecloud.prism.receivers
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import app.lonecloud.prism.AppStore
+import app.lonecloud.prism.PrismPreferences
 
 class PrismConfigReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        val store = AppStore(context)
+        val store = PrismPreferences(context)
 
         when (intent.action) {
             ACTION_SET_PRISM_SERVER_URL -> {

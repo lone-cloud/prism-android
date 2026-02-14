@@ -28,7 +28,7 @@ fun RestartServicesPreference(onClick: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                text = stringResource(R.string.restart_service_button),
+                text = stringResource(R.string.reset_connection_button),
                 style = MaterialTheme.typography.bodyLarge
             )
         }

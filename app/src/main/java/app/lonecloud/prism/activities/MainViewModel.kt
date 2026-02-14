@@ -12,8 +12,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.lonecloud.prism.AppStore
-import app.lonecloud.prism.DatabaseFactory
+import app.lonecloud.prism.PrismPreferences
+ import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.EncryptionKeyStore
 import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.activities.ui.InstalledApp
@@ -41,8 +41,8 @@ class MainViewModel(
 ) : ViewModel() {
     constructor(requireBatteryOpt: Boolean, messenger: InternalMessenger?, application: Application) : this(
         mainUiState = MainUiState(
-            prismServerConfigured = !AppStore(application).prismServerUrl.isNullOrBlank() &&
-                !AppStore(application).prismApiKey.isNullOrBlank()
+            prismServerConfigured = !PrismPreferences(application).prismServerUrl.isNullOrBlank() &&
+                !PrismPreferences(application).prismApiKey.isNullOrBlank()
         ),
         batteryOptimisationViewModel = BatteryOptimisationViewModel(requireBatteryOpt, messenger),
         registrationsViewModel = RegistrationsViewModel(

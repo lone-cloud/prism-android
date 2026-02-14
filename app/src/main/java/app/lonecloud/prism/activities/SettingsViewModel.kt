@@ -7,7 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.lonecloud.prism.AppStore
+import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.activities.ui.SettingsState
 import app.lonecloud.prism.receivers.PrismConfigReceiver
@@ -33,7 +33,7 @@ class SettingsViewModel(
     fun toggleShowToasts() {
         viewModelScope.launch {
             state = state.copy(showToasts = !state.showToasts)
-            application?.let { AppStore(it).showToasts = state.showToasts }
+            application?.let { PrismPreferences(it).showToasts = state.showToasts }
             messenger?.sendIMessage(InternalOpcode.SHOW_TOASTS_SET, if (state.showToasts) 1 else 0)
         }
     }
@@ -43,7 +43,7 @@ class SettingsViewModel(
             val trimmedUrl = url.trim()
             state = state.copy(prismServerUrl = trimmedUrl)
             application?.let {
-                AppStore(it).prismServerUrl = trimmedUrl.ifBlank { null }
+                PrismPreferences(it).prismServerUrl = trimmedUrl.ifBlank { null }
 
                 val intent = Intent(PrismConfigReceiver.ACTION_SET_PRISM_SERVER_URL).apply {
                     putExtra(PrismConfigReceiver.EXTRA_URL, trimmedUrl)
@@ -65,7 +65,7 @@ class SettingsViewModel(
             val trimmedKey = apiKey.trim()
             state = state.copy(prismApiKey = trimmedKey)
             application?.let {
-                AppStore(it).prismApiKey = trimmedKey.ifBlank { null }
+                PrismPreferences(it).prismApiKey = trimmedKey.ifBlank { null }
 
                 val intent = Intent(PrismConfigReceiver.ACTION_SET_PRISM_API_KEY).apply {
                     putExtra(PrismConfigReceiver.EXTRA_API_KEY, trimmedKey)
