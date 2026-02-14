@@ -56,10 +56,6 @@ fun SettingsScreen(
             checked = themeViewModel.dynamicColors,
             onCheckedChange = { themeViewModel.toggleDynamicColors() }
         )
-
-        RestartServicesPreference {
-            viewModel.restartService()
-        }
     }
     if (migrationViewModel.state.canMigrate) {
         DistribMigrationUi(migrationViewModel)

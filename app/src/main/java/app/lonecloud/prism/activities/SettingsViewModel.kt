@@ -81,10 +81,4 @@ class SettingsViewModel(
             }
         }
     }
-
-    fun restartService() {
-        viewModelScope.launch {
-            messenger?.sendIMessage(InternalOpcode.WORKER_RESTART, 0)
-        }
-    }
 }
