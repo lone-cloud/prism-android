@@ -53,7 +53,7 @@
     <string name="prism_server_configured_with_version">%1$s (v%2$s)</string>
     <string name="prism_server_not_configured">Prism server not configured</string>
     <string name="prism_server_url_label">Server URL</string>
-    <string name="prism_server_url_placeholder">https://prism.example.com</string>
+    <string name="prism_server_url_placeholder">prism.example.com</string>
     <string name="prism_api_key_label">API Key</string>
     <string name="prism_api_key_placeholder">Enter API key</string>
     <string name="testing_connection">Testing connection…</string>
@@ -64,7 +64,6 @@
     <string name="clear_server_confirm_title">Remove Prism Server?</string>
     <string name="clear_server_confirm_message_no_apps">This will remove your Prism server configuration.</string>
     <string name="clear_server_confirm_message_with_apps">You have %d manual app registration(s). Clearing the server will delete them from the server and remove the configuration.</string>
-    <string name="reset_connection_button">Reset Connection</string>
     <string name="app_dropdown_show_toasts">Notify when apps register</string>
     <string name="dynamic_colors_title">Dynamic Colors</string>
 </resources>

@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -93,9 +94,36 @@ fun PrismServerConfigDialog(
     var isTesting by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<String?>(null) }
     var showServerChangeWarning by remember { mutableStateOf(false) }
-    var showClearConfirmation by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
+
+    fun normalizeUrl(rawUrl: String): String = rawUrl.trim().let {
+        if (!it.startsWith("http://") && !it.startsWith("https://")) {
+            "https://$it"
+        } else {
+            it
+        }
+    }.trimEnd('/')
+
+    fun testAndSave(normalizedUrl: String) {
+        val successMessage = context.getString(R.string.connection_successful)
+        val failedMessageTemplate = context.getString(R.string.connection_failed)
+
+        isTesting = true
+        app.lonecloud.prism.PrismServerClient.testConnection(
+            normalizedUrl,
+            apiKey,
+            onSuccess = {
+                isTesting = false
+                testResult = successMessage
+                onSave(normalizedUrl, apiKey)
+            },
+            onError = { error ->
+                isTesting = false
+                testResult = failedMessageTemplate.replace("%s", error)
+            }
+        )
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -105,45 +133,7 @@ fun PrismServerConfigDialog(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                val description = stringResource(R.string.prism_server_description)
-                val repoUrl = stringResource(R.string.prism_server_repo_link)
-                val fullText = "$description\n\n$repoUrl"
-                val annotatedString = buildAnnotatedString {
-                    append(description)
-                    append("\n\n")
-
-                    val linkStart = length
-                    withStyle(
-                        style = SpanStyle(
-                            color = MaterialTheme.colorScheme.primary,
-                            textDecoration = TextDecoration.Underline
-                        )
-                    ) {
-                        append(repoUrl)
-                    }
-                    addStringAnnotation(
-                        tag = "URL",
-                        annotation = repoUrl,
-                        start = linkStart,
-                        end = length
-                    )
-                }
-
-                ClickableText(
-                    text = annotatedString,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
-                    onClick = { offset ->
-                        annotatedString.getStringAnnotations(
-                            tag = "URL",
-                            start = offset,
-                            end = offset
-                        ).firstOrNull()?.let { annotation ->
-                            uriHandler.openUri(annotation.item)
-                        }
-                    }
-                )
+                ServerDescriptionLink(uriHandler = uriHandler)
 
                 OutlinedTextField(
                     value = url,
@@ -166,6 +156,7 @@ fun PrismServerConfigDialog(
                     },
                     label = { Text(stringResource(R.string.prism_api_key_label)) },
                     placeholder = { Text(stringResource(R.string.prism_api_key_placeholder)) },
+                    visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     enabled = !isTesting
@@ -196,48 +187,27 @@ fun PrismServerConfigDialog(
             }
         },
         confirmButton = {
-            val successMessage = stringResource(R.string.connection_successful)
-            val failedMessageTemplate = stringResource(R.string.connection_failed)
             Button(
                 onClick = {
                     if (url.isBlank() || apiKey.isBlank()) {
                         onDismiss()
                         return@Button
                     }
-                    val isServerChanging = initialUrl.isNotBlank() && url.trim() != initialUrl
+
+                    val normalizedUrl = normalizeUrl(url)
+                    val isServerChanging = initialUrl.isNotBlank() && normalizedUrl != initialUrl
+
                     if (isServerChanging) {
                         val db = app.lonecloud.prism.DatabaseFactory.getDb(context)
                         val manualAppsCount = db.listApps()
                             .count { it.description?.startsWith("target:") == true }
                         if (manualAppsCount > 0) {
-                            val oldUrl = initialUrl
-                            val oldKey = app.lonecloud.prism.PrismPreferences(context).prismApiKey
-                            if (!oldUrl.isNullOrBlank() && !oldKey.isNullOrBlank()) {
-                                app.lonecloud.prism.PrismServerClient.deleteAllApps(
-                                    context,
-                                    serverUrl = oldUrl,
-                                    apiKey = oldKey
-                                )
-                            }
                             showServerChangeWarning = true
                             return@Button
                         }
                     }
 
-                    isTesting = true
-                    app.lonecloud.prism.PrismServerClient.testConnection(
-                        url,
-                        apiKey,
-                        onSuccess = {
-                            isTesting = false
-                            testResult = successMessage
-                            onSave(url, apiKey)
-                        },
-                        onError = { error ->
-                            isTesting = false
-                            testResult = failedMessageTemplate.replace("%s", error)
-                        }
-                    )
+                    testAndSave(normalizedUrl)
                 },
                 enabled = !isTesting && url.isNotBlank() && apiKey.isNotBlank()
             ) {
@@ -245,120 +215,114 @@ fun PrismServerConfigDialog(
             }
         },
         dismissButton = {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (initialUrl.isNotBlank()) {
-                    TextButton(
-                        onClick = { showClearConfirmation = true },
-                        enabled = !isTesting
-                    ) {
-                        Text(
-                            text = stringResource(R.string.clear_server_button),
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-                TextButton(onClick = onDismiss, enabled = !isTesting) {
-                    Text(stringResource(R.string.cancel_button))
-                }
+            TextButton(onClick = onDismiss, enabled = !isTesting) {
+                Text(stringResource(R.string.cancel_button))
             }
         }
     )
 
-    if (showClearConfirmation) {
-        val db = app.lonecloud.prism.DatabaseFactory.getDb(context)
-        val manualAppsCount = db.listApps()
-            .count { it.description?.startsWith("target:") == true }
+    if (showServerChangeWarning) {
+        ServerChangeWarningDialog(
+            newUrl = normalizeUrl(url),
+            newApiKey = apiKey,
+            initialUrl = initialUrl,
+            onConfirm = { normalizedUrl ->
+                showServerChangeWarning = false
+                testAndSave(normalizedUrl)
+            },
+            onDismiss = { showServerChangeWarning = false }
+        )
+    }
+}
 
-        AlertDialog(
-            onDismissRequest = { showClearConfirmation = false },
-            title = { Text(stringResource(R.string.clear_server_confirm_title)) },
-            text = {
-                Text(
-                    if (manualAppsCount > 0) {
-                        stringResource(R.string.clear_server_confirm_message_with_apps, manualAppsCount)
-                    } else {
-                        stringResource(R.string.clear_server_confirm_message_no_apps)
-                    }
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        if (initialUrl.isNotBlank()) {
-                            val oldKey = app.lonecloud.prism.PrismPreferences(context).prismApiKey
-                            if (!oldKey.isNullOrBlank() && manualAppsCount > 0) {
-                                app.lonecloud.prism.PrismServerClient.deleteAllApps(
-                                    context,
-                                    serverUrl = initialUrl,
-                                    apiKey = oldKey
-                                )
-                            }
-                        }
-                        onSave("", "")
-                        showClearConfirmation = false
-                        onDismiss()
-                    },
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text(stringResource(R.string.clear_server_button))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showClearConfirmation = false }) {
-                    Text(stringResource(R.string.cancel_button))
-                }
-            }
+@Composable
+private fun ServerDescriptionLink(uriHandler: androidx.compose.ui.platform.UriHandler) {
+    val description = stringResource(R.string.prism_server_description)
+    val repoUrl = stringResource(R.string.prism_server_repo_link)
+    val displayUrl = repoUrl.removePrefix("https://")
+    val annotatedString = buildAnnotatedString {
+        append(description)
+        append("\n\n")
+
+        val linkStart = length
+        withStyle(
+            style = SpanStyle(
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline
+            )
+        ) {
+            append(displayUrl)
+        }
+        addStringAnnotation(
+            tag = "URL",
+            annotation = repoUrl,
+            start = linkStart,
+            end = length
         )
     }
 
-    if (showServerChangeWarning) {
-        val db = app.lonecloud.prism.DatabaseFactory.getDb(context)
-        val manualAppsCount = db.listApps()
-            .count { it.description?.startsWith("target:") == true }
+    ClickableText(
+        text = annotatedString,
+        style = MaterialTheme.typography.bodySmall.copy(
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        onClick = { offset ->
+            annotatedString.getStringAnnotations(
+                tag = "URL",
+                start = offset,
+                end = offset
+            ).firstOrNull()?.let { annotation ->
+                uriHandler.openUri(annotation.item)
+            }
+        }
+    )
+}
 
-        AlertDialog(
-            onDismissRequest = { showServerChangeWarning = false },
-            title = { Text("Change Prism Server?") },
-            text = {
-                Text(
-                    "You have $manualAppsCount manual app${if (manualAppsCount == 1) "" else "s"}" +
-                        " registered with the current server.\n\n" +
-                        "Changing to $url will delete registrations from the old server" +
-                        " and re-register with the new one."
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showServerChangeWarning = false
-                        isTesting = true
-                        app.lonecloud.prism.PrismServerClient.testConnection(
-                            url,
-                            apiKey,
-                            onSuccess = {
-                                isTesting = false
-                                testResult = "Connection successful"
-                                onSave(url, apiKey)
-                            },
-                            onError = { error ->
-                                isTesting = false
-                                testResult = "Connection failed: $error"
-                            }
+@Composable
+private fun ServerChangeWarningDialog(
+    newUrl: String,
+    newApiKey: String,
+    initialUrl: String,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val db = app.lonecloud.prism.DatabaseFactory.getDb(context)
+    val manualAppsCount = db.listApps()
+        .count { it.description?.startsWith("target:") == true }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Change Prism Server?") },
+        text = {
+            Text(
+                "You have $manualAppsCount manual app${if (manualAppsCount == 1) "" else "s"}" +
+                    " registered with the current server.\n\n" +
+                    "Changing to $newUrl will delete registrations from the old server" +
+                    " and re-register with the new one."
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val oldKey = app.lonecloud.prism.PrismPreferences(context).prismApiKey
+                    if (initialUrl.isNotBlank() && !oldKey.isNullOrBlank()) {
+                        app.lonecloud.prism.PrismServerClient.deleteAllApps(
+                            context,
+                            serverUrl = initialUrl,
+                            apiKey = oldKey
                         )
                     }
-                ) {
-                    Text("Continue")
+                    onConfirm(newUrl)
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { showServerChangeWarning = false }) {
-                    Text("Cancel")
-                }
+            ) {
+                Text("Continue")
             }
-        )
-    }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }

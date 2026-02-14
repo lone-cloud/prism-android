@@ -140,12 +140,6 @@ class MainViewModel(
         mainUiState = mainUiState.copy(showDebugInfo = false)
     }
 
-    fun restartService() {
-        viewModelScope.launch {
-            messenger?.sendIMessage(InternalOpcode.WORKER_RESTART, 0)
-        }
-    }
-
     private fun hasUnifiedPushSupport(pm: PackageManager, packageName: String): Boolean {
         val intents = listOf("NEW_ENDPOINT", "MESSAGE").map {
             Intent("org.unifiedpush.android.connector.$it").apply { setPackage(packageName) }
