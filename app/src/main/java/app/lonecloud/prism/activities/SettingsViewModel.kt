@@ -38,7 +38,7 @@ class SettingsViewModel(
         }
     }
 
-    fun updatePrismServerUrl(url: String) {
+    fun updatePrismServerUrl(url: String, sendAction: Boolean = true) {
         viewModelScope.launch {
             val trimmedUrl = url.trim()
             state = state.copy(prismServerUrl = trimmedUrl)
@@ -55,12 +55,14 @@ class SettingsViewModel(
                     PrismServerClient.registerAllApps(it)
                 }
 
-                sendUiAction(it, "UpdatePrismServerConfigured")
+                if (sendAction) {
+                    sendUiAction(it, "UpdatePrismServerConfigured")
+                }
             }
         }
     }
 
-    fun updatePrismApiKey(apiKey: String) {
+    fun updatePrismApiKey(apiKey: String, sendAction: Boolean = true) {
         viewModelScope.launch {
             val trimmedKey = apiKey.trim()
             state = state.copy(prismApiKey = trimmedKey)
@@ -77,7 +79,46 @@ class SettingsViewModel(
                     PrismServerClient.registerAllApps(it)
                 }
 
-                sendUiAction(it, "UpdatePrismServerConfigured")
+                if (sendAction) {
+                    sendUiAction(it, "UpdatePrismServerConfigured")
+                }
+            }
+        }
+    }
+
+    fun savePrismConfig(url: String, apiKey: String) {
+        viewModelScope.launch {
+            val trimmedUrl = url.trim()
+            val trimmedKey = apiKey.trim()
+
+            state = state.copy(
+                prismServerUrl = trimmedUrl,
+                prismApiKey = trimmedKey
+            )
+
+            application?.let { app ->
+                PrismPreferences(app).apply {
+                    prismServerUrl = trimmedUrl.ifBlank { null }
+                    prismApiKey = trimmedKey.ifBlank { null }
+                }
+
+                val urlIntent = Intent(PrismConfigReceiver.ACTION_SET_PRISM_SERVER_URL).apply {
+                    putExtra(PrismConfigReceiver.EXTRA_URL, trimmedUrl)
+                    setPackage(app.packageName)
+                }
+                app.sendBroadcast(urlIntent)
+
+                val keyIntent = Intent(PrismConfigReceiver.ACTION_SET_PRISM_API_KEY).apply {
+                    putExtra(PrismConfigReceiver.EXTRA_API_KEY, trimmedKey)
+                    setPackage(app.packageName)
+                }
+                app.sendBroadcast(keyIntent)
+
+                if (trimmedUrl.isNotBlank() && trimmedKey.isNotBlank()) {
+                    PrismServerClient.registerAllApps(app)
+                }
+
+                sendUiAction(app, "UpdatePrismServerConfigured")
             }
         }
     }

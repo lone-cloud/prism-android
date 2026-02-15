@@ -47,8 +47,8 @@
     <string name="add_manual_app_content_description">Add manual app</string>
     <string name="debug_title">Debug Information</string>
     <string name="configure_server">Configure Prism Server</string>
-    <string name="prism_server_description">Self-host a Prism server to unlock manual app registrations. Otherwise, this distributor works normally with UnifiedPush apps.</string>
-    <string name="prism_server_repo_link">https://github.com/lone-cloud/prism</string>
+    <string name="prism_server_info">Prism server enables manual app registrations and multi-device sync. Self-host your own or use a public instance.</string>
+    <string name="prism_server_learn_more">Learn more about Prism</string>
     <string name="prism_server_configured">Prism server configured</string>
     <string name="prism_server_configured_with_version">%1$s (v%2$s)</string>
     <string name="prism_server_not_configured">Prism server not configured</string>
@@ -60,10 +60,19 @@
     <string name="connection_successful">Connection successful</string>
     <string name="connection_failed">Connection failed</string>
     <string name="test_and_save_button">Test and Save</string>
-    <string name="clear_server_button">Clear</string>
+    <string name="clear_server_button">Remove</string>
     <string name="clear_server_confirm_title">Remove Prism Server?</string>
     <string name="clear_server_confirm_message_no_apps">This will remove your Prism server configuration.</string>
     <string name="clear_server_confirm_message_with_apps">You have %d manual app registration(s). Clearing the server will delete them from the server and remove the configuration.</string>
     <string name="app_dropdown_show_toasts">Notify when apps register</string>
+    <string name="show_toasts_description">Show a notification when apps register or unregister</string>
     <string name="dynamic_colors_title">Dynamic Colors</string>
+    <string name="dynamic_colors_description">Use colors from your wallpaper</string>
+
+    <!-- Intro screen strings -->
+    <string name="intro_welcome_title">Welcome to Prism</string>
+    <string name="intro_welcome_message">Prism is a UnifiedPush distributor that supports manual app registrations through an optional Prism server.</string>
+    <string name="intro_server_optional">Configure a Prism server now or skip to set it up later in Settings.</string>
+    <string name="intro_continue_button">Continue</string>
+    <string name="intro_skip_button">Skip for now</string>
 </resources>

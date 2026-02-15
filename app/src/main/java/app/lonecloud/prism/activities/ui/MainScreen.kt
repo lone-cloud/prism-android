@@ -1,11 +1,10 @@
 package app.lonecloud.prism.activities.ui
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -13,7 +12,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,7 +29,7 @@ import app.lonecloud.prism.activities.PreviewFactory
 import org.unifiedpush.android.distributor.ui.compose.AppBar
 import org.unifiedpush.android.distributor.ui.compose.CardDisableBatteryOptimisation
 import org.unifiedpush.android.distributor.ui.compose.CardDisabledForMigration
-import org.unifiedpush.android.distributor.ui.compose.DistribMigrationUi
+import org.unifiedpush.android.distributor.ui.compose.DistribMigrationDialogs
 import org.unifiedpush.android.distributor.ui.compose.PermissionsUi
 import org.unifiedpush.android.distributor.ui.compose.RegistrationList
 import org.unifiedpush.android.distributor.ui.compose.RegistrationListHeading
@@ -125,17 +123,14 @@ fun MainScreen(
 
             CardDisableBatteryOptimisation(viewModel.batteryOptimisationViewModel)
 
-            RegistrationListHeading(
-                modifier = Modifier.clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ) {
-                    viewModel.addDebugClick()
-                }
-            )
+            RegistrationListHeading()
         }
 
-        RegistrationList(viewModel.registrationsViewModel)
+        LazyColumn(
+            modifier = Modifier.padding(horizontal = 8.dp)
+        ) {
+            RegistrationList(viewModel.registrationsViewModel)
+        }
     }
     if (viewModel.mainUiState.showPermissionDialog) {
         PermissionsUi {
@@ -143,22 +138,8 @@ fun MainScreen(
             migrationViewModel.mayShowFallbackIntro()
         }
     }
-    if (viewModel.mainUiState.showDebugInfo) {
-        DebugDialog {
-            viewModel.dismissDebugInfo()
-        }
-    }
-    if (viewModel.mainUiState.showAddAppDialog) {
-        AddAppDialog(
-            installedApps = viewModel.mainUiState.installedApps,
-            onDismiss = { viewModel.hideAddAppDialog() },
-            onConfirm = { name, packageName, description ->
-                viewModel.addApp(name, packageName, description)
-            }
-        )
-    }
     if (migrationViewModel.state.canMigrate) {
-        DistribMigrationUi(migrationViewModel)
+        DistribMigrationDialogs(migrationViewModel)
     }
 }
 
