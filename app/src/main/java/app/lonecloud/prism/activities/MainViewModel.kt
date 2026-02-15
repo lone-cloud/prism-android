@@ -6,8 +6,6 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -55,13 +53,12 @@ class MainViewModel(
 
     var mainUiState by mutableStateOf(mainUiState)
 
+    var selectedApp by mutableStateOf<InstalledApp?>(null)
+        private set
+
     fun updatePrismServerConfigured(configured: Boolean) {
         mainUiState = mainUiState.copy(prismServerConfigured = configured)
     }
-
-    private var lastDebugClickTime by mutableLongStateOf(0L)
-
-    private var debugClickCount by mutableIntStateOf(0)
 
     init {
         loadInstalledApps()
@@ -123,21 +120,20 @@ class MainViewModel(
         mainUiState = mainUiState.copy(showAppDetails = false)
     }
 
-    fun addDebugClick() {
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - lastDebugClickTime < 500) {
-            debugClickCount++
-            if (debugClickCount == 5) {
-                mainUiState = mainUiState.copy(showDebugInfo = true)
-            }
-        } else {
-            debugClickCount = 1
-        }
-        lastDebugClickTime = currentTime
+    fun selectApp(app: InstalledApp) {
+        selectedApp = app
     }
 
-    fun dismissDebugInfo() {
-        mainUiState = mainUiState.copy(showDebugInfo = false)
+    fun clearSelectedApp() {
+        selectedApp = null
+    }
+
+    fun addManualApp(
+        name: String,
+        packageName: String,
+        description: String?
+    ) {
+        addApp(name, packageName, description)
     }
 
     private fun hasUnifiedPushSupport(pm: PackageManager, packageName: String): Boolean {
@@ -172,14 +168,6 @@ class MainViewModel(
                 mainUiState = mainUiState.copy(installedApps = apps)
             }
         }
-    }
-
-    fun showAddAppDialog() {
-        mainUiState = mainUiState.copy(showAddAppDialog = true)
-    }
-
-    fun hideAddAppDialog() {
-        mainUiState = mainUiState.copy(showAddAppDialog = false)
     }
 
     fun addApp(
@@ -220,7 +208,6 @@ class MainViewModel(
                 )
 
                 refreshRegistrations()
-                hideAddAppDialog()
 
                 var endpoint: String?
                 var attempts = 0

@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -54,7 +55,7 @@ object PrismServerClient {
                 }
 
                 val request = Request.Builder()
-                    .url("$serverUrl/webpush/app")
+                    .url("$serverUrl/api/v1/webpush/app")
                     .addHeader("Authorization", getAuthHeader(apiKey))
                     .addHeader("Content-Type", "application/json")
                     .post(json.toString().toRequestBody("application/json".toMediaType()))
@@ -65,17 +66,17 @@ object PrismServerClient {
                 client.newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
                         Log.d(TAG, "Successfully registered app: $appName")
-                        onSuccess()
+                        withContext(Dispatchers.Main) { onSuccess() }
                     } else {
                         val error = "Failed to register app: ${response.code} ${response.message}"
                         Log.e(TAG, error)
-                        onError(error)
+                        withContext(Dispatchers.Main) { onError(error) }
                     }
                 }
             } catch (e: IOException) {
                 val error = "Error registering app: ${e.message}"
                 Log.e(TAG, error, e)
-                onError(error)
+                withContext(Dispatchers.Main) { onError(error) }
             }
         }
     }
@@ -135,7 +136,7 @@ object PrismServerClient {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val request = Request.Builder()
-                    .url("$url/webpush/app/$appName")
+                    .url("$url/api/v1/webpush/app/$appName")
                     .addHeader("Authorization", getAuthHeader(key))
                     .delete()
                     .build()
@@ -145,17 +146,17 @@ object PrismServerClient {
                 client.newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
                         Log.d(TAG, "Successfully deleted app: $appName")
-                        onSuccess()
+                        withContext(Dispatchers.Main) { onSuccess() }
                     } else {
                         val error = "Failed to delete app: ${response.code} ${response.message}"
                         Log.e(TAG, error)
-                        onError(error)
+                        withContext(Dispatchers.Main) { onError(error) }
                     }
                 }
             } catch (e: IOException) {
                 val error = "Error deleting app: ${e.message}"
                 Log.e(TAG, error, e)
-                onError(error)
+                withContext(Dispatchers.Main) { onError(error) }
             }
         }
     }
@@ -201,7 +202,7 @@ object PrismServerClient {
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val healthUrl = "$serverUrl/api/health"
+                val healthUrl = "$serverUrl/api/v1/health"
                 val request = Request.Builder()
                     .url(healthUrl)
                     .addHeader("Authorization", getAuthHeader(apiKey))
@@ -210,13 +211,17 @@ object PrismServerClient {
 
                 client.newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
-                        onSuccess()
+                        withContext(Dispatchers.Main) { onSuccess() }
                     } else {
-                        onError("Connection failed: ${response.code} ${response.message}")
+                        withContext(Dispatchers.Main) {
+                            onError("Connection failed: ${response.code} ${response.message}")
+                        }
                     }
                 }
             } catch (e: IOException) {
-                onError("Connection error: ${e.message}")
+                withContext(Dispatchers.Main) {
+                    onError("Connection error: ${e.message}")
+                }
             }
         }
     }

@@ -97,6 +97,14 @@ class PrismPreferences(context: Context) :
                 putOrRemove(PREF_PRISM_API_KEY, value)
             }
 
+    var introCompleted: Boolean
+        get() = sharedPreferences
+            .getBoolean(PREF_INTRO_COMPLETED, false)
+        set(value) = sharedPreferences
+            .edit {
+                putBoolean(PREF_INTRO_COMPLETED, value)
+            }
+
     override fun wipe() {
         uaid = null
     }
@@ -113,5 +121,6 @@ class PrismPreferences(context: Context) :
         private const val PREF_SHOW_TOASTS = "show_toasts"
         private const val PREF_PRISM_SERVER_URL = "prism_server_url"
         private const val PREF_PRISM_API_KEY = "prism_api_key"
+        private const val PREF_INTRO_COMPLETED = "intro_completed"
     }
 }

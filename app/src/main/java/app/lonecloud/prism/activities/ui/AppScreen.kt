@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -32,6 +33,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.R
 import app.lonecloud.prism.activities.MainViewModel
 import app.lonecloud.prism.activities.PreviewFactory
@@ -42,8 +44,12 @@ import org.unifiedpush.android.distributor.ui.compose.AppBar
 import org.unifiedpush.android.distributor.ui.vm.DistribMigrationViewModel
 
 enum class AppScreen(@param:StringRes val title: Int) {
+    Intro(R.string.app_name),
     Main(R.string.app_name),
-    Settings(R.string.settings)
+    Settings(R.string.settings),
+    ServerConfig(R.string.configure_server),
+    AddApp(R.string.add_custom_app_title),
+    AppPicker(R.string.select_target_app_title)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,6 +92,8 @@ fun App(
 ) {
     val context = LocalContext.current
     val uiActionsFlow = subscribeUiActions(context)
+    val prefs = remember { PrismPreferences(context) }
+    val startDestination = if (prefs.introCompleted) AppScreen.Main.name else AppScreen.Intro.name
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = AppScreen.valueOf(
@@ -96,26 +104,34 @@ fun App(
 
     Scaffold(
         topBar = {
-            when (currentScreen) {
-                AppScreen.Main -> {
-                    MainAppBarOrSelection(
-                        mainViewModel,
-                        onGoToSettings = {
-                            navController.navigate(AppScreen.Settings.name)
-                        }
-                    )
-                }
-                else -> null
-            } ?: DefaultTopBar(
-                currentScreen,
-                canNavigateBack = navController.previousBackStackEntry != null,
-                navigateUp = { navController.navigateUp() }
-            )
+            if (currentScreen == AppScreen.Intro) {
+                null
+            } else {
+                when (currentScreen) {
+                    AppScreen.Main -> {
+                        MainAppBarOrSelection(
+                            mainViewModel,
+                            onGoToSettings = {
+                                navController.navigate(AppScreen.Settings.name)
+                            }
+                        )
+                    }
+                    else -> null
+                } ?: DefaultTopBar(
+                    currentScreen,
+                    canNavigateBack = navController.previousBackStackEntry != null,
+                    navigateUp = { navController.navigateUp() }
+                )
+            }
         },
         floatingActionButton = {
-            if (currentScreen == AppScreen.Main && mainViewModel.mainUiState.prismServerConfigured) {
+            val prefs = PrismPreferences(context)
+            if (currentScreen == AppScreen.Main && !prefs.prismServerUrl.isNullOrBlank() && !prefs.prismApiKey.isNullOrBlank()) {
                 FloatingActionButton(
-                    onClick = { mainViewModel.showAddAppDialog() }
+                    onClick = {
+                        mainViewModel.clearSelectedApp()
+                        navController.navigate(AppScreen.AddApp.name)
+                    }
                 ) {
                     Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_manual_app_content_description))
                 }
@@ -125,24 +141,42 @@ fun App(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = AppScreen.Main.name,
+            startDestination = startDestination,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            composable(route = AppScreen.Intro.name) {
+                val settingsViewModel = viewModel<SettingsViewModel>(factory = factory)
+                IntroScreen(
+                    onComplete = { url, apiKey ->
+                        PrismPreferences(context).introCompleted = true
+                        settingsViewModel.savePrismConfig(url, apiKey)
+                        navController.navigate(AppScreen.Main.name) {
+                            popUpTo(AppScreen.Intro.name) { inclusive = true }
+                        }
+                    },
+                    onSkip = {
+                        PrismPreferences(context).introCompleted = true
+                        navController.navigate(AppScreen.Main.name) {
+                            popUpTo(AppScreen.Intro.name) { inclusive = true }
+                        }
+                    }
+                )
+            }
             composable(
                 route = AppScreen.Main.name,
                 exitTransition = {
                     when (targetState.destination.route) {
-                        AppScreen.Settings.name -> slideOutFrom(
-                            Dir.Right
-                        )
+                        AppScreen.Settings.name -> slideOutFrom(Dir.Right)
+                        AppScreen.AddApp.name -> slideOutFrom(Dir.Right)
                         else -> fadeOut()
                     }
                 },
                 popEnterTransition = {
                     when (initialState.destination.route) {
                         AppScreen.Settings.name -> slideInTo(Dir.Right)
+                        AppScreen.AddApp.name -> slideInTo(Dir.Right)
                         else -> fadeIn()
                     }
                 }
@@ -156,10 +190,91 @@ fun App(
             composable(
                 route = AppScreen.Settings.name,
                 enterTransition = { slideInTo(Dir.Left) },
+                exitTransition = {
+                    when (targetState.destination.route) {
+                        AppScreen.ServerConfig.name -> slideOutFrom(Dir.Right)
+                        else -> fadeOut()
+                    }
+                },
+                popEnterTransition = {
+                    when (initialState.destination.route) {
+                        AppScreen.ServerConfig.name -> slideInTo(Dir.Right)
+                        else -> fadeIn()
+                    }
+                },
                 popExitTransition = { slideOutFrom(Dir.Left) }
             ) {
                 val vm = viewModel<SettingsViewModel>(factory = factory)
-                SettingsScreen(vm, themeViewModel, migrationViewModel)
+                SettingsScreen(
+                    vm,
+                    themeViewModel,
+                    migrationViewModel,
+                    onNavigateToServerConfig = {
+                        navController.navigate(AppScreen.ServerConfig.name)
+                    }
+                )
+            }
+            composable(
+                route = AppScreen.ServerConfig.name,
+                enterTransition = { slideInTo(Dir.Left) },
+                popEnterTransition = { slideInTo(Dir.Right) },
+                popExitTransition = { slideOutFrom(Dir.Left) }
+            ) {
+                val settingsEntry = remember(it) {
+                    navController.getBackStackEntry(AppScreen.Settings.name)
+                }
+                val vm = viewModel<SettingsViewModel>(
+                    viewModelStoreOwner = settingsEntry,
+                    factory = factory
+                )
+                ServerConfigScreen(
+                    initialUrl = vm.state.prismServerUrl,
+                    initialApiKey = vm.state.prismApiKey,
+                    onNavigateBack = { navController.navigateUp() },
+                    onSave = { url, apiKey -> vm.savePrismConfig(url, apiKey) }
+                )
+            }
+            composable(
+                route = AppScreen.AddApp.name,
+                enterTransition = { slideInTo(Dir.Left) },
+                exitTransition = {
+                    when (targetState.destination.route) {
+                        AppScreen.AppPicker.name -> slideOutFrom(Dir.Right)
+                        else -> fadeOut()
+                    }
+                },
+                popEnterTransition = {
+                    when (initialState.destination.route) {
+                        AppScreen.AppPicker.name -> slideInTo(Dir.Right)
+                        else -> fadeIn()
+                    }
+                },
+                popExitTransition = { slideOutFrom(Dir.Left) }
+            ) {
+                AddAppScreen(
+                    selectedApp = mainViewModel.selectedApp,
+                    onNavigateBack = { navController.navigateUp() },
+                    onNavigateToAppPicker = {
+                        navController.navigate(AppScreen.AppPicker.name)
+                    },
+                    onConfirm = { name, packageName, description ->
+                        mainViewModel.addManualApp(name, packageName, description)
+                    }
+                )
+            }
+            composable(
+                route = AppScreen.AppPicker.name,
+                enterTransition = { slideInTo(Dir.Left) },
+                popEnterTransition = { slideInTo(Dir.Right) },
+                popExitTransition = { slideOutFrom(Dir.Left) }
+            ) {
+                AppPickerScreen(
+                    apps = mainViewModel.mainUiState.installedApps,
+                    onNavigateBack = { navController.navigateUp() },
+                    onSelect = { app ->
+                        mainViewModel.selectApp(app)
+                    }
+                )
             }
         }
     }

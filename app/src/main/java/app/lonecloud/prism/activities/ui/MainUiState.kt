@@ -7,12 +7,10 @@ data class InstalledApp(
 )
 
 data class MainUiState(
-    val showDebugInfo: Boolean = false,
     val showPermissionDialog: Boolean = true,
     val showAppDetails: Boolean = false,
     val isLoadingEndpoint: Boolean = false,
     val currentEndpoint: String = "",
-    val showAddAppDialog: Boolean = false,
     val installedApps: List<InstalledApp> = emptyList(),
     val prismServerConfigured: Boolean = false
 )
