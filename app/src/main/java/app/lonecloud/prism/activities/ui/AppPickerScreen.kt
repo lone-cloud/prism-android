@@ -34,8 +34,14 @@ fun AppPickerScreen(
     onSelect: (InstalledApp) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    val filteredApps = remember(apps, searchQuery) {
-        if (searchQuery.isBlank()) {
+
+    val recommendedPackages = listOf(
+        "ch.protonmail.android",
+        "io.homeassistant.companion.android"
+    )
+
+    val (recommendedApps, otherApps) = remember(apps, searchQuery) {
+        val filtered = if (searchQuery.isBlank()) {
             apps
         } else {
             apps.filter { app ->
@@ -43,6 +49,15 @@ fun AppPickerScreen(
                     app.packageName.contains(searchQuery, ignoreCase = true)
             }
         }
+
+        val recommended = filtered.filter { app ->
+            recommendedPackages.any { pkg -> app.packageName.startsWith(pkg) }
+        }
+        val others = filtered.filterNot { app ->
+            recommendedPackages.any { pkg -> app.packageName.startsWith(pkg) }
+        }
+
+        recommended to others
     }
 
     Column(
@@ -64,39 +79,86 @@ fun AppPickerScreen(
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            items(filteredApps) { app ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
+            if (recommendedApps.isNotEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.recommended_apps),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp)
+                    )
+                }
+                items(recommendedApps) { app ->
+                    AppListItem(
+                        app = app,
+                        isRecommended = true,
+                        onClick = {
                             onSelect(app)
                             onNavigateBack()
                         }
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    app.icon?.let { icon ->
-                        val bitmap = icon.toBitmap(48, 48)
-                        Image(
-                            bitmap = bitmap.asImageBitmap(),
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp)
-                        )
-                    }
-                    Column {
+                    )
+                }
+            }
+
+            if (otherApps.isNotEmpty()) {
+                if (recommendedApps.isNotEmpty()) {
+                    item {
                         Text(
-                            text = app.appName,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = app.packageName,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = stringResource(R.string.all_apps),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp)
                         )
                     }
                 }
+                items(otherApps) { app ->
+                    AppListItem(
+                        app = app,
+                        isRecommended = false,
+                        onClick = {
+                            onSelect(app)
+                            onNavigateBack()
+                        }
+                    )
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun AppListItem(
+    app: InstalledApp,
+    isRecommended: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        app.icon?.let { icon ->
+            val bitmap = icon.toBitmap(48, 48)
+            Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier.size(48.dp)
+            )
+        }
+        Column {
+            Text(
+                text = app.appName,
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (isRecommended) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = app.packageName,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

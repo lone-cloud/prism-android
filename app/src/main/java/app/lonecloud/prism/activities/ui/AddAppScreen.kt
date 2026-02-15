@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -51,6 +52,12 @@ fun AddAppScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        Text(
+            text = stringResource(R.string.add_app_description),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
@@ -92,6 +99,8 @@ fun AddAppScreen(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.weight(1f))
 
         Button(
             onClick = {

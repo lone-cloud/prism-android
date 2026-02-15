@@ -34,7 +34,8 @@
     <!-- Prism-specific strings -->
     <string name="app_name">Prism</string>
     <string name="settings">Settings</string>
-    <string name="add_custom_app_title">Add Custom App</string>
+    <string name="add_custom_app_title">Add App</string>
+    <string name="add_app_description">Register an app to receive notifications from your Prism server. Optionally choose a target app to deliver notifications to.</string>
     <string name="app_name_label">App Name</string>
     <string name="app_name_placeholder">Enter app name</string>
     <string name="target_app_label">Target App (Optional)</string>
@@ -42,12 +43,15 @@
     <string name="add_button">Add</string>
     <string name="cancel_button">Cancel</string>
     <string name="select_target_app_title">Select Target App</string>
+    <string name="recommended_apps">Recommended</string>
+    <string name="all_apps">All Apps</string>
     <string name="search_apps_label">Search</string>
     <string name="search_apps_placeholder">Search for apps</string>
     <string name="add_manual_app_content_description">Add manual app</string>
+    <string name="registered_apps_heading">Registered Apps</string>
     <string name="debug_title">Debug Information</string>
     <string name="configure_server">Configure Prism Server</string>
-    <string name="prism_server_info">Prism server enables manual app registrations and multi-device sync. Self-host your own or use a public instance.</string>
+    <string name="prism_server_info">Prism server enables manual app registrations and must be self-hosted.</string>
     <string name="prism_server_learn_more">Learn more about Prism</string>
     <string name="prism_server_configured">Prism server configured</string>
     <string name="prism_server_configured_with_version">%1$s (v%2$s)</string>
