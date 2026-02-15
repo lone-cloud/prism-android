@@ -50,8 +50,7 @@ object Distributor : UnifiedPushDistributor() {
         val db = getDb(context)
         val app = db.listApps().find { it.connectorToken == channelId }
         if (app?.description?.startsWith("target:") == true) {
-            val appName = app.title ?: app.packageName
-            PrismServerClient.deleteApp(context, appName)
+            PrismServerClient.deleteApp(context, channelId)
         }
 
         MessageSender.send(

@@ -105,6 +105,23 @@ class PrismPreferences(context: Context) :
                 putBoolean(PREF_INTRO_COMPLETED, value)
             }
 
+    fun setSubscriptionId(connectorToken: String, subscriptionId: Long) {
+        sharedPreferences.edit {
+            putLong("subscription_id_$connectorToken", subscriptionId)
+        }
+    }
+
+    fun getSubscriptionId(connectorToken: String): Long? {
+        val id = sharedPreferences.getLong("subscription_id_$connectorToken", -1L)
+        return if (id == -1L) null else id
+    }
+
+    fun removeSubscriptionId(connectorToken: String) {
+        sharedPreferences.edit {
+            remove("subscription_id_$connectorToken")
+        }
+    }
+
     override fun wipe() {
         uaid = null
     }

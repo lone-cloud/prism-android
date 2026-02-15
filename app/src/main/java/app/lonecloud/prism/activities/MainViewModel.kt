@@ -222,6 +222,7 @@ class MainViewModel(
                         Log.d(TAG, "Endpoint received after $attempts attempts: $endpoint")
                         PrismServerClient.registerApp(
                             app,
+                            connectorToken,
                             name,
                             endpoint!!,
                             vapidPrivateKey = vapidKeys.privateKey,

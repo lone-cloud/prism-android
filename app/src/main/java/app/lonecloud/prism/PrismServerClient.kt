@@ -27,6 +27,7 @@ object PrismServerClient {
 
     fun registerApp(
         context: Context,
+        connectorToken: String,
         appName: String,
         webpushUrl: String,
         vapidPrivateKey: String? = null,
@@ -65,7 +66,13 @@ object PrismServerClient {
 
                 client.newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
-                        Log.d(TAG, "Successfully registered app: $appName")
+                        val responseBody = response.body.string()
+                        val responseJson = JSONObject(responseBody)
+                        val subscriptionId = responseJson.getLong("id")
+
+                        store.setSubscriptionId(connectorToken, subscriptionId)
+
+                        Log.d(TAG, "Successfully registered app: $appName (subscription ID: $subscriptionId)")
                         withContext(Dispatchers.Main) { onSuccess() }
                     } else {
                         val error = "Failed to register app: ${response.code} ${response.message}"
@@ -105,6 +112,7 @@ object PrismServerClient {
                         val appName = app.title ?: app.packageName
                         registerApp(
                             context,
+                            app.connectorToken,
                             appName,
                             endpoint
                         )
@@ -118,7 +126,7 @@ object PrismServerClient {
 
     fun deleteApp(
         context: Context,
-        appName: String,
+        connectorToken: String,
         serverUrl: String? = null,
         apiKey: String? = null,
         onSuccess: () -> Unit = {},
@@ -133,28 +141,36 @@ object PrismServerClient {
             return
         }
 
+        val subscriptionId = store.getSubscriptionId(connectorToken)
+        if (subscriptionId == null) {
+            Log.d(TAG, "No subscription ID found for token: $connectorToken")
+            onError("No subscription ID found")
+            return
+        }
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val request = Request.Builder()
-                    .url("$url/api/v1/webpush/app/$appName")
+                    .url("$url/api/v1/webpush/app/subscription/$subscriptionId")
                     .addHeader("Authorization", getAuthHeader(key))
                     .delete()
                     .build()
 
-                Log.d(TAG, "Deleting app from Prism server: $appName")
+                Log.d(TAG, "Deleting subscription from Prism server: $subscriptionId")
 
                 client.newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
-                        Log.d(TAG, "Successfully deleted app: $appName")
+                        store.removeSubscriptionId(connectorToken)
+                        Log.d(TAG, "Successfully deleted subscription: $subscriptionId")
                         withContext(Dispatchers.Main) { onSuccess() }
                     } else {
-                        val error = "Failed to delete app: ${response.code} ${response.message}"
+                        val error = "Failed to delete subscription: ${response.code} ${response.message}"
                         Log.e(TAG, error)
                         withContext(Dispatchers.Main) { onError(error) }
                     }
                 }
             } catch (e: IOException) {
-                val error = "Error deleting app: ${e.message}"
+                val error = "Error deleting subscription: ${e.message}"
                 Log.e(TAG, error, e)
                 withContext(Dispatchers.Main) { onError(error) }
             }
@@ -185,8 +201,7 @@ object PrismServerClient {
                 Log.d(TAG, "Deleting ${manualApps.size} manual apps from Prism server")
 
                 manualApps.forEach { app ->
-                    val appName = app.title ?: app.packageName
-                    deleteApp(context, appName, url, key)
+                    deleteApp(context, app.connectorToken, url, key)
                 }
             } catch (e: IOException) {
                 Log.e(TAG, "Error during bulk deletion: ${e.message}", e)
@@ -222,6 +237,49 @@ object PrismServerClient {
                 withContext(Dispatchers.Main) {
                     onError("Connection error: ${e.message}")
                 }
+            }
+        }
+    }
+
+    fun fetchRegisteredApps(
+        context: Context,
+        onSuccess: (List<String>) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val store = PrismPreferences(context)
+        val serverUrl = store.prismServerUrl
+        val apiKey = store.prismApiKey
+
+        if (serverUrl.isNullOrBlank() || apiKey.isNullOrBlank()) {
+            onSuccess(emptyList())
+            return
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val request = Request.Builder()
+                    .url("$serverUrl/api/v1/apps")
+                    .addHeader("Authorization", getAuthHeader(apiKey))
+                    .get()
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val body = response.body.string()
+                        val jsonArray = org.json.JSONArray(body)
+                        val appNames = mutableListOf<String>()
+                        for (i in 0 until jsonArray.length()) {
+                            val obj = jsonArray.getJSONObject(i)
+                            appNames.add(obj.getString("appName"))
+                        }
+                        withContext(Dispatchers.Main) { onSuccess(appNames) }
+                    } else {
+                        withContext(Dispatchers.Main) { onError("Failed to fetch apps: ${response.code}") }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error fetching registered apps: ${e.message}", e)
+                withContext(Dispatchers.Main) { onError(e.message ?: "Unknown error") }
             }
         }
     }
