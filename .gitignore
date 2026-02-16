@@ -16,3 +16,4 @@ local.properties
 .idea
 prism-release.keystore
 .kotlin/sessions/kotlin-compiler-*
+.VSCodeCounter

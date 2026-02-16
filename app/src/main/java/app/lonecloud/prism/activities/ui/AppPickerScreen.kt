@@ -27,20 +27,61 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import app.lonecloud.prism.R
 
+data class PrismServerApp(val name: String, val matchedInstalledApp: InstalledApp? = null)
+
 @Composable
 fun AppPickerScreen(
     apps: List<InstalledApp>,
     onNavigateBack: () -> Unit,
-    onSelect: (InstalledApp) -> Unit
+    onSelect: (InstalledApp) -> Unit,
+    onSelectPrismApp: ((String) -> Unit)? = null
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    var prismServerApps by remember { mutableStateOf<List<PrismServerApp>>(emptyList()) }
+    var prismAppsLoaded by remember { mutableStateOf(false) }
+    var showContent by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(100)
+        showContent = true
+    }
 
     val recommendedPackages = listOf(
         "ch.protonmail.android",
         "io.homeassistant.companion.android"
     )
 
-    val (recommendedApps, otherApps) = remember(apps, searchQuery) {
+    androidx.compose.runtime.LaunchedEffect(onSelectPrismApp) {
+        if (onSelectPrismApp != null) {
+            app.lonecloud.prism.PrismServerClient.fetchRegisteredApps(
+                context,
+                onSuccess = { serverAppNames ->
+                    val db = app.lonecloud.prism.DatabaseFactory.getDb(context)
+                    val localAppNames = db.listApps()
+                        .filter { it.description?.startsWith("target:") == true }
+                        .mapNotNull { it.title }
+                        .toSet()
+                    prismServerApps = serverAppNames
+                        .filterNot { it in localAppNames }
+                        .map { serverAppName ->
+                            val matchedApp = apps.find {
+                                it.appName.equals(serverAppName, ignoreCase = true)
+                            }
+                            PrismServerApp(serverAppName, matchedApp)
+                        }
+                    prismAppsLoaded = true
+                },
+                onError = {
+                    prismAppsLoaded = true
+                }
+            )
+        } else {
+            prismAppsLoaded = true
+        }
+    }
+
+    val (recommendedApps, otherApps) = remember(apps, searchQuery, prismServerApps) {
         val filtered = if (searchQuery.isBlank()) {
             apps
         } else {
@@ -50,12 +91,14 @@ fun AppPickerScreen(
             }
         }
 
+        val prismAppNames = prismServerApps.map { it.name }
         val recommended = filtered.filter { app ->
-            recommendedPackages.any { pkg -> app.packageName.startsWith(pkg) }
-        }
+            recommendedPackages.any { pkg -> app.packageName.startsWith(pkg) } &&
+                !prismAppNames.contains(app.appName)
+        }.sortedBy { it.appName.lowercase() }
         val others = filtered.filterNot { app ->
             recommendedPackages.any { pkg -> app.packageName.startsWith(pkg) }
-        }
+        }.sortedBy { it.appName.lowercase() }
 
         recommended to others
     }
@@ -79,7 +122,31 @@ fun AppPickerScreen(
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            if (recommendedApps.isNotEmpty()) {
+            if (showContent && prismAppsLoaded && prismServerApps.isNotEmpty() && onSelectPrismApp != null && searchQuery.isBlank()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.from_your_server),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp)
+                    )
+                }
+                items(prismServerApps) { prismApp ->
+                    PrismAppListItem(
+                        prismApp = prismApp,
+                        onClick = {
+                            if (prismApp.matchedInstalledApp != null) {
+                                onSelect(prismApp.matchedInstalledApp)
+                                onNavigateBack()
+                            } else {
+                                searchQuery = prismApp.name
+                            }
+                        }
+                    )
+                }
+            }
+
+            if (showContent && recommendedApps.isNotEmpty()) {
                 item {
                     Text(
                         text = stringResource(R.string.recommended_apps),
@@ -100,8 +167,8 @@ fun AppPickerScreen(
                 }
             }
 
-            if (otherApps.isNotEmpty()) {
-                if (recommendedApps.isNotEmpty()) {
+            if (showContent && otherApps.isNotEmpty()) {
+                if (recommendedApps.isNotEmpty() || prismServerApps.isNotEmpty()) {
                     item {
                         Text(
                             text = stringResource(R.string.all_apps),
@@ -160,5 +227,38 @@ private fun AppListItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+@Composable
+private fun PrismAppListItem(prismApp: PrismServerApp, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val icon = prismApp.matchedInstalledApp?.icon
+        if (icon != null) {
+            val bitmap = icon.toBitmap(48, 48)
+            Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier.size(48.dp)
+            )
+        } else {
+            Image(
+                painter = androidx.compose.ui.res.painterResource(R.drawable.app_logo),
+                contentDescription = null,
+                modifier = Modifier.size(48.dp)
+            )
+        }
+        Text(
+            text = prismApp.name,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }

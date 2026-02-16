@@ -160,7 +160,6 @@ fun ServerConfigScreen(
                     }
 
                     val normalizedUrl = normalizeUrl(url)
-                    val finalApiKey = apiKey.ifBlank { initialApiKey }
                     val isServerChanging = initialUrl.isNotBlank() && normalizedUrl != initialUrl
 
                     if (isServerChanging) {

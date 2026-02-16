@@ -56,6 +56,8 @@ class MainViewModel(
     var selectedApp by mutableStateOf<InstalledApp?>(null)
         private set
 
+    var prefilledName by mutableStateOf<String?>(null)
+
     fun updatePrismServerConfigured(configured: Boolean) {
         mainUiState = mainUiState.copy(prismServerConfigured = configured)
     }
