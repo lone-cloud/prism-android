@@ -25,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -42,7 +41,6 @@ fun IntroScreen(onComplete: (url: String, apiKey: String) -> Unit, onSkip: () ->
     var apiKey by remember { mutableStateOf("") }
     var isTesting by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<String?>(null) }
-    val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val successMessage = stringResource(R.string.connection_successful)
     val failedMessageTemplate = stringResource(R.string.connection_failed)

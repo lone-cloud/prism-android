@@ -32,16 +32,22 @@ import app.lonecloud.prism.R
 @Composable
 fun AddAppScreen(
     selectedApp: InstalledApp?,
+    prefilledName: String? = null,
     onNavigateBack: () -> Unit,
     onNavigateToAppPicker: () -> Unit,
     onConfirm: (name: String, packageName: String, description: String?) -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf(prefilledName ?: "") }
 
-    // Auto-fill name when app is selected
     androidx.compose.runtime.LaunchedEffect(selectedApp) {
         if (name.isBlank() && selectedApp != null) {
             name = selectedApp.appName
+        }
+    }
+
+    androidx.compose.runtime.LaunchedEffect(prefilledName) {
+        if (prefilledName != null && name != prefilledName) {
+            name = prefilledName
         }
     }
 

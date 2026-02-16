@@ -104,9 +104,7 @@ fun App(
 
     Scaffold(
         topBar = {
-            if (currentScreen == AppScreen.Intro) {
-                null
-            } else {
+            if (currentScreen != AppScreen.Intro) {
                 when (currentScreen) {
                     AppScreen.Main -> {
                         MainAppBarOrSelection(
@@ -125,8 +123,11 @@ fun App(
             }
         },
         floatingActionButton = {
-            val prefs = PrismPreferences(context)
-            if (currentScreen == AppScreen.Main && !prefs.prismServerUrl.isNullOrBlank() && !prefs.prismApiKey.isNullOrBlank()) {
+            val serverPrefs = PrismPreferences(context)
+            if (currentScreen == AppScreen.Main &&
+                !serverPrefs.prismServerUrl.isNullOrBlank() &&
+                !serverPrefs.prismApiKey.isNullOrBlank()
+            ) {
                 FloatingActionButton(
                     onClick = {
                         mainViewModel.clearSelectedApp()
@@ -253,12 +254,14 @@ fun App(
             ) {
                 AddAppScreen(
                     selectedApp = mainViewModel.selectedApp,
+                    prefilledName = mainViewModel.prefilledName,
                     onNavigateBack = { navController.navigateUp() },
                     onNavigateToAppPicker = {
                         navController.navigate(AppScreen.AppPicker.name)
                     },
                     onConfirm = { name, packageName, description ->
                         mainViewModel.addManualApp(name, packageName, description)
+                        mainViewModel.prefilledName = null
                     }
                 )
             }
@@ -273,6 +276,9 @@ fun App(
                     onNavigateBack = { navController.navigateUp() },
                     onSelect = { app ->
                         mainViewModel.selectApp(app)
+                    },
+                    onSelectPrismApp = { appName ->
+                        mainViewModel.prefilledName = appName
                     }
                 )
             }
