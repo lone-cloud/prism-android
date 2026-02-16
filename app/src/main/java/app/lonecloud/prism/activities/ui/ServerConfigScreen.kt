@@ -11,9 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -183,7 +186,6 @@ fun ServerConfigScreen(
     if (showServerChangeWarning) {
         ServerChangeWarningDialog(
             newUrl = normalizeUrl(url),
-            newApiKey = apiKey,
             initialUrl = initialUrl,
             onConfirm = { normalizedUrl ->
                 showServerChangeWarning = false
@@ -210,20 +212,30 @@ fun ServerConfigScreen(
 internal fun PrismInfoWithLink(uriHandler: androidx.compose.ui.platform.UriHandler) {
     val learnMore = stringResource(R.string.prism_server_learn_more)
 
-    Text(
-        text = learnMore,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.primary,
+    Row(
         modifier = Modifier.clickable {
             uriHandler.openUri("https://github.com/lone-cloud/prism")
-        }
-    )
+        },
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = learnMore,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(16.dp)
+        )
+    }
 }
 
 @Composable
 private fun ServerChangeWarningDialog(
     newUrl: String,
-    newApiKey: String,
     initialUrl: String,
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit

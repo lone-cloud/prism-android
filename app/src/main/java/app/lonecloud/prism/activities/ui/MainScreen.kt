@@ -111,7 +111,7 @@ fun MainScreen(
     ) {
         Column(
             modifier = Modifier
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) innerColumn@{
@@ -126,14 +126,14 @@ fun MainScreen(
 
             Text(
                 text = stringResource(R.string.registered_apps_heading),
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 6.dp)
             )
         }
 
         LazyColumn(
-            modifier = Modifier.padding(horizontal = 8.dp)
+            modifier = Modifier.padding(horizontal = 12.dp)
         ) {
             RegistrationList(viewModel.registrationsViewModel)
         }
