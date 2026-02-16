@@ -56,7 +56,7 @@ object PrismServerClient {
                 }
 
                 val request = Request.Builder()
-                    .url("$serverUrl/api/v1/webpush/app")
+                    .url("$serverUrl/api/v1/webpush/subscriptions")
                     .addHeader("Authorization", getAuthHeader(apiKey))
                     .addHeader("Content-Type", "application/json")
                     .post(json.toString().toRequestBody("application/json".toMediaType()))
@@ -151,7 +151,7 @@ object PrismServerClient {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val request = Request.Builder()
-                    .url("$url/api/v1/webpush/app/subscription/$subscriptionId")
+                    .url("$url/api/v1/webpush/subscriptions/$subscriptionId")
                     .addHeader("Authorization", getAuthHeader(key))
                     .delete()
                     .build()
