@@ -43,7 +43,7 @@ fun AppPickerScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
 
     androidx.compose.runtime.LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(100)
+        kotlinx.coroutines.delay(200)
         showContent = true
     }
 
