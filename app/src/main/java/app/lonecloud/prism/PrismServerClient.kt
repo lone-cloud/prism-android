@@ -49,34 +49,44 @@ object PrismServerClient {
             try {
                 val json = JSONObject().apply {
                     put("appName", appName)
-                    put("webpushUrl", webpushUrl)
+                    put("pushEndpoint", webpushUrl)
                     vapidPrivateKey?.let { put("vapidPrivateKey", it) }
                     p256dh?.let { put("p256dh", it) }
                     auth?.let { put("auth", it) }
                 }
 
+                val url = "$serverUrl/api/v1/webpush/subscriptions"
                 val request = Request.Builder()
-                    .url("$serverUrl/api/v1/webpush/subscriptions")
+                    .url(url)
                     .addHeader("Authorization", getAuthHeader(apiKey))
                     .addHeader("Content-Type", "application/json")
                     .post(json.toString().toRequestBody("application/json".toMediaType()))
                     .build()
 
-                Log.d(TAG, "Registering app with Prism server: $appName -> $webpushUrl")
+                Log.d(TAG, "Registering app with Prism server: $appName")
 
                 client.newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
                         val responseBody = response.body.string()
-                        val responseJson = JSONObject(responseBody)
-                        val subscriptionId = responseJson.getLong("id")
 
-                        store.setSubscriptionId(connectorToken, subscriptionId)
+                        try {
+                            val responseJson = JSONObject(responseBody)
+                            val subscriptionId = responseJson.getString("subscriptionId").toLong()
 
-                        Log.d(TAG, "Successfully registered app: $appName (subscription ID: $subscriptionId)")
-                        withContext(Dispatchers.Main) { onSuccess() }
+                            store.setSubscriptionId(connectorToken, subscriptionId)
+
+                            Log.d(TAG, "Successfully registered app: $appName (ID: $subscriptionId)")
+                            withContext(Dispatchers.Main) { onSuccess() }
+                        } catch (e: Exception) {
+                            val error = "Failed to parse registration response: ${e.message}"
+                            Log.e(TAG, error)
+                            Log.e(TAG, "Response body: $responseBody")
+                            withContext(Dispatchers.Main) { onError(error) }
+                        }
                     } else {
+                        val responseBody = response.body.string()
                         val error = "Failed to register app: ${response.code} ${response.message}"
-                        Log.e(TAG, error)
+                        Log.e(TAG, "$error - Response: $responseBody")
                         withContext(Dispatchers.Main) { onError(error) }
                     }
                 }
@@ -110,12 +120,30 @@ object PrismServerClient {
                 manualApps.forEach { app ->
                     app.endpoint?.let { endpoint ->
                         val appName = app.title ?: app.packageName
+
+                        val channelId = db.listChannelIdVapid()
+                            .find { (_, vapid) -> vapid == app.vapidKey }
+                            ?.first
+
+                        val keyStore = EncryptionKeyStore(context)
+                        val keys = channelId?.let { keyStore.getKeys(it) }
+
                         registerApp(
                             context,
                             app.connectorToken,
                             appName,
-                            endpoint
+                            endpoint,
+                            vapidPrivateKey = app.vapidKey,
+                            p256dh = keys?.third,
+                            auth = keys?.second?.let { authBytes ->
+                                android.util.Base64.encodeToString(
+                                    authBytes,
+                                    android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING or android.util.Base64.NO_WRAP
+                                )
+                            }
                         )
+                    } ?: run {
+                        Log.w(TAG, "Skipping app ${app.title} - no endpoint available")
                     }
                 }
             } catch (e: IOException) {
@@ -136,14 +164,18 @@ object PrismServerClient {
         val url = serverUrl ?: store.prismServerUrl
         val key = apiKey ?: store.prismApiKey
 
+        Log.d(TAG, "deleteApp called for connectorToken: $connectorToken")
+
         if (url.isNullOrBlank() || key.isNullOrBlank()) {
             Log.d(TAG, "Prism server not configured, skipping deletion")
             return
         }
 
         val subscriptionId = store.getSubscriptionId(connectorToken)
+        Log.d(TAG, "Retrieved subscriptionId: $subscriptionId for token: $connectorToken")
+
         if (subscriptionId == null) {
-            Log.d(TAG, "No subscription ID found for token: $connectorToken")
+            Log.w(TAG, "No subscription ID found for token: $connectorToken")
             onError("No subscription ID found")
             return
         }

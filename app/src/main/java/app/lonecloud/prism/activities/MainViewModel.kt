@@ -13,11 +13,8 @@ import androidx.lifecycle.viewModelScope
 import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.EncryptionKeyStore
 import app.lonecloud.prism.PrismPreferences
-import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.activities.ui.InstalledApp
 import app.lonecloud.prism.activities.ui.MainUiState
-import app.lonecloud.prism.api.MessageSender
-import app.lonecloud.prism.api.data.ClientMessage
 import app.lonecloud.prism.utils.TAG
 import app.lonecloud.prism.utils.VapidKeyGenerator
 import app.lonecloud.prism.utils.WebPushEncryptionKeys
@@ -191,9 +188,15 @@ class MainViewModel(
                 val keyStore = EncryptionKeyStore(app)
                 keyStore.storeKeys(channelId, encryptionKeys.privateKey, encryptionKeys.authBytes, encryptionKeys.p256dh)
 
+                val packageName = if (targetPackageName.isNotBlank()) {
+                    targetPackageName
+                } else {
+                    "app.lonecloud.prism.manual"
+                }
+
                 val db = DatabaseFactory.getDb(app)
                 db.registerApp(
-                    app.packageName,
+                    packageName,
                     connectorToken,
                     channelId,
                     name,
@@ -201,41 +204,15 @@ class MainViewModel(
                     fullDescription
                 )
 
-                MessageSender.send(
-                    app,
-                    ClientMessage.Register(
-                        channelID = channelId,
-                        key = vapidKeys.publicKey
-                    )
-                )
+                val intent = Intent("org.unifiedpush.android.distributor.REGISTER").apply {
+                    `package` = app.packageName
+                    putExtra("token", connectorToken)
+                    putExtra("application", packageName)
+                    putExtra("message", name)
+                }
+                app.sendBroadcast(intent)
 
                 refreshRegistrations()
-
-                var endpoint: String?
-                var attempts = 0
-                repeat(60) {
-                    kotlinx.coroutines.delay(500)
-                    attempts++
-                    endpoint = db.getEndpoint(connectorToken)
-                    if (attempts % 10 == 0) {
-                        Log.d(TAG, "Polling attempt $attempts/60, endpoint: ${endpoint ?: "null"}")
-                    }
-                    if (endpoint != null) {
-                        Log.d(TAG, "Endpoint received after $attempts attempts: $endpoint")
-                        PrismServerClient.registerApp(
-                            app,
-                            connectorToken,
-                            name,
-                            endpoint!!,
-                            vapidPrivateKey = vapidKeys.privateKey,
-                            p256dh = encryptionKeys.p256dh,
-                            auth = encryptionKeys.auth
-                        )
-                        return@launch
-                    }
-                }
-
-                Log.e(TAG, "Endpoint timeout after 30 seconds for token: $connectorToken")
             }
         }
     }

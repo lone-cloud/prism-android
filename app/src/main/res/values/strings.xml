@@ -14,33 +14,33 @@
     <string name="warning_notif_ticker">Prism Warning</string>
     <string name="foreground_service">Foreground Service</string>
     <string name="foreground_notif_description">Notification to run in the foreground</string>
-    <string name="foreground_notif_content_no_reg">Waiting for registration to connect</string>
+    <string name="foreground_notif_content_no_reg">Waiting for apps to register</string>
     <string name="foreground_notif_ticker">Prism</string>
     <string name="bar_unregister_title">%d selected</string>
-    <string name="dialog_unregistering_content">Are you sure to delete this registration?</string>
+    <string name="dialog_unregistering_content">Are you sure to unregister this app?</string>
     <plurals name="bar_unregister_title">
         <item quantity="one">%d selected</item>
         <item quantity="other">%d selected</item>
     </plurals>
     <plurals name="dialog_unregistering_content">
-        <item quantity="one">Are you sure to delete this registration?</item>
-        <item quantity="other">Are you sure to delete %d registrations?</item>
+        <item quantity="one">Are you sure to unregister this app?</item>
+        <item quantity="other">Are you sure to unregister %d apps?</item>
     </plurals>
     <plurals name="foreground_notif_content_with_reg">
-        <item quantity="one">Connected for %d registration</item>
-        <item quantity="other">Connected for %d registrations</item>
+        <item quantity="one">Connected for %d app</item>
+        <item quantity="other">Connected for %d apps</item>
     </plurals>
 
     <!-- Prism-specific strings -->
     <string name="app_name">Prism</string>
     <string name="settings">Settings</string>
-    <string name="add_custom_app_title">Add New App</string>
-    <string name="add_app_description">Add an app to receive notifications from your Prism server. Optionally choose a target app to deliver notifications to.</string>
+    <string name="add_custom_app_title">Register a New App</string>
+    <string name="add_app_description">Register an app to receive notifications from your Prism server. Optionally choose a target app to deliver notifications to.</string>
     <string name="app_name_label">App Name</string>
     <string name="app_name_placeholder">Enter app name</string>
     <string name="target_app_label">Target App (Optional)</string>
     <string name="select_an_app">Select an app</string>
-    <string name="add_button">Add</string>
+    <string name="add_button">Register</string>
     <string name="cancel_button">Cancel</string>
     <string name="select_target_app_title">Select Target App</string>
     <string name="recommended_apps">Recommended</string>
@@ -48,11 +48,11 @@
     <string name="all_apps">All Apps</string>
     <string name="search_apps_label">Search</string>
     <string name="search_apps_placeholder">Search for apps</string>
-    <string name="add_manual_app_content_description">Add manual app</string>
+    <string name="add_manual_app_content_description">Register a new app</string>
     <string name="registered_apps_heading">Registered Apps</string>
     <string name="debug_title">Debug Information</string>
-    <string name="configure_server">Configure Prism server</string>
-    <string name="prism_server_info">Prism server enables manual app registrations and must be self-hosted.</string>
+    <string name="configure_server">Configure a Prism server</string>
+    <string name="prism_server_info">Prism server lets you receive notifications from custom services and must be self-hosted.</string>
     <string name="prism_server_learn_more">Learn more about Prism</string>
     <string name="prism_server_configured">Prism server configured</string>
     <string name="prism_server_configured_with_version">%1$s (v%2$s)</string>
@@ -68,7 +68,7 @@
     <string name="clear_server_button">Remove</string>
     <string name="clear_server_confirm_title">Remove Prism Server?</string>
     <string name="clear_server_confirm_message_no_apps">This will remove your Prism server configuration.</string>
-    <string name="clear_server_confirm_message_with_apps">You have %d manual app registration(s). Clearing the server will delete them from the server and remove the configuration.</string>
+    <string name="clear_server_confirm_message_with_apps">You have %d manual app(s). Clearing the server will unregister them from the server and remove the configuration.</string>
     <string name="app_dropdown_show_toasts">Notify when apps register</string>
     <string name="show_toasts_description">Show a notification when apps register or unregister</string>
     <string name="dynamic_colors_title">Dynamic colors</string>
@@ -76,7 +76,7 @@
 
     <!-- Intro screen strings -->
     <string name="intro_welcome_title">Welcome to Prism</string>
-    <string name="intro_welcome_message">Prism is a UnifiedPush distributor that supports manual app registrations through an optional Prism server.</string>
+    <string name="intro_welcome_message">Prism handles push notifications for your apps. Connect a Prism server to also receive notifications from custom services.</string>
     <string name="intro_server_optional">Configure a Prism server now or skip to set it up later in Settings.</string>
     <string name="intro_continue_button">Continue</string>
     <string name="intro_skip_button">Skip for now</string>

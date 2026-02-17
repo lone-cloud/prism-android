@@ -19,13 +19,16 @@ import app.lonecloud.prism.Distributor
 import app.lonecloud.prism.Distributor.sendMessage
 import app.lonecloud.prism.EncryptionKeyStore
 import app.lonecloud.prism.PrismPreferences
+import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.R
 import app.lonecloud.prism.api.data.ClientMessage
+import app.lonecloud.prism.api.data.NotificationPayload
 import app.lonecloud.prism.api.data.ServerMessage
 import app.lonecloud.prism.callback.NetworkCallbackFactory
 import app.lonecloud.prism.services.FgService
 import app.lonecloud.prism.services.RestartWorker
 import app.lonecloud.prism.services.SourceManager
+import app.lonecloud.prism.utils.ManualAppNotifications
 import app.lonecloud.prism.utils.TAG
 import app.lonecloud.prism.utils.WebPushDecryptor
 import java.util.Calendar
@@ -133,11 +136,14 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         val encryptedData = Base64.decode(message.data, Base64.URL_SAFE)
 
         val db = DatabaseFactory.getDb(context)
-        val allApps = db.listApps()
-        val app = allApps.find { appEntry ->
-            db.listChannelIdVapid().any { (channelId, _) ->
-                channelId == message.channelID && appEntry.description?.startsWith("target:") == true
-            }
+        val vapidKey = db.listChannelIdVapid()
+            .find { (channelId, _) -> channelId == message.channelID }
+            ?.second
+
+        val app = if (vapidKey != null) {
+            db.listApps().find { it.vapidKey == vapidKey && it.description?.startsWith("target:") == true }
+        } else {
+            null
         }
 
         val decryptedData = if (app != null) {
@@ -173,11 +179,26 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             encryptedData
         }
 
-        sendMessage(
-            context,
-            message.channelID,
-            decryptedData
-        )
+        if (app != null) {
+            val dataString = String(decryptedData, Charsets.UTF_8)
+            val payload = NotificationPayload.fromJson(dataString)
+
+            if (payload != null) {
+                Log.d(TAG, "Displaying notification for manual app '${app.title}': ${payload.title}")
+                ManualAppNotifications.showNotification(
+                    context,
+                    message.channelID,
+                    app,
+                    payload
+                )
+            } else {
+                Log.w(TAG, "Failed to parse notification payload for manual app, falling back to sendMessage")
+                sendMessage(context, message.channelID, decryptedData)
+            }
+        } else {
+            sendMessage(context, message.channelID, decryptedData)
+        }
+
         ClientMessage.Ack(
             arrayOf(ClientMessage.ClientAck(message.channelID, message.version))
         ).send(webSocket)
@@ -199,6 +220,59 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             context,
             ChannelCreationStatus.Ok(message.channelID, message.pushEndpoint)
         )
+
+        val db = DatabaseFactory.getDb(context)
+        val vapidKey = db.listChannelIdVapid()
+            .find { (channelId, _) -> channelId == message.channelID }
+            ?.second
+
+        val app = if (vapidKey != null) {
+            db.listApps().find { it.vapidKey == vapidKey && it.description?.startsWith("target:") == true }
+        } else {
+            null
+        }
+
+        if (app != null) {
+            Log.d(TAG, "Auto-registering manual app '${app.title}' with Prism server")
+            val keyStore = EncryptionKeyStore(context)
+            val keys = keyStore.getKeys(message.channelID)
+
+            PrismServerClient.registerApp(
+                context,
+                app.connectorToken,
+                app.title ?: "Unknown App",
+                message.pushEndpoint,
+                vapidPrivateKey = app.vapidKey,
+                p256dh = keys?.third,
+                auth = android.util.Base64.encodeToString(
+                    keys?.second,
+                    android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING or android.util.Base64.NO_WRAP
+                ),
+                onSuccess = {
+                    Log.d(TAG, "Successfully registered '${app.title}' with Prism server")
+                },
+                onError = { error ->
+                    Log.e(TAG, "Failed to register '${app.title}' with Prism server: $error")
+
+                    Distributor.deleteApp(context, app.connectorToken)
+
+                    MessageSender.send(
+                        context,
+                        ClientMessage.Unregister(channelID = message.channelID)
+                    )
+
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(
+                            context,
+                            "Failed to register ${app.title}: $error",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            )
+        } else {
+            Log.d(TAG, "Not a manual app or app not found for channelId: ${message.channelID}")
+        }
     }
 
     private fun onUnregister(message: ServerMessage.Unregister) {

@@ -6,6 +6,7 @@
 - Only add comments for complex logic, non-obvious behavior, or important context
 - Prefer self-documenting code with clear variable and function names over comments
 - Avoid redundant comments like "// Create button" or "// Set text color"
+- Do NOT add copyright headers to new files
 
 ## Examples of BAD comments to avoid:
 ```kotlin

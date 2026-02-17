@@ -74,6 +74,10 @@
                 <action android:name="org.unifiedpush.android.distributor.UNREGISTER" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".receivers.NotificationActionReceiver"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
 </manifest>

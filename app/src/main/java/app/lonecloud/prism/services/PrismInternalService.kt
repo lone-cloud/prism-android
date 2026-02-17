@@ -75,7 +75,7 @@ class PrismInternalService : InternalService() {
                     null
                 }
 
-                val packageToResolve = (targetPackage ?: it.packageName) ?: ""
+                val packageToResolve = targetPackage ?: it.packageName
                 val appName = try {
                     val appInfo = pm.getApplicationInfo(packageToResolve, PackageManager.GET_META_DATA)
                     pm.getApplicationLabel(appInfo).toString()
@@ -92,11 +92,7 @@ class PrismInternalService : InternalService() {
                     vapidKey = it.vapidKey,
                     title = displayTitle,
                     msgCount = it.msgCount,
-                    description = if (it.packageName == this@PrismInternalService.packageName) {
-                        Description.LocalChannel
-                    } else {
-                        Description.StringDescription(packageToResolve)
-                    },
+                    description = Description.StringDescription(packageToResolve),
                     icon = getApplicationIcon(packageToResolve)?.toBitmap(),
                     isLocal = it.packageName == this@PrismInternalService.packageName
                 )
