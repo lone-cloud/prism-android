@@ -78,7 +78,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             is ServerMessage.Notification -> onNotification(webSocket, message)
             ServerMessage.Ping -> onPing(webSocket)
             is ServerMessage.Register -> onRegister(message)
-            is ServerMessage.Unregister -> onUnregister(message)
+            is ServerMessage.Unregister -> onUnregister(webSocket, message)
             is ServerMessage.Urgency -> {
                 Log.d(TAG, "Urgency status=${message.status}")
             }
@@ -237,7 +237,6 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
                 handleManualRegistrationFailure(
                     appTitle = app.title,
                     connectorToken = app.connectorToken,
-                    channelId = message.channelID,
                     error = "Missing VAPID private key for ${app.title ?: "app"}. Delete and re-add the app."
                 )
                 return
@@ -262,7 +261,6 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
                 handleManualRegistrationFailure(
                     appTitle = app.title,
                     connectorToken = app.connectorToken,
-                    channelId = message.channelID,
                     error = "Failed to persist encryption keys for channel ${message.channelID}"
                 )
                 return
@@ -288,7 +286,6 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
                     handleManualRegistrationFailure(
                         appTitle = app.title,
                         connectorToken = app.connectorToken,
-                        channelId = message.channelID,
                         error = error
                     )
                 }
@@ -301,19 +298,22 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     private fun handleManualRegistrationFailure(
         appTitle: String?,
         connectorToken: String,
-        channelId: String,
         error: String
     ) {
         Log.e(TAG, "Failed to register '$appTitle' with Prism server: $error")
 
-        PrismPreferences(context).removePendingManualToken(connectorToken)
+        val preferences = PrismPreferences(context)
+        val isInitialPendingRegistration = preferences.isPendingManualToken(connectorToken)
 
-        Distributor.deleteApp(context, connectorToken)
+        if (isInitialPendingRegistration) {
+            Log.w(
+                TAG,
+                "Rolling back pending manual app '$appTitle' after registration failure"
+            )
+            rollbackPendingManualAppRegistration(connectorToken)
+        }
 
-        MessageSender.send(
-            context,
-            ClientMessage.Unregister(channelID = channelId)
-        )
+        preferences.removePendingManualToken(connectorToken)
 
         Handler(Looper.getMainLooper()).post {
             Toast.makeText(
@@ -326,7 +326,38 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         sendUiAction(context, "RefreshRegistrations")
     }
 
-    private fun onUnregister(message: ServerMessage.Unregister) {
+    private fun rollbackPendingManualAppRegistration(connectorToken: String) {
+        val db = DatabaseFactory.getDb(context)
+        val app = db.listApps().find { it.connectorToken == connectorToken }
+        val channelId = app?.let {
+            db.listChannelIdVapid().find { (_, vapid) -> vapid == it.vapidKey }?.first
+        }
+
+        channelId?.let { EncryptionKeyStore(context).deleteKeys(it) }
+        db.unregisterApp(connectorToken)
+
+        val preferences = PrismPreferences(context)
+        preferences.removeSubscriptionId(connectorToken)
+        preferences.removeRegisteredEndpoint(connectorToken)
+        preferences.removeVapidPrivateKey(connectorToken)
+    }
+
+    private fun onUnregister(webSocket: WebSocket, message: ServerMessage.Unregister) {
+        val db = DatabaseFactory.getDb(context)
+        val channelVapidPair = db.listChannelIdVapid().find { (channelId, _) -> channelId == message.channelID }
+        val appForChannel = channelVapidPair?.let { (_, vapid) ->
+            db.listApps().find { app -> app.vapidKey == vapid }
+        }
+        val isManualChannel = appForChannel?.let { DescriptionParser.isManualApp(it.description) } == true
+
+        if (isManualChannel) {
+            Log.w(TAG, "Received unregister for manual channel ${message.channelID}; re-registering instead of deleting app")
+            ClientMessage.Register(
+                channelID = message.channelID,
+                key = channelVapidPair!!.second
+            ).send(webSocket)
+            return
+        }
         Distributor.deleteChannelFromServer(context, message.channelID)
     }
 

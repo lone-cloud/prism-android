@@ -5,14 +5,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.core.app.Person
-import androidx.core.graphics.drawable.IconCompat
+import androidx.core.graphics.drawable.toBitmap
 import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.R
 import app.lonecloud.prism.api.data.NotificationAction
@@ -46,23 +41,38 @@ object ManualAppNotifications {
         val channelId = "manual_app_${app.connectorToken}"
         val appTitle = app.title ?: "Unknown App"
         createNotificationChannel(context, channelId, appTitle)
-        val displayTitle = payload.title.ifBlank { appTitle }
+
+        val hasTitle = payload.title.isNotBlank()
+        val hasMessage = payload.message.isNotBlank()
+        val sender = if (hasTitle && hasMessage) payload.title else null
+        val bodyText = when {
+            hasMessage -> payload.message
+            hasTitle -> payload.title
+            else -> ""
+        }
 
         val notificationId = getNotificationId(payload.tag)
         val packageName = resolveTargetPackage(app)
-        val appPerson = buildNotificationPerson(context, appTitle, packageName)
-        val messageStyle = NotificationCompat.MessagingStyle(appPerson)
-            .setConversationTitle(displayTitle)
-            .addMessage(payload.message, System.currentTimeMillis(), appPerson)
+
+        val contentText = sender?.let { "$it: $bodyText" } ?: bodyText
+        val bigTextStyle = NotificationCompat.BigTextStyle()
+            .bigText(bodyText)
+            .also { style ->
+                sender?.let { style.setSummaryText(it) }
+            }
 
         val notificationBuilder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(displayTitle)
-            .setContentText(payload.message)
-            .setStyle(messageStyle)
+            .setContentTitle(appTitle)
+            .setContentText(contentText)
+            .setStyle(bigTextStyle)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setGroup(app.connectorToken)
+
+        resolveAppIconBitmap(context, packageName)?.let { appIcon ->
+            notificationBuilder.setLargeIcon(appIcon)
+        }
 
         val contentIntent = createContentIntent(context, packageName, notificationId)
         if (contentIntent != null) {
@@ -88,12 +98,35 @@ object ManualAppNotifications {
             }
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(payload.tag, notificationId, notificationBuilder.build())
+        notificationManager.notify(
+            payload.tag,
+            notificationId,
+            notificationBuilder.build()
+        )
 
         incrementMessageCount(context, app)
         refreshMessageCount(context)
 
-        Log.d(TAG, "Displayed notification for manual app '${app.title}': ${payload.title} (tag: ${payload.tag})")
+        val previewSender = sender ?: ""
+        val logMessage =
+            "Displayed notification for manual app '${app.title}' " +
+                "sender='$previewSender' body='${bodyText.take(120)}' (tag: ${payload.tag})"
+        Log.d(TAG, logMessage)
+    }
+
+    private fun resolveAppIconBitmap(context: Context, packageName: String?): android.graphics.Bitmap? {
+        if (packageName.isNullOrBlank()) return null
+
+        return try {
+            context.packageManager.getApplicationIcon(packageName).toBitmap()
+        } catch (e: Exception) {
+            Log.w(
+                TAG,
+                "Could not resolve app icon for package: $packageName",
+                e
+            )
+            null
+        }
     }
 
     fun dismissNotification(context: Context, tag: String) {
@@ -204,46 +237,5 @@ object ManualAppNotifications {
 
     private fun refreshMessageCount(context: Context) {
         MainRegistrationCounter.onCountRefreshed(context)
-    }
-
-    private fun buildNotificationPerson(
-        context: Context,
-        appTitle: String,
-        packageName: String?
-    ): Person {
-        val personBuilder = Person.Builder()
-            .setName(appTitle)
-
-        resolveAppIconBitmap(context, packageName)?.let { iconBitmap ->
-            personBuilder.setIcon(IconCompat.createWithBitmap(iconBitmap))
-        }
-
-        return personBuilder.build()
-    }
-
-    private fun resolveAppIconBitmap(context: Context, packageName: String?): Bitmap? {
-        if (packageName == null) return null
-
-        return try {
-            val drawable = context.packageManager.getApplicationIcon(packageName)
-            drawable.toBitmap()
-        } catch (e: Exception) {
-            Log.w(TAG, "Could not resolve app icon for package: $packageName", e)
-            null
-        }
-    }
-
-    private fun Drawable.toBitmap(): Bitmap {
-        if (this is BitmapDrawable && bitmap != null) {
-            return bitmap
-        }
-
-        val width = intrinsicWidth.takeIf { it > 0 } ?: 128
-        val height = intrinsicHeight.takeIf { it > 0 } ?: 128
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        setBounds(0, 0, canvas.width, canvas.height)
-        draw(canvas)
-        return bitmap
     }
 }
