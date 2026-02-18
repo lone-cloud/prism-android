@@ -105,15 +105,33 @@ class PrismPreferences(context: Context) :
                 putBoolean(PREF_INTRO_COMPLETED, value)
             }
 
-    fun setSubscriptionId(connectorToken: String, subscriptionId: Long) {
+    fun getPrismServerConfig(): Pair<String, String>? {
+        val url = prismServerUrl?.takeIf { it.isNotBlank() } ?: return null
+        val key = prismApiKey?.takeIf { it.isNotBlank() } ?: return null
+        return url to key
+    }
+
+    fun setSubscriptionId(connectorToken: String, subscriptionId: String) {
         sharedPreferences.edit {
-            putLong("subscription_id_$connectorToken", subscriptionId)
+            putString("subscription_id_$connectorToken", subscriptionId)
         }
     }
 
-    fun getSubscriptionId(connectorToken: String): Long? {
-        val id = sharedPreferences.getLong("subscription_id_$connectorToken", -1L)
-        return if (id == -1L) null else id
+    fun getSubscriptionId(connectorToken: String): String? {
+        val key = "subscription_id_$connectorToken"
+
+        return try {
+            sharedPreferences.getString(key, null)
+        } catch (_: ClassCastException) {
+            val legacyId = sharedPreferences.getLong(key, -1L)
+            if (legacyId == -1L) {
+                null
+            } else {
+                val asString = legacyId.toString()
+                setSubscriptionId(connectorToken, asString)
+                asString
+            }
+        }
     }
 
     fun removeSubscriptionId(connectorToken: String) {
@@ -121,6 +139,90 @@ class PrismPreferences(context: Context) :
             remove("subscription_id_$connectorToken")
         }
     }
+
+    fun setRegisteredEndpoint(connectorToken: String, endpoint: String) {
+        sharedPreferences.edit {
+            putString("registered_endpoint_$connectorToken", endpoint)
+        }
+    }
+
+    fun getRegisteredEndpoint(connectorToken: String): String? =
+        sharedPreferences.getString("registered_endpoint_$connectorToken", null)
+
+    fun removeRegisteredEndpoint(connectorToken: String) {
+        sharedPreferences.edit {
+            remove("registered_endpoint_$connectorToken")
+        }
+    }
+
+    fun setVapidPrivateKey(connectorToken: String, privateKey: String) {
+        sharedPreferences.edit {
+            putString("vapid_private_$connectorToken", privateKey)
+        }
+    }
+
+    fun getVapidPrivateKey(connectorToken: String): String? =
+        sharedPreferences.getString("vapid_private_$connectorToken", null)
+
+    fun removeVapidPrivateKey(connectorToken: String) {
+        sharedPreferences.edit {
+            remove("vapid_private_$connectorToken")
+        }
+    }
+
+    fun setRegistrationAddedAt(connectorToken: String, timestampMs: Long) {
+        sharedPreferences.edit {
+            putLong("registration_added_at_$connectorToken", timestampMs)
+        }
+    }
+
+    fun getRegistrationAddedAt(connectorToken: String): Long? {
+        val timestamp = sharedPreferences.getLong("registration_added_at_$connectorToken", -1L)
+        return if (timestamp == -1L) null else timestamp
+    }
+
+    fun removeRegistrationAddedAt(connectorToken: String) {
+        sharedPreferences.edit {
+            remove("registration_added_at_$connectorToken")
+        }
+    }
+
+    fun cleanupLegacyRegistrationAddedAtIfNeeded() {
+        if (sharedPreferences.getBoolean(PREF_ADDED_AT_CLEANED_UP, false)) {
+            return
+        }
+
+        val keysToRemove = sharedPreferences.all.keys
+            .filter { it.startsWith("registration_added_at_") }
+
+        sharedPreferences.edit {
+            keysToRemove.forEach { remove(it) }
+            putBoolean(PREF_ADDED_AT_CLEANED_UP, true)
+        }
+    }
+
+    fun addPendingManualToken(connectorToken: String) {
+        val tokens = sharedPreferences.getStringSet(PREF_PENDING_MANUAL_TOKENS, emptySet())
+            ?.toMutableSet()
+            ?: mutableSetOf()
+        tokens.add(connectorToken)
+        sharedPreferences.edit(commit = true) {
+            putStringSet(PREF_PENDING_MANUAL_TOKENS, tokens)
+        }
+    }
+
+    fun removePendingManualToken(connectorToken: String) {
+        val tokens = sharedPreferences.getStringSet(PREF_PENDING_MANUAL_TOKENS, emptySet())
+            ?.toMutableSet()
+            ?: mutableSetOf()
+        tokens.remove(connectorToken)
+        sharedPreferences.edit(commit = true) {
+            putStringSet(PREF_PENDING_MANUAL_TOKENS, tokens)
+        }
+    }
+
+    fun isPendingManualToken(connectorToken: String): Boolean =
+        sharedPreferences.getStringSet(PREF_PENDING_MANUAL_TOKENS, emptySet())?.contains(connectorToken) == true
 
     override fun wipe() {
         uaid = null
@@ -139,5 +241,7 @@ class PrismPreferences(context: Context) :
         private const val PREF_PRISM_SERVER_URL = "prism_server_url"
         private const val PREF_PRISM_API_KEY = "prism_api_key"
         private const val PREF_INTRO_COMPLETED = "intro_completed"
+        private const val PREF_PENDING_MANUAL_TOKENS = "pending_manual_tokens"
+        private const val PREF_ADDED_AT_CLEANED_UP = "added_at_cleaned_up"
     }
 }

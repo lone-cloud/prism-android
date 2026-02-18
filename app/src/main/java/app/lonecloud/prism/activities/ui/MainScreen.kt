@@ -33,7 +33,6 @@ import org.unifiedpush.android.distributor.ui.compose.CardDisableBatteryOptimisa
 import org.unifiedpush.android.distributor.ui.compose.CardDisabledForMigration
 import org.unifiedpush.android.distributor.ui.compose.DistribMigrationDialogs
 import org.unifiedpush.android.distributor.ui.compose.PermissionsUi
-import org.unifiedpush.android.distributor.ui.compose.RegistrationList
 import org.unifiedpush.android.distributor.ui.compose.UnregisterBarUi
 import org.unifiedpush.android.distributor.ui.vm.DistribMigrationViewModel
 
@@ -79,7 +78,8 @@ fun MainAppBar(onGoToSettings: () -> Unit) {
 fun MainScreen(
     viewModel: MainViewModel,
     migrationViewModel: DistribMigrationViewModel,
-    uiActionsFlow: kotlinx.coroutines.flow.Flow<String>?
+    uiActionsFlow: kotlinx.coroutines.flow.Flow<String>?,
+    onOpenRegistrationDetails: (token: String) -> Unit
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
@@ -135,7 +135,10 @@ fun MainScreen(
         LazyColumn(
             modifier = Modifier.padding(horizontal = 12.dp)
         ) {
-            RegistrationList(viewModel.registrationsViewModel)
+            registrationList(
+                viewModel = viewModel.registrationsViewModel,
+                onOpenDetails = onOpenRegistrationDetails
+            )
         }
     }
     if (viewModel.mainUiState.showPermissionDialog) {
@@ -155,5 +158,5 @@ fun MainPreview() {
     val factory = PreviewFactory(LocalContext.current)
     val mainVM = viewModel<MainViewModel>(factory = factory)
     val migrationVM = viewModel<DistribMigrationViewModel>(factory = factory)
-    MainScreen(mainVM, migrationVM, null)
+    MainScreen(mainVM, migrationVM, null, {})
 }

@@ -12,6 +12,7 @@ import android.content.Context
 import android.util.Log
 import app.lonecloud.prism.api.MessageSender
 import app.lonecloud.prism.api.data.ClientMessage
+import app.lonecloud.prism.utils.DescriptionParser
 import org.unifiedpush.android.distributor.Database
 import org.unifiedpush.android.distributor.UnifiedPushDistributor
 
@@ -59,10 +60,10 @@ object Distributor : UnifiedPushDistributor() {
             val app = db.listApps().find { it.vapidKey == channelVapidPair.second }
             Log.d(
                 "Distributor",
-                "Found app: ${app?.title}, isManual: ${app?.description?.startsWith("target:")}, connectorToken: ${app?.connectorToken}"
+                "Found app: ${app?.title}, isManual: ${DescriptionParser.isManualApp(app?.description)}, connectorToken: ${app?.connectorToken}"
             )
 
-            if (app?.description?.startsWith("target:") == true) {
+            if (app != null && DescriptionParser.isManualApp(app.description)) {
                 Log.d("Distributor", "Calling PrismServerClient.deleteApp with connectorToken: ${app.connectorToken}")
                 PrismServerClient.deleteApp(context, app.connectorToken)
             }

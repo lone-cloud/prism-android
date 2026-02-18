@@ -33,10 +33,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.R
 import app.lonecloud.prism.activities.ui.components.PasswordTextField
+import app.lonecloud.prism.utils.DescriptionParser
 import app.lonecloud.prism.utils.normalizeUrl
-import app.lonecloud.prism.utils.testServerConnection
 
 @Composable
 fun ServerConfigScreen(
@@ -58,7 +59,7 @@ fun ServerConfigScreen(
 
     fun testAndSave(normalizedUrl: String) {
         isTesting = true
-        testServerConnection(
+        PrismServerClient.testConnection(
             normalizedUrl,
             apiKey,
             onSuccess = {
@@ -165,7 +166,7 @@ fun ServerConfigScreen(
                     if (isServerChanging) {
                         val db = app.lonecloud.prism.DatabaseFactory.getDb(context)
                         val manualAppsCount = db.listApps()
-                            .count { it.description?.startsWith("target:") == true }
+                            .count { DescriptionParser.isManualApp(it.description) }
                         if (manualAppsCount > 0) {
                             showServerChangeWarning = true
                             return@Button
@@ -242,7 +243,7 @@ private fun ServerChangeWarningDialog(
     val context = LocalContext.current
     val db = app.lonecloud.prism.DatabaseFactory.getDb(context)
     val manualAppsCount = db.listApps()
-        .count { it.description?.startsWith("target:") == true }
+        .count { DescriptionParser.isManualApp(it.description) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -289,7 +290,7 @@ private fun ClearServerConfirmationDialog(
     val context = LocalContext.current
     val db = app.lonecloud.prism.DatabaseFactory.getDb(context)
     val manualAppsCount = db.listApps()
-        .count { it.description?.startsWith("target:") == true }
+        .count { DescriptionParser.isManualApp(it.description) }
 
     AlertDialog(
         onDismissRequest = onDismiss,

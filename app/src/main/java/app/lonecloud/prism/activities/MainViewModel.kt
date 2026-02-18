@@ -13,8 +13,10 @@ import androidx.lifecycle.viewModelScope
 import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.EncryptionKeyStore
 import app.lonecloud.prism.PrismPreferences
+import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.activities.ui.InstalledApp
 import app.lonecloud.prism.activities.ui.MainUiState
+import app.lonecloud.prism.utils.DescriptionParser
 import app.lonecloud.prism.utils.TAG
 import app.lonecloud.prism.utils.VapidKeyGenerator
 import app.lonecloud.prism.utils.WebPushEncryptionKeys
@@ -34,10 +36,13 @@ class MainViewModel(
     val messenger: InternalMessenger?,
     val application: Application? = null
 ) : ViewModel() {
+    private companion object {
+        private const val VAPID_PRIVATE_DESC_PREFIX = "vp:"
+    }
+
     constructor(requireBatteryOpt: Boolean, messenger: InternalMessenger?, application: Application) : this(
         mainUiState = MainUiState(
-            prismServerConfigured = !PrismPreferences(application).prismServerUrl.isNullOrBlank() &&
-                !PrismPreferences(application).prismApiKey.isNullOrBlank()
+            prismServerConfigured = PrismPreferences(application).getPrismServerConfig() != null
         ),
         batteryOptimisationViewModel = BatteryOptimisationViewModel(requireBatteryOpt, messenger),
         registrationsViewModel = RegistrationsViewModel(
@@ -51,6 +56,9 @@ class MainViewModel(
     var mainUiState by mutableStateOf(mainUiState)
 
     var selectedApp by mutableStateOf<InstalledApp?>(null)
+        private set
+
+    var selectedRegistrationToken by mutableStateOf<String?>(null)
         private set
 
     var prefilledName by mutableStateOf<String?>(null)
@@ -71,6 +79,9 @@ class MainViewModel(
 
     fun refreshRegistrations() {
         viewModelScope.launch {
+            application?.let { app ->
+                PrismPreferences(app).cleanupLegacyRegistrationAddedAtIfNeeded()
+            }
             val apps = messenger?.sendIMessageL(InternalOpcode.REG_LIST, "apps", App::class.java)
             registrationsViewModel.state = RegistrationListState(apps ?: emptyList())
         }
@@ -87,10 +98,16 @@ class MainViewModel(
                 Log.d(TAG, "Deleting ${selectedTokens.size} apps: $selectedTokens")
 
                 selectedTokens.forEach { token ->
+                    if (token.startsWith("manual_app_")) {
+                        PrismServerClient.deleteApp(app, token)
+                    }
+
                     val intent = android.content.Intent("org.unifiedpush.android.distributor.UNREGISTER")
                     intent.setPackage(app.packageName)
                     intent.putExtra("token", token)
                     app.sendBroadcast(intent)
+                    PrismPreferences(app).removeRegistrationAddedAt(token)
+                    PrismPreferences(app).removeVapidPrivateKey(token)
                 }
 
                 registrationsViewModel.unselectAll()
@@ -113,7 +130,17 @@ class MainViewModel(
         }
     }
 
-    fun isManualApp(token: String) = getApp(token)?.description?.startsWith("target:") == true
+    fun isManualApp(token: String) = getApp(token)?.let { DescriptionParser.isManualApp(it.description) } == true
+
+    fun getEndpoint(token: String): String? = getApp(token)?.endpoint
+
+    fun getSubscriptionId(token: String): String? = application?.let { app ->
+        PrismPreferences(app).getSubscriptionId(token)
+    }
+
+    fun getRegistrationAddedAt(token: String): Long? = application?.let { app ->
+        PrismPreferences(app).getRegistrationAddedAt(token)
+    }
 
     fun hideAppDetails() {
         mainUiState = mainUiState.copy(showAppDetails = false)
@@ -121,6 +148,14 @@ class MainViewModel(
 
     fun selectApp(app: InstalledApp) {
         selectedApp = app
+    }
+
+    fun selectRegistration(token: String) {
+        selectedRegistrationToken = token
+    }
+
+    fun clearSelectedRegistration() {
+        selectedRegistrationToken = null
     }
 
     fun clearSelectedApp() {
@@ -178,21 +213,25 @@ class MainViewModel(
             application?.let { app ->
                 val channelId = UUID.randomUUID().toString()
                 val connectorToken = "manual_app_${UUID.randomUUID()}"
-                val fullDescription = "target:$targetPackageName${description?.let { "|$it" } ?: ""}"
 
                 Log.d(TAG, "Creating manual app: $name, token: $connectorToken")
 
                 val vapidKeys = VapidKeyGenerator.generateKeyPair()
                 val encryptionKeys = WebPushEncryptionKeys.generateKeySet()
 
+                val descriptionParts = mutableListOf("target:$targetPackageName")
+                description?.takeIf { it.isNotBlank() }?.let { descriptionParts.add(it) }
+                descriptionParts.add("$VAPID_PRIVATE_DESC_PREFIX${vapidKeys.privateKey}")
+                val fullDescription = descriptionParts.joinToString("|")
+
                 val keyStore = EncryptionKeyStore(app)
                 keyStore.storeKeys(channelId, encryptionKeys.privateKey, encryptionKeys.authBytes, encryptionKeys.p256dh)
 
-                val packageName = if (targetPackageName.isNotBlank()) {
-                    targetPackageName
-                } else {
-                    "app.lonecloud.prism.manual"
-                }
+                val packageName = targetPackageName.ifBlank { app.packageName }
+                val preferences = PrismPreferences(app)
+                preferences.addPendingManualToken(connectorToken)
+                preferences.setRegistrationAddedAt(connectorToken, System.currentTimeMillis())
+                preferences.setVapidPrivateKey(connectorToken, vapidKeys.privateKey)
 
                 val db = DatabaseFactory.getDb(app)
                 db.registerApp(
@@ -212,6 +251,27 @@ class MainViewModel(
                 }
                 app.sendBroadcast(intent)
 
+                refreshRegistrations()
+            }
+        }
+    }
+
+    fun deleteRegistration(token: String) {
+        viewModelScope.launch {
+            application?.let { app ->
+                if (token.startsWith("manual_app_")) {
+                    PrismServerClient.deleteApp(app, token)
+                }
+
+                val intent = Intent("org.unifiedpush.android.distributor.UNREGISTER")
+                intent.setPackage(app.packageName)
+                intent.putExtra("token", token)
+                app.sendBroadcast(intent)
+                PrismPreferences(app).removeRegistrationAddedAt(token)
+                PrismPreferences(app).removeVapidPrivateKey(token)
+                if (selectedRegistrationToken == token) {
+                    clearSelectedRegistration()
+                }
                 refreshRegistrations()
             }
         }

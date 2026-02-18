@@ -30,10 +30,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.R
 import app.lonecloud.prism.activities.ui.components.PasswordTextField
 import app.lonecloud.prism.utils.normalizeUrl
-import app.lonecloud.prism.utils.testServerConnection
 
 @Composable
 fun IntroScreen(onComplete: (url: String, apiKey: String) -> Unit, onSkip: () -> Unit) {
@@ -47,7 +47,7 @@ fun IntroScreen(onComplete: (url: String, apiKey: String) -> Unit, onSkip: () ->
 
     fun testAndSave(normalizedUrl: String) {
         isTesting = true
-        testServerConnection(
+        PrismServerClient.testConnection(
             normalizedUrl,
             apiKey,
             onSuccess = {

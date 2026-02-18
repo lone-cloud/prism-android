@@ -13,15 +13,22 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -39,6 +46,8 @@ import app.lonecloud.prism.activities.MainViewModel
 import app.lonecloud.prism.activities.PreviewFactory
 import app.lonecloud.prism.activities.SettingsViewModel
 import app.lonecloud.prism.activities.ThemeViewModel
+import java.text.DateFormat
+import java.util.Date
 import org.unifiedpush.android.distributor.ipc.subscribeUiActions
 import org.unifiedpush.android.distributor.ui.compose.AppBar
 import org.unifiedpush.android.distributor.ui.vm.DistribMigrationViewModel
@@ -49,7 +58,8 @@ enum class AppScreen(@param:StringRes val title: Int) {
     Settings(R.string.settings),
     ServerConfig(R.string.configure_server),
     AddApp(R.string.add_custom_app_title),
-    AppPicker(R.string.select_target_app_title)
+    AppPicker(R.string.select_target_app_title),
+    RegistrationDetails(R.string.registration_details_title)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -101,6 +111,7 @@ fun App(
     )
     val migrationViewModel = viewModel<DistribMigrationViewModel>(factory = factory)
     val mainViewModel = viewModel<MainViewModel>(factory = factory)
+    var showDeleteRegistrationDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -114,6 +125,25 @@ fun App(
                             }
                         )
                     }
+                    AppScreen.RegistrationDetails -> {
+                        AppBar(
+                            title = R.string.registration_details_title,
+                            canNavigateBack = true,
+                            navigateUp = { navController.navigateUp() },
+                            actions = {
+                                IconButton(
+                                    onClick = {
+                                        showDeleteRegistrationDialog = true
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        )
+                    }
                     else -> null
                 } ?: DefaultTopBar(
                     currentScreen,
@@ -123,10 +153,9 @@ fun App(
             }
         },
         floatingActionButton = {
-            val serverPrefs = PrismPreferences(context)
             if (currentScreen == AppScreen.Main &&
-                !serverPrefs.prismServerUrl.isNullOrBlank() &&
-                !serverPrefs.prismApiKey.isNullOrBlank()
+                !prefs.prismServerUrl.isNullOrBlank() &&
+                !prefs.prismApiKey.isNullOrBlank()
             ) {
                 FloatingActionButton(
                     onClick = {
@@ -151,14 +180,14 @@ fun App(
                 val settingsViewModel = viewModel<SettingsViewModel>(factory = factory)
                 IntroScreen(
                     onComplete = { url, apiKey ->
-                        PrismPreferences(context).introCompleted = true
+                        prefs.introCompleted = true
                         settingsViewModel.savePrismConfig(url, apiKey)
                         navController.navigate(AppScreen.Main.name) {
                             popUpTo(AppScreen.Intro.name) { inclusive = true }
                         }
                     },
                     onSkip = {
-                        PrismPreferences(context).introCompleted = true
+                        prefs.introCompleted = true
                         navController.navigate(AppScreen.Main.name) {
                             popUpTo(AppScreen.Intro.name) { inclusive = true }
                         }
@@ -185,7 +214,11 @@ fun App(
                 MainScreen(
                     mainViewModel,
                     migrationViewModel,
-                    uiActionsFlow
+                    uiActionsFlow,
+                    onOpenRegistrationDetails = { token ->
+                        mainViewModel.selectRegistration(token)
+                        navController.navigate(AppScreen.RegistrationDetails.name)
+                    }
                 )
             }
             composable(
@@ -282,6 +315,65 @@ fun App(
                     }
                 )
             }
+            composable(
+                route = AppScreen.RegistrationDetails.name,
+                enterTransition = { slideInTo(Dir.Left) },
+                popEnterTransition = { slideInTo(Dir.Right) },
+                popExitTransition = { slideOutFrom(Dir.Left) }
+            ) {
+                val selectedRegistration = mainViewModel.selectedRegistrationToken?.let { token ->
+                    mainViewModel.registrationsViewModel.state.list.find { item -> item.token == token }
+                }
+                val subscriptionId = mainViewModel.selectedRegistrationToken?.let { token ->
+                    mainViewModel.getSubscriptionId(token)
+                }
+                val addedDate = mainViewModel.selectedRegistrationToken
+                    ?.let { token -> mainViewModel.getRegistrationAddedAt(token) }
+                    ?.let { timestamp ->
+                        DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
+                            .format(Date(timestamp))
+                    }
+
+                RegistrationDetailsScreen(
+                    appName = selectedRegistration?.app?.title,
+                    packageId = selectedRegistration?.app?.packageName,
+                    totalMessages = selectedRegistration?.msgCount,
+                    subscriptionId = subscriptionId,
+                    addedDate = addedDate,
+                    isManual = selectedRegistration?.token?.startsWith("manual_app_") == true,
+                    icon = selectedRegistration?.app?.icon
+                )
+            }
+        }
+
+        if (showDeleteRegistrationDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteRegistrationDialog = false },
+                title = {
+                    Text(text = stringResource(R.string.delete_registration_title))
+                },
+                text = {
+                    Text(text = stringResource(R.string.delete_registration_message))
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            mainViewModel.selectedRegistrationToken?.let { token ->
+                                mainViewModel.deleteRegistration(token)
+                            }
+                            showDeleteRegistrationDialog = false
+                            navController.navigateUp()
+                        }
+                    ) {
+                        Text(stringResource(R.string.delete_registration_confirm))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteRegistrationDialog = false }) {
+                        Text(stringResource(R.string.cancel_button))
+                    }
+                }
+            )
         }
     }
 }

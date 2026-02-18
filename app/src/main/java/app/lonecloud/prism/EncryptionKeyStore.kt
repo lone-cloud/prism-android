@@ -17,7 +17,7 @@ class EncryptionKeyStore(context: Context) {
         authSecret: ByteArray,
         publicKey: String
     ) {
-        sharedPreferences.edit {
+        sharedPreferences.edit(commit = true) {
             putString(keyFor(channelId, KEY_PRIVATE), base64Encode(privateKey))
             putString(keyFor(channelId, KEY_AUTH), base64Encode(authSecret))
             putString(keyFor(channelId, KEY_PUBLIC), publicKey)
@@ -29,15 +29,20 @@ class EncryptionKeyStore(context: Context) {
         val authSecretB64 = sharedPreferences.getString(keyFor(channelId, KEY_AUTH), null)
         val publicKey = sharedPreferences.getString(keyFor(channelId, KEY_PUBLIC), null)
 
-        return if (privateKeyB64 != null && authSecretB64 != null && publicKey != null) {
+        if (privateKeyB64 == null || authSecretB64 == null || publicKey == null) {
+            return null
+        }
+
+        return try {
             Triple(base64Decode(privateKeyB64), base64Decode(authSecretB64), publicKey)
-        } else {
+        } catch (_: IllegalArgumentException) {
+            deleteKeys(channelId)
             null
         }
     }
 
     fun deleteKeys(channelId: String) {
-        sharedPreferences.edit {
+        sharedPreferences.edit(commit = true) {
             remove(keyFor(channelId, KEY_PRIVATE))
             remove(keyFor(channelId, KEY_AUTH))
             remove(keyFor(channelId, KEY_PUBLIC))

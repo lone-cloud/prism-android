@@ -30,6 +30,25 @@ class SettingsViewModel(
     var state by mutableStateOf(state)
         private set
 
+    private fun sendConfigBroadcast(
+        app: Application,
+        action: String,
+        value: String
+    ) {
+        val extraKey = when (action) {
+            PrismConfigReceiver.ACTION_SET_PRISM_SERVER_URL -> PrismConfigReceiver.EXTRA_URL
+            PrismConfigReceiver.ACTION_SET_PRISM_API_KEY -> PrismConfigReceiver.EXTRA_API_KEY
+            else -> return
+        }
+        val intent = Intent(action).apply {
+            putExtra(extraKey, value)
+            setPackage(app.packageName)
+        }
+        app.sendBroadcast(intent)
+    }
+
+    private fun shouldTriggerRegistration(): Boolean = state.prismServerUrl.isNotBlank() && state.prismApiKey.isNotBlank()
+
     fun toggleShowToasts() {
         viewModelScope.launch {
             state = state.copy(showToasts = !state.showToasts)
@@ -42,21 +61,16 @@ class SettingsViewModel(
         viewModelScope.launch {
             val trimmedUrl = url.trim()
             state = state.copy(prismServerUrl = trimmedUrl)
-            application?.let {
-                PrismPreferences(it).prismServerUrl = trimmedUrl.ifBlank { null }
+            application?.let { app ->
+                PrismPreferences(app).prismServerUrl = trimmedUrl.ifBlank { null }
+                sendConfigBroadcast(app, PrismConfigReceiver.ACTION_SET_PRISM_SERVER_URL, trimmedUrl)
 
-                val intent = Intent(PrismConfigReceiver.ACTION_SET_PRISM_SERVER_URL).apply {
-                    putExtra(PrismConfigReceiver.EXTRA_URL, trimmedUrl)
-                    setPackage(it.packageName)
-                }
-                it.sendBroadcast(intent)
-
-                if (trimmedUrl.isNotBlank() && state.prismApiKey.isNotBlank()) {
-                    PrismServerClient.registerAllApps(it)
+                if (shouldTriggerRegistration()) {
+                    PrismServerClient.registerAllApps(app)
                 }
 
                 if (sendAction) {
-                    sendUiAction(it, "UpdatePrismServerConfigured")
+                    sendUiAction(app, "UpdatePrismServerConfigured")
                 }
             }
         }
@@ -66,21 +80,16 @@ class SettingsViewModel(
         viewModelScope.launch {
             val trimmedKey = apiKey.trim()
             state = state.copy(prismApiKey = trimmedKey)
-            application?.let {
-                PrismPreferences(it).prismApiKey = trimmedKey.ifBlank { null }
+            application?.let { app ->
+                PrismPreferences(app).prismApiKey = trimmedKey.ifBlank { null }
+                sendConfigBroadcast(app, PrismConfigReceiver.ACTION_SET_PRISM_API_KEY, trimmedKey)
 
-                val intent = Intent(PrismConfigReceiver.ACTION_SET_PRISM_API_KEY).apply {
-                    putExtra(PrismConfigReceiver.EXTRA_API_KEY, trimmedKey)
-                    setPackage(it.packageName)
-                }
-                it.sendBroadcast(intent)
-
-                if (state.prismServerUrl.isNotBlank() && trimmedKey.isNotBlank()) {
-                    PrismServerClient.registerAllApps(it)
+                if (shouldTriggerRegistration()) {
+                    PrismServerClient.registerAllApps(app)
                 }
 
                 if (sendAction) {
-                    sendUiAction(it, "UpdatePrismServerConfigured")
+                    sendUiAction(app, "UpdatePrismServerConfigured")
                 }
             }
         }
@@ -102,19 +111,10 @@ class SettingsViewModel(
                     prismApiKey = trimmedKey.ifBlank { null }
                 }
 
-                val urlIntent = Intent(PrismConfigReceiver.ACTION_SET_PRISM_SERVER_URL).apply {
-                    putExtra(PrismConfigReceiver.EXTRA_URL, trimmedUrl)
-                    setPackage(app.packageName)
-                }
-                app.sendBroadcast(urlIntent)
+                sendConfigBroadcast(app, PrismConfigReceiver.ACTION_SET_PRISM_SERVER_URL, trimmedUrl)
+                sendConfigBroadcast(app, PrismConfigReceiver.ACTION_SET_PRISM_API_KEY, trimmedKey)
 
-                val keyIntent = Intent(PrismConfigReceiver.ACTION_SET_PRISM_API_KEY).apply {
-                    putExtra(PrismConfigReceiver.EXTRA_API_KEY, trimmedKey)
-                    setPackage(app.packageName)
-                }
-                app.sendBroadcast(keyIntent)
-
-                if (trimmedUrl.isNotBlank() && trimmedKey.isNotBlank()) {
+                if (shouldTriggerRegistration()) {
                     PrismServerClient.registerAllApps(app)
                 }
 

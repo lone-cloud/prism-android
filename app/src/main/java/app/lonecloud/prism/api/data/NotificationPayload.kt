@@ -12,21 +12,21 @@ data class NotificationPayload(
     companion object {
         fun fromJson(jsonString: String): NotificationPayload? = try {
             val json = JSONObject(jsonString)
-            val title = json.optString("Title", "")
-            val message = json.optString("Message", "")
-            val tag = json.optString("Tag", "")
+            val title = json.optString("title", "")
+            val message = json.optString("message", "")
+            val tag = json.optString("tag", "")
 
-            val actionsArray = json.optJSONArray("Actions") ?: JSONArray()
+            val actionsArray = json.optJSONArray("actions") ?: JSONArray()
             val actions = mutableListOf<NotificationAction>()
 
             for (i in 0 until actionsArray.length()) {
                 val actionObj = actionsArray.getJSONObject(i)
                 val action = NotificationAction(
-                    id = actionObj.optString("ID", ""),
-                    label = actionObj.optString("Label", ""),
-                    endpoint = actionObj.optString("Endpoint", ""),
-                    method = actionObj.optString("Method", "POST"),
-                    data = parseDataMap(actionObj.optJSONObject("Data"))
+                    id = actionObj.optString("id", ""),
+                    label = actionObj.optString("label", ""),
+                    endpoint = actionObj.optString("endpoint", ""),
+                    method = actionObj.optString("method", "POST").ifBlank { "POST" },
+                    data = parseDataMap(actionObj.optJSONObject("data"))
                 )
                 actions.add(action)
             }
