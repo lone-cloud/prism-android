@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import app.lonecloud.prism.R
+import app.lonecloud.prism.utils.DescriptionParser
 
 data class PrismServerApp(val name: String, val matchedInstalledApp: InstalledApp? = null)
 
@@ -38,6 +39,7 @@ fun AppPickerScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var prismServerApps by remember { mutableStateOf<List<PrismServerApp>>(emptyList()) }
+    var localAddedTargetPackages by remember { mutableStateOf<Set<String>>(emptySet()) }
     var prismAppsLoaded by remember { mutableStateOf(false) }
     var showContent by remember { mutableStateOf(false) }
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -53,13 +55,23 @@ fun AppPickerScreen(
     )
 
     androidx.compose.runtime.LaunchedEffect(onSelectPrismApp) {
+        val db = app.lonecloud.prism.DatabaseFactory.getDb(context)
+        localAddedTargetPackages = db.listApps()
+            .filter { DescriptionParser.isManualApp(it.description) }
+            .mapNotNull { app ->
+                app.description
+                    ?.substringAfter("target:")
+                    ?.substringBefore("|")
+                    ?.takeIf { it.isNotBlank() }
+            }
+            .toSet()
+
         if (onSelectPrismApp != null) {
             app.lonecloud.prism.PrismServerClient.fetchRegisteredApps(
                 context,
                 onSuccess = { serverAppNames ->
-                    val db = app.lonecloud.prism.DatabaseFactory.getDb(context)
                     val localAppNames = db.listApps()
-                        .filter { it.description?.startsWith("target:") == true }
+                        .filter { DescriptionParser.isManualApp(it.description) }
                         .mapNotNull { it.title }
                         .toSet()
                     prismServerApps = serverAppNames
@@ -81,7 +93,7 @@ fun AppPickerScreen(
         }
     }
 
-    val (recommendedApps, otherApps) = remember(apps, searchQuery, prismServerApps) {
+    val (recommendedApps, otherApps) = remember(apps, searchQuery, prismServerApps, localAddedTargetPackages) {
         val filtered = if (searchQuery.isBlank()) {
             apps
         } else {
@@ -94,6 +106,7 @@ fun AppPickerScreen(
         val prismAppNames = prismServerApps.map { it.name }
         val recommended = filtered.filter { app ->
             recommendedPackages.any { pkg -> app.packageName.startsWith(pkg) } &&
+                !localAddedTargetPackages.contains(app.packageName) &&
                 !prismAppNames.contains(app.appName)
         }.sortedBy { it.appName.lowercase() }
         val others = filtered.filterNot { app ->

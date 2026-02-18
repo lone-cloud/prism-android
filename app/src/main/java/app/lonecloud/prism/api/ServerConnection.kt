@@ -28,36 +28,33 @@ import app.lonecloud.prism.callback.NetworkCallbackFactory
 import app.lonecloud.prism.services.FgService
 import app.lonecloud.prism.services.RestartWorker
 import app.lonecloud.prism.services.SourceManager
+import app.lonecloud.prism.utils.DescriptionParser
+import app.lonecloud.prism.utils.HttpClientFactory
 import app.lonecloud.prism.utils.ManualAppNotifications
 import app.lonecloud.prism.utils.TAG
 import app.lonecloud.prism.utils.WebPushDecryptor
+import app.lonecloud.prism.utils.WebPushEncryptionKeys
 import java.util.Calendar
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import org.unifiedpush.android.distributor.ChannelCreationStatus
+import org.unifiedpush.android.distributor.ipc.sendUiAction
 
 class ServerConnection(private val context: Context, private val releaseLock: () -> Unit) : WebSocketListener() {
 
     private val store = PrismPreferences(context)
 
     fun start(): WebSocket {
-        val client = OkHttpClient.Builder()
-            .readTimeout(0, TimeUnit.MILLISECONDS)
-            .pingInterval(1, TimeUnit.MINUTES)
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .build()
         val url = ApiUrlCandidate.getTest() ?: store.apiUrl
         val uaid = store.uaid
         Log.d(TAG, "Connecting to $url [uaid?=${uaid != null}]")
         val request = Request.Builder()
             .url(url)
             .build()
-        return client.newWebSocket(request, this).also { ws ->
+        return HttpClientFactory.longLived.newWebSocket(request, this).also { ws ->
             SourceManager.newSource(ws)
             ClientMessage.Hello(uaid).send(ws)
         }
@@ -141,7 +138,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             ?.second
 
         val app = if (vapidKey != null) {
-            db.listApps().find { it.vapidKey == vapidKey && it.description?.startsWith("target:") == true }
+            db.listApps().find { it.vapidKey == vapidKey && DescriptionParser.isManualApp(it.description) }
         } else {
             null
         }
@@ -227,52 +224,106 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             ?.second
 
         val app = if (vapidKey != null) {
-            db.listApps().find { it.vapidKey == vapidKey && it.description?.startsWith("target:") == true }
+            db.listApps().find { it.vapidKey == vapidKey && DescriptionParser.isManualApp(it.description) }
         } else {
             null
         }
 
         if (app != null) {
             Log.d(TAG, "Auto-registering manual app '${app.title}' with Prism server")
+            val vapidPrivateKey = DescriptionParser.extractValue(app.description, VAPID_PRIVATE_DESC_PREFIX)
+                ?: PrismPreferences(context).getVapidPrivateKey(app.connectorToken)
+            if (vapidPrivateKey.isNullOrBlank()) {
+                handleManualRegistrationFailure(
+                    appTitle = app.title,
+                    connectorToken = app.connectorToken,
+                    channelId = message.channelID,
+                    error = "Missing VAPID private key for ${app.title ?: "app"}. Delete and re-add the app."
+                )
+                return
+            }
+
             val keyStore = EncryptionKeyStore(context)
-            val keys = keyStore.getKeys(message.channelID)
+            var keys = keyStore.getKeys(message.channelID)
+
+            if (keys == null) {
+                Log.w(TAG, "Missing encryption keys for channel ${message.channelID}, regenerating")
+                val regenerated = WebPushEncryptionKeys.generateKeySet()
+                keyStore.storeKeys(
+                    message.channelID,
+                    regenerated.privateKey,
+                    regenerated.authBytes,
+                    regenerated.p256dh
+                )
+                keys = keyStore.getKeys(message.channelID)
+            }
+
+            if (keys == null) {
+                handleManualRegistrationFailure(
+                    appTitle = app.title,
+                    connectorToken = app.connectorToken,
+                    channelId = message.channelID,
+                    error = "Failed to persist encryption keys for channel ${message.channelID}"
+                )
+                return
+            }
 
             PrismServerClient.registerApp(
                 context,
                 app.connectorToken,
                 app.title ?: "Unknown App",
                 message.pushEndpoint,
-                vapidPrivateKey = app.vapidKey,
-                p256dh = keys?.third,
+                vapidPrivateKey = vapidPrivateKey,
+                p256dh = keys.third,
                 auth = android.util.Base64.encodeToString(
-                    keys?.second,
+                    keys.second,
                     android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING or android.util.Base64.NO_WRAP
                 ),
                 onSuccess = {
                     Log.d(TAG, "Successfully registered '${app.title}' with Prism server")
+                    PrismPreferences(context).removePendingManualToken(app.connectorToken)
+                    sendUiAction(context, "RefreshRegistrations")
                 },
                 onError = { error ->
-                    Log.e(TAG, "Failed to register '${app.title}' with Prism server: $error")
-
-                    Distributor.deleteApp(context, app.connectorToken)
-
-                    MessageSender.send(
-                        context,
-                        ClientMessage.Unregister(channelID = message.channelID)
+                    handleManualRegistrationFailure(
+                        appTitle = app.title,
+                        connectorToken = app.connectorToken,
+                        channelId = message.channelID,
+                        error = error
                     )
-
-                    Handler(Looper.getMainLooper()).post {
-                        Toast.makeText(
-                            context,
-                            "Failed to register ${app.title}: $error",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
                 }
             )
         } else {
             Log.d(TAG, "Not a manual app or app not found for channelId: ${message.channelID}")
         }
+    }
+
+    private fun handleManualRegistrationFailure(
+        appTitle: String?,
+        connectorToken: String,
+        channelId: String,
+        error: String
+    ) {
+        Log.e(TAG, "Failed to register '$appTitle' with Prism server: $error")
+
+        PrismPreferences(context).removePendingManualToken(connectorToken)
+
+        Distributor.deleteApp(context, connectorToken)
+
+        MessageSender.send(
+            context,
+            ClientMessage.Unregister(channelID = channelId)
+        )
+
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(
+                context,
+                "Failed to register ${appTitle ?: "app"}: $error",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+
+        sendUiAction(context, "RefreshRegistrations")
     }
 
     private fun onUnregister(message: ServerMessage.Unregister) {
@@ -347,6 +398,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     }
 
     companion object {
+        private const val VAPID_PRIVATE_DESC_PREFIX = "vp:"
         var lastEventDate: Calendar? = null
         var waitingPong = AtomicBoolean(false)
         fun destroy() = SourceManager.removeSource()

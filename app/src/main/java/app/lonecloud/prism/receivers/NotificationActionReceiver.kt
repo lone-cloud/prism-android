@@ -6,12 +6,12 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import app.lonecloud.prism.PrismPreferences
+import app.lonecloud.prism.utils.HttpClientFactory
 import app.lonecloud.prism.utils.TAG
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
@@ -61,16 +61,12 @@ class NotificationActionReceiver : BroadcastReceiver() {
         method: String,
         data: Map<String, String>
     ) {
-        val prefs = PrismPreferences(context)
-        val serverUrl = prefs.prismServerUrl ?: run {
-            Log.e(TAG, "No Prism server URL configured")
+        val config = PrismPreferences(context).getPrismServerConfig()
+        if (config == null) {
+            Log.e(TAG, "Prism server not configured")
             return
         }
-        val apiKey = prefs.prismApiKey ?: run {
-            Log.e(TAG, "No Prism API key configured")
-            return
-        }
-
+        val (serverUrl, apiKey) = config
         val fullUrl = if (endpoint.startsWith("http")) {
             endpoint
         } else {
@@ -89,7 +85,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
 
         Log.d(TAG, "Executing action: $method $fullUrl with data: $jsonBody")
 
-        OkHttpClient().newCall(request).execute().use { response ->
+        HttpClientFactory.shared.newCall(request).execute().use { response ->
             if (response.isSuccessful) {
                 Log.d(TAG, "Action executed successfully: ${response.code}")
             } else {

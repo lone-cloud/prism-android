@@ -29,6 +29,7 @@ class PrismInternalService : InternalService() {
     override val db: Database by lazy { DatabaseFactory.getDb(this) }
 
     private val appStore by lazy { PrismPreferences(this) }
+    private val hiddenDescription = Description.StringDescription("")
 
     override var themeDynamicColors: Boolean
         get() = appStore.dynamicColors
@@ -65,15 +66,19 @@ class PrismInternalService : InternalService() {
         }
 
         override fun list(): List<App> = db
-            .listApps().map {
+            .listApps()
+            .filterNot { app ->
+                app.connectorToken.startsWith("manual_app_") &&
+                    appStore.isPendingManualToken(app.connectorToken)
+            }
+            .map {
                 val pm = this@PrismInternalService.packageManager
 
-                val isManualApp = it.description?.startsWith("target:") == true
-                val targetPackage = if (isManualApp) {
-                    it.description?.substringAfter("target:")?.substringBefore("|")?.takeIf { pkg -> pkg.isNotBlank() }
-                } else {
-                    null
-                }
+                val targetPackage = it.description
+                    ?.takeIf { description -> description.startsWith("target:") }
+                    ?.substringAfter("target:")
+                    ?.substringBefore("|")
+                    ?.takeIf { pkg -> pkg.isNotBlank() }
 
                 val packageToResolve = targetPackage ?: it.packageName
                 val appName = try {
@@ -92,9 +97,9 @@ class PrismInternalService : InternalService() {
                     vapidKey = it.vapidKey,
                     title = displayTitle,
                     msgCount = it.msgCount,
-                    description = Description.StringDescription(packageToResolve),
+                    description = hiddenDescription,
                     icon = getApplicationIcon(packageToResolve)?.toBitmap(),
-                    isLocal = it.packageName == this@PrismInternalService.packageName
+                    isLocal = false
                 )
             }
 

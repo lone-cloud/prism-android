@@ -73,6 +73,20 @@
     <string name="show_toasts_description">Show a notification when apps register or unregister</string>
     <string name="dynamic_colors_title">Dynamic colors</string>
     <string name="dynamic_colors_description">Use colors from your wallpaper</string>
+    <string name="registration_details_title">Registration Details</string>
+    <string name="registration_details_not_found">Registration not found.</string>
+    <string name="registration_details_package_id">Package ID</string>
+    <string name="registration_details_messages">Total Messages</string>
+    <string name="registration_details_added">Added</string>
+    <string name="registration_details_subscription_id">Subscription ID</string>
+    <string name="registration_details_not_available">Not available</string>
+    <string name="registration_details_type">Registration Type</string>
+    <string name="registration_details_type_manual">Manual</string>
+    <string name="registration_details_type_standard">Standard</string>
+    <string name="delete_registration">Delete registration</string>
+    <string name="delete_registration_title">Delete registration?</string>
+    <string name="delete_registration_message">This will unregister the app and remove it from your list.</string>
+    <string name="delete_registration_confirm">Delete</string>
 
     <!-- Intro screen strings -->
     <string name="intro_welcome_title">Welcome to Prism</string>
