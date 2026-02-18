@@ -146,8 +146,7 @@ class PrismPreferences(context: Context) :
         }
     }
 
-    fun getRegisteredEndpoint(connectorToken: String): String? =
-        sharedPreferences.getString("registered_endpoint_$connectorToken", null)
+    fun getRegisteredEndpoint(connectorToken: String): String? = sharedPreferences.getString("registered_endpoint_$connectorToken", null)
 
     fun removeRegisteredEndpoint(connectorToken: String) {
         sharedPreferences.edit {
@@ -161,43 +160,11 @@ class PrismPreferences(context: Context) :
         }
     }
 
-    fun getVapidPrivateKey(connectorToken: String): String? =
-        sharedPreferences.getString("vapid_private_$connectorToken", null)
+    fun getVapidPrivateKey(connectorToken: String): String? = sharedPreferences.getString("vapid_private_$connectorToken", null)
 
     fun removeVapidPrivateKey(connectorToken: String) {
         sharedPreferences.edit {
             remove("vapid_private_$connectorToken")
-        }
-    }
-
-    fun setRegistrationAddedAt(connectorToken: String, timestampMs: Long) {
-        sharedPreferences.edit {
-            putLong("registration_added_at_$connectorToken", timestampMs)
-        }
-    }
-
-    fun getRegistrationAddedAt(connectorToken: String): Long? {
-        val timestamp = sharedPreferences.getLong("registration_added_at_$connectorToken", -1L)
-        return if (timestamp == -1L) null else timestamp
-    }
-
-    fun removeRegistrationAddedAt(connectorToken: String) {
-        sharedPreferences.edit {
-            remove("registration_added_at_$connectorToken")
-        }
-    }
-
-    fun cleanupLegacyRegistrationAddedAtIfNeeded() {
-        if (sharedPreferences.getBoolean(PREF_ADDED_AT_CLEANED_UP, false)) {
-            return
-        }
-
-        val keysToRemove = sharedPreferences.all.keys
-            .filter { it.startsWith("registration_added_at_") }
-
-        sharedPreferences.edit {
-            keysToRemove.forEach { remove(it) }
-            putBoolean(PREF_ADDED_AT_CLEANED_UP, true)
         }
     }
 
@@ -242,6 +209,5 @@ class PrismPreferences(context: Context) :
         private const val PREF_PRISM_API_KEY = "prism_api_key"
         private const val PREF_INTRO_COMPLETED = "intro_completed"
         private const val PREF_PENDING_MANUAL_TOKENS = "pending_manual_tokens"
-        private const val PREF_ADDED_AT_CLEANED_UP = "added_at_cleaned_up"
     }
 }

@@ -79,9 +79,6 @@ class MainViewModel(
 
     fun refreshRegistrations() {
         viewModelScope.launch {
-            application?.let { app ->
-                PrismPreferences(app).cleanupLegacyRegistrationAddedAtIfNeeded()
-            }
             val apps = messenger?.sendIMessageL(InternalOpcode.REG_LIST, "apps", App::class.java)
             registrationsViewModel.state = RegistrationListState(apps ?: emptyList())
         }
@@ -106,7 +103,6 @@ class MainViewModel(
                     intent.setPackage(app.packageName)
                     intent.putExtra("token", token)
                     app.sendBroadcast(intent)
-                    PrismPreferences(app).removeRegistrationAddedAt(token)
                     PrismPreferences(app).removeVapidPrivateKey(token)
                 }
 
@@ -134,12 +130,10 @@ class MainViewModel(
 
     fun getEndpoint(token: String): String? = getApp(token)?.endpoint
 
-    fun getSubscriptionId(token: String): String? = application?.let { app ->
-        PrismPreferences(app).getSubscriptionId(token)
-    }
-
-    fun getRegistrationAddedAt(token: String): Long? = application?.let { app ->
-        PrismPreferences(app).getRegistrationAddedAt(token)
+    fun getChannelId(token: String): String? = application?.let { app ->
+        val db = DatabaseFactory.getDb(app)
+        val appEntry = db.listApps().find { it.connectorToken == token } ?: return@let null
+        db.listChannelIdVapid().find { (_, vapid) -> vapid == appEntry.vapidKey }?.first
     }
 
     fun hideAppDetails() {
@@ -230,7 +224,6 @@ class MainViewModel(
                 val packageName = targetPackageName.ifBlank { app.packageName }
                 val preferences = PrismPreferences(app)
                 preferences.addPendingManualToken(connectorToken)
-                preferences.setRegistrationAddedAt(connectorToken, System.currentTimeMillis())
                 preferences.setVapidPrivateKey(connectorToken, vapidKeys.privateKey)
 
                 val db = DatabaseFactory.getDb(app)
@@ -267,7 +260,6 @@ class MainViewModel(
                 intent.setPackage(app.packageName)
                 intent.putExtra("token", token)
                 app.sendBroadcast(intent)
-                PrismPreferences(app).removeRegistrationAddedAt(token)
                 PrismPreferences(app).removeVapidPrivateKey(token)
                 if (selectedRegistrationToken == token) {
                     clearSelectedRegistration()

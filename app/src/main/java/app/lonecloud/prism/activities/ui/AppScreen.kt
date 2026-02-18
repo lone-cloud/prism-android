@@ -13,17 +13,17 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,8 +46,6 @@ import app.lonecloud.prism.activities.MainViewModel
 import app.lonecloud.prism.activities.PreviewFactory
 import app.lonecloud.prism.activities.SettingsViewModel
 import app.lonecloud.prism.activities.ThemeViewModel
-import java.text.DateFormat
-import java.util.Date
 import org.unifiedpush.android.distributor.ipc.subscribeUiActions
 import org.unifiedpush.android.distributor.ui.compose.AppBar
 import org.unifiedpush.android.distributor.ui.vm.DistribMigrationViewModel
@@ -324,22 +322,15 @@ fun App(
                 val selectedRegistration = mainViewModel.selectedRegistrationToken?.let { token ->
                     mainViewModel.registrationsViewModel.state.list.find { item -> item.token == token }
                 }
-                val subscriptionId = mainViewModel.selectedRegistrationToken?.let { token ->
-                    mainViewModel.getSubscriptionId(token)
+                val channelId = mainViewModel.selectedRegistrationToken?.let { token ->
+                    mainViewModel.getChannelId(token)
                 }
-                val addedDate = mainViewModel.selectedRegistrationToken
-                    ?.let { token -> mainViewModel.getRegistrationAddedAt(token) }
-                    ?.let { timestamp ->
-                        DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                            .format(Date(timestamp))
-                    }
 
                 RegistrationDetailsScreen(
                     appName = selectedRegistration?.app?.title,
                     packageId = selectedRegistration?.app?.packageName,
                     totalMessages = selectedRegistration?.msgCount,
-                    subscriptionId = subscriptionId,
-                    addedDate = addedDate,
+                    channelId = channelId,
                     isManual = selectedRegistration?.token?.startsWith("manual_app_") == true,
                     icon = selectedRegistration?.app?.icon
                 )

@@ -9,7 +9,6 @@
 package app.lonecloud.prism
 
 import android.content.Context
-import android.util.Log
 import app.lonecloud.prism.api.MessageSender
 import app.lonecloud.prism.api.data.ClientMessage
 import app.lonecloud.prism.utils.DescriptionParser
@@ -49,26 +48,15 @@ object Distributor : UnifiedPushDistributor() {
     ) = backendRegisterNewChannelId(context, packageName, channelId, title, vapid, description)
 
     override fun backendUnregisterChannelId(context: Context, channelId: String) {
-        Log.d("Distributor", "backendUnregisterChannelId called with channelId: $channelId")
-
         val db = getDb(context)
 
         val channelVapidPair = db.listChannelIdVapid().find { it.first == channelId }
-        Log.d("Distributor", "Found vapidKey for channelId: ${channelVapidPair?.second}")
 
         if (channelVapidPair != null) {
             val app = db.listApps().find { it.vapidKey == channelVapidPair.second }
-            Log.d(
-                "Distributor",
-                "Found app: ${app?.title}, isManual: ${DescriptionParser.isManualApp(app?.description)}, connectorToken: ${app?.connectorToken}"
-            )
-
             if (app != null && DescriptionParser.isManualApp(app.description)) {
-                Log.d("Distributor", "Calling PrismServerClient.deleteApp with connectorToken: ${app.connectorToken}")
                 PrismServerClient.deleteApp(context, app.connectorToken)
             }
-        } else {
-            Log.w("Distributor", "No vapidKey found for channelId: $channelId")
         }
 
         MessageSender.send(

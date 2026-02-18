@@ -33,8 +33,7 @@ fun RegistrationDetailsScreen(
     appName: String?,
     packageId: String?,
     totalMessages: Int?,
-    subscriptionId: String?,
-    addedDate: String?,
+    channelId: String?,
     isManual: Boolean,
     icon: android.graphics.drawable.Drawable?
 ) {
@@ -101,11 +100,6 @@ fun RegistrationDetailsScreen(
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Text(
-                        text = packageId,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
             }
         }
@@ -140,18 +134,12 @@ fun RegistrationDetailsScreen(
                     label = stringResource(R.string.registration_details_messages),
                     value = totalMessages.toString()
                 )
-                RowDivider()
-
-                DetailRow(
-                    label = stringResource(R.string.registration_details_added),
-                    value = addedDate ?: stringResource(R.string.registration_details_not_available)
-                )
                 if (isManual) {
                     RowDivider()
 
                     DetailRow(
                         label = stringResource(R.string.registration_details_subscription_id),
-                        value = subscriptionId ?: stringResource(R.string.registration_details_not_available)
+                        value = channelId ?: stringResource(R.string.registration_details_not_available)
                     )
                 }
             }

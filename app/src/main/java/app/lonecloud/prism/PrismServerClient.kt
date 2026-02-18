@@ -72,7 +72,7 @@ object PrismServerClient {
             onError(error)
             return
         }
-        val validatedVapidPrivateKey = vapidPrivateKey ?: return
+        val validatedVapidPrivateKey = requireNotNull(vapidPrivateKey)
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -297,7 +297,11 @@ object PrismServerClient {
         return app.endpoint
     }
 
-    private fun persistSubscriptionIdInDb(context: Context, connectorToken: String, subscriptionId: String) {
+    private fun persistSubscriptionIdInDb(
+        context: Context,
+        connectorToken: String,
+        subscriptionId: String
+    ) {
         val db = DatabaseFactory.getDb(context)
         val app = db.listApps().find { it.connectorToken == connectorToken } ?: return
         val channelId = db.listChannelIdVapid()
@@ -321,9 +325,8 @@ object PrismServerClient {
         )
     }
 
-    private fun getVapidPrivateKeyFromDescription(description: String?): String? {
-        return DescriptionParser.extractValue(description, VAPID_PRIVATE_DESC_PREFIX)
-    }
+    private fun getVapidPrivateKeyFromDescription(description: String?): String? =
+        DescriptionParser.extractValue(description, VAPID_PRIVATE_DESC_PREFIX)
 
     private fun isValidVapidPrivateKey(privateKey: String): Boolean = try {
         Base64.decode(privateKey, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP).size == 32
