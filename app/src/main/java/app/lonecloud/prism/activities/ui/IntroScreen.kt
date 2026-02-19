@@ -73,7 +73,7 @@ fun IntroScreen(onComplete: (url: String, apiKey: String) -> Unit, onSkip: () ->
         Spacer(modifier = Modifier.height(32.dp))
 
         Image(
-            painter = painterResource(R.drawable.app_logo),
+            painter = painterResource(R.mipmap.ic_launcher_foreground),
             contentDescription = stringResource(R.string.app_name),
             modifier = Modifier.size(120.dp)
         )

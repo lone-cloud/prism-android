@@ -17,6 +17,7 @@ import app.lonecloud.prism.services.MainRegistrationCounter
 import org.unifiedpush.android.distributor.Database
 
 private const val NOTIFICATION_BASE_ID = 52000
+private const val MANUAL_CHANNEL_PREFIX = "manual_app_"
 
 object ManualAppNotifications {
 
@@ -38,7 +39,7 @@ object ManualAppNotifications {
             return
         }
 
-        val channelId = "manual_app_${app.connectorToken}"
+        val channelId = channelIdForToken(app.connectorToken)
         val appTitle = app.title ?: "Unknown App"
         createNotificationChannel(context, channelId, appTitle)
 
@@ -157,6 +158,31 @@ object ManualAppNotifications {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
     }
+
+    fun deleteChannelForToken(context: Context, connectorToken: String) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.deleteNotificationChannel(channelIdForToken(connectorToken))
+    }
+
+    fun pruneOrphanedChannels(context: Context) {
+        val db = DatabaseFactory.getDb(context)
+        val validManualChannelIds = db.listApps()
+            .asSequence()
+            .map { it.connectorToken }
+            .filter { it.startsWith(MANUAL_CHANNEL_PREFIX) }
+            .map { channelIdForToken(it) }
+            .toSet()
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notificationChannels
+            .asSequence()
+            .map { it.id }
+            .filter { it.startsWith(MANUAL_CHANNEL_PREFIX) }
+            .filterNot { it in validManualChannelIds }
+            .forEach { notificationManager.deleteNotificationChannel(it) }
+    }
+
+    private fun channelIdForToken(connectorToken: String): String = "$MANUAL_CHANNEL_PREFIX$connectorToken"
 
     private fun getNotificationId(tag: String): Int = notificationIds.getOrPut(tag) {
         nextNotificationId++

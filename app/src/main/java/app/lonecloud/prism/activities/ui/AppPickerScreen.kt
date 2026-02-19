@@ -263,7 +263,7 @@ private fun PrismAppListItem(prismApp: PrismServerApp, onClick: () -> Unit) {
             )
         } else {
             Image(
-                painter = androidx.compose.ui.res.painterResource(R.drawable.app_logo),
+                painter = androidx.compose.ui.res.painterResource(R.mipmap.ic_launcher_foreground),
                 contentDescription = null,
                 modifier = Modifier.size(48.dp)
             )

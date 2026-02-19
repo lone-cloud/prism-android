@@ -52,6 +52,7 @@ class PreviewFactory(val context: Context) : ViewModelProvider.Factory {
             SettingsViewModel(
                 SettingsState(
                     showToasts = false,
+                    pushServiceUrl = "",
                     prismServerUrl = "",
                     prismApiKey = ""
                 ),
