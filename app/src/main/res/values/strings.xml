@@ -23,7 +23,7 @@
     <string name="settings">Settings</string>
     <string name="push_service_title">Push Service</string>
     <string name="push_service_description">Set the push server URL. Default is Mozilla, or use your own compatible self-hosted service.</string>
-    <string name="push_service_crowd_blending_warning">Warning: changing from the default Mozilla server may reduce crowd blending.</string>
+    <string name="push_service_crowd_blending_warning">Warning: switching from Mozilla may reduce traffic crowd blending.</string>
     <string name="push_service_url_label">Push service URL</string>
     <string name="push_service_url_placeholder">https://push.example.com</string>
     <string name="push_service_save_button">Save</string>
