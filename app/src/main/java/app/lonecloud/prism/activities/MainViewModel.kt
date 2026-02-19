@@ -17,6 +17,7 @@ import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.activities.ui.InstalledApp
 import app.lonecloud.prism.activities.ui.MainUiState
 import app.lonecloud.prism.utils.DescriptionParser
+import app.lonecloud.prism.utils.ManualAppNotifications
 import app.lonecloud.prism.utils.TAG
 import app.lonecloud.prism.utils.VapidKeyGenerator
 import app.lonecloud.prism.utils.WebPushEncryptionKeys
@@ -69,6 +70,9 @@ class MainViewModel(
 
     init {
         loadInstalledApps()
+        application?.let { app ->
+            ManualAppNotifications.pruneOrphanedChannels(app)
+        }
     }
 
     fun closePermissionDialog() {
@@ -97,6 +101,7 @@ class MainViewModel(
                 selectedTokens.forEach { token ->
                     if (token.startsWith("manual_app_")) {
                         PrismServerClient.deleteApp(app, token)
+                        ManualAppNotifications.deleteChannelForToken(app, token)
                     }
 
                     val intent = android.content.Intent("org.unifiedpush.android.distributor.UNREGISTER")
@@ -254,6 +259,7 @@ class MainViewModel(
             application?.let { app ->
                 if (token.startsWith("manual_app_")) {
                     PrismServerClient.deleteApp(app, token)
+                    ManualAppNotifications.deleteChannelForToken(app, token)
                 }
 
                 val intent = Intent("org.unifiedpush.android.distributor.UNREGISTER")

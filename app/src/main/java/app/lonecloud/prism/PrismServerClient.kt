@@ -19,7 +19,6 @@ import org.json.JSONObject
 
 object PrismServerClient {
     private const val TAG = "PrismServerClient"
-    private const val SUBSCRIPTION_DESC_PREFIX = "sid:"
     private const val VAPID_PRIVATE_DESC_PREFIX = "vp:"
 
     private fun getAuthHeader(apiKey: String): String = "Bearer $apiKey"
@@ -47,7 +46,7 @@ object PrismServerClient {
         val existingSubscriptionId = store.getSubscriptionId(connectorToken)
             ?: getSubscriptionIdFromDb(context, connectorToken)?.also {
                 store.setSubscriptionId(connectorToken, it)
-                Log.d(TAG, "registerApp: restored subscriptionId from db for $connectorToken")
+                Log.d(TAG, "registerApp: restored subscriptionId from description for $connectorToken")
             }
         val knownEndpoint = store.getRegisteredEndpoint(connectorToken)
             ?: getEndpointFromDb(context, connectorToken)?.also {
@@ -134,7 +133,6 @@ object PrismServerClient {
 
                             store.setSubscriptionId(connectorToken, subscriptionId)
                             store.setRegisteredEndpoint(connectorToken, webpushUrl)
-                            persistSubscriptionIdInDb(context, connectorToken, subscriptionId)
 
                             Log.d(TAG, "Successfully registered app: $appName (ID: $subscriptionId)")
                             withContext(Dispatchers.Main) { onSuccess() }
@@ -285,7 +283,7 @@ object PrismServerClient {
             .find { it.connectorToken == connectorToken }
             ?: return null
 
-        return DescriptionParser.extractValue(app.description, SUBSCRIPTION_DESC_PREFIX)
+        return DescriptionParser.extractValue(app.description, "sid:")
     }
 
     private fun getEndpointFromDb(context: Context, connectorToken: String): String? {
@@ -295,34 +293,6 @@ object PrismServerClient {
             ?: return null
 
         return app.endpoint
-    }
-
-    private fun persistSubscriptionIdInDb(
-        context: Context,
-        connectorToken: String,
-        subscriptionId: String
-    ) {
-        val db = DatabaseFactory.getDb(context)
-        val app = db.listApps().find { it.connectorToken == connectorToken } ?: return
-        val channelId = db.listChannelIdVapid()
-            .find { (_, vapid) -> vapid == app.vapidKey }
-            ?.first
-            ?: return
-
-        val updatedDescription = DescriptionParser.updateValue(
-            app.description,
-            SUBSCRIPTION_DESC_PREFIX,
-            subscriptionId
-        )
-
-        db.registerApp(
-            app.packageName,
-            app.connectorToken,
-            channelId,
-            app.title ?: app.packageName,
-            app.vapidKey,
-            updatedDescription
-        )
     }
 
     private fun getVapidPrivateKeyFromDescription(description: String?): String? =

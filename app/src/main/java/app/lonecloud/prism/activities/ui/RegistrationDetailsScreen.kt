@@ -84,7 +84,7 @@ fun RegistrationDetailsScreen(
                                 .clip(CircleShape)
                         )
                     } ?: Image(
-                        painter = painterResource(R.drawable.app_logo),
+                        painter = painterResource(R.mipmap.ic_launcher_foreground),
                         contentDescription = null,
                         modifier = Modifier
                             .size(52.dp)

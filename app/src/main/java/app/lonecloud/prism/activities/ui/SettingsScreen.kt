@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.Icon
@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,7 +40,8 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     themeViewModel: ThemeViewModel,
     migrationViewModel: DistribMigrationViewModel,
-    onNavigateToServerConfig: () -> Unit = {}
+    onNavigateToServerConfig: () -> Unit = {},
+    onNavigateToPushServiceConfig: () -> Unit = {}
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
@@ -62,9 +64,9 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Cloud,
+                    painter = painterResource(R.drawable.ic_notification),
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(28.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Column(
@@ -82,6 +84,40 @@ fun SettingsScreen(
                         } else {
                             stringResource(R.string.prism_server_not_configured)
                         },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        Surface(
+            onClick = onNavigateToPushServiceConfig,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RectangleShape
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Dns,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = stringResource(R.string.push_service_title),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = viewModel.state.pushServiceUrl,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

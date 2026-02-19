@@ -54,6 +54,7 @@ enum class AppScreen(@param:StringRes val title: Int) {
     Intro(R.string.app_name),
     Main(R.string.app_name),
     Settings(R.string.settings),
+    PushServiceConfig(R.string.push_service_title),
     ServerConfig(R.string.configure_server),
     AddApp(R.string.add_custom_app_title),
     AppPicker(R.string.select_target_app_title),
@@ -241,9 +242,31 @@ fun App(
                     vm,
                     themeViewModel,
                     migrationViewModel,
+                    onNavigateToPushServiceConfig = {
+                        navController.navigate(AppScreen.PushServiceConfig.name)
+                    },
                     onNavigateToServerConfig = {
                         navController.navigate(AppScreen.ServerConfig.name)
                     }
+                )
+            }
+            composable(
+                route = AppScreen.PushServiceConfig.name,
+                enterTransition = { slideInTo(Dir.Left) },
+                popEnterTransition = { slideInTo(Dir.Right) },
+                popExitTransition = { slideOutFrom(Dir.Left) }
+            ) {
+                val settingsEntry = remember(it) {
+                    navController.getBackStackEntry(AppScreen.Settings.name)
+                }
+                val vm = viewModel<SettingsViewModel>(
+                    viewModelStoreOwner = settingsEntry,
+                    factory = factory
+                )
+                PushServiceConfigScreen(
+                    initialUrl = vm.state.pushServiceUrl,
+                    onNavigateBack = { navController.navigateUp() },
+                    onSave = { url -> vm.updatePushServiceUrl(url) }
                 )
             }
             composable(

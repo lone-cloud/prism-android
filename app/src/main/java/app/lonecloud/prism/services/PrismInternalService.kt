@@ -3,9 +3,11 @@ package app.lonecloud.prism.services
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.core.graphics.drawable.toBitmap
+import app.lonecloud.prism.BuildConfig
 import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.Distributor
 import app.lonecloud.prism.PrismPreferences
+import app.lonecloud.prism.api.ApiUrlCandidate
 import org.unifiedpush.android.distributor.Database
 import org.unifiedpush.android.distributor.MigrationManager
 import org.unifiedpush.android.distributor.SourceManager
@@ -13,9 +15,11 @@ import org.unifiedpush.android.distributor.UnifiedPushDistributor
 import org.unifiedpush.android.distributor.WorkerCompanion
 import org.unifiedpush.android.distributor.data.App
 import org.unifiedpush.android.distributor.data.Description
+import org.unifiedpush.android.distributor.ipc.ACTION_REFRESH_API_URL
 import org.unifiedpush.android.distributor.ipc.handler.IAccount
 import org.unifiedpush.android.distributor.ipc.handler.IApi
 import org.unifiedpush.android.distributor.ipc.handler.IRegistrations
+import org.unifiedpush.android.distributor.ipc.sendUiAction
 import org.unifiedpush.android.distributor.service.ForegroundServiceFactory
 import org.unifiedpush.android.distributor.service.InternalService
 import org.unifiedpush.android.distributor.utils.getApplicationIcon
@@ -54,7 +58,16 @@ class PrismInternalService : InternalService() {
     }
 
     override fun api(): IApi = object : IApi {
-        override fun newPushServer(url: String?) {}
+        override fun newPushServer(url: String?) {
+            url?.let {
+                ApiUrlCandidate.test(context, url)
+            } ?: run {
+                PrismPreferences(context).apiUrl = BuildConfig.DEFAULT_API_URL
+                restartWorker().restart()
+                sendUiAction(context, ACTION_REFRESH_API_URL)
+            }
+        }
+
         override fun getUrl(): String = appStore.apiUrl
     }
 

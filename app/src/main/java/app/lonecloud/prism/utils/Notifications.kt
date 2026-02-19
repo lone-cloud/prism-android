@@ -18,6 +18,8 @@ import org.unifiedpush.android.distributor.AppNotification
 
 const val NOTIFICATION_ID_FOREGROUND = 51115
 private const val NOTIFICATION_ID_WARNING = 51215
+private const val WARNING_CHANNEL_ID = "WarningSilent"
+private const val FOREGROUND_CHANNEL_ID = "ForegroundSilent"
 
 class MainNotificationData(
     title: String,
@@ -36,9 +38,9 @@ class MainNotificationData(
 
 private val Context.warningChannelData: AppNotification.ChannelData
     get() = AppNotification.ChannelData(
-        "Warning",
+        WARNING_CHANNEL_ID,
         this.getString(R.string.warning),
-        NotificationManager.IMPORTANCE_HIGH,
+        NotificationManager.IMPORTANCE_LOW,
         this.resources.getString(R.string.warning_notif_description).format(this.getString(R.string.app_name))
     )
 
@@ -53,7 +55,7 @@ class DisconnectedNotification(context: Context) :
                 context.getString(R.string.app_name)
             ),
             context.getString(R.string.warning),
-            NotificationCompat.PRIORITY_HIGH,
+            NotificationCompat.PRIORITY_LOW,
             true
         ),
         context.warningChannelData
@@ -78,7 +80,7 @@ class ForegroundNotification(context: Context) :
             true
         ),
         ChannelData(
-            "Foreground",
+            FOREGROUND_CHANNEL_ID,
             context.getString(R.string.foreground_service),
             NotificationManager.IMPORTANCE_LOW,
             context.getString(R.string.foreground_notif_description)
@@ -86,6 +88,6 @@ class ForegroundNotification(context: Context) :
     )
 
 private object Notifications {
-    val disconnectedShown = AtomicBoolean(false)
+    val disconnectedShown = AtomicBoolean(true)
     val ignoreShown = AtomicBoolean(true)
 }

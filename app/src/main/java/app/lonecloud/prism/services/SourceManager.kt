@@ -9,7 +9,6 @@
 package app.lonecloud.prism.services
 
 import android.content.Context
-import app.lonecloud.prism.utils.DisconnectedNotification
 import okhttp3.Request
 import okhttp3.WebSocket
 import okio.ByteString
@@ -20,7 +19,7 @@ object SourceManager : SManager<WebSocket>() {
     override val foregroundService = FgService.service
     override val migrationManager = MigrationManager()
 
-    override fun disconnectedNotification(context: Context): AppNotification = DisconnectedNotification(context)
+    override fun disconnectedNotification(context: Context): AppNotification? = null
 
     override fun getDummySource(): WebSocket = object : WebSocket {
         override fun cancel() { /* Dummy implementation */ }

@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "Destroy")
         super.onDestroy()
         jobs += CoroutineScope(Dispatchers.Main + Job()).launch {
-            delay(10_000)
+            delay(5_000)
             exitProcess(0)
         }
     }
