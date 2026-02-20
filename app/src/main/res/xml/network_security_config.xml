@@ -1,8 +1,9 @@
 <network-security-config>
-    <base-config>
+    <base-config
+        cleartextTrafficPermitted="true">
         <trust-anchors>
-            <!-- Trust only system CAs (proper SSL certificates) -->
             <certificates src="system" />
+            <certificates src="user" />
         </trust-anchors>
     </base-config>
 </network-security-config>

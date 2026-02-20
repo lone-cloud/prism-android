@@ -55,7 +55,7 @@
     <string name="testing_connection">Testing connection…</string>
     <string name="connection_successful">Connection successful</string>
     <string name="connection_failed">Connection failed</string>
-    <string name="test_and_save_button">Test and Save</string>
+    <string name="test_and_save_button">Connect</string>
     <string name="clear_server_button">Remove</string>
     <string name="clear_server_confirm_title">Remove Prism Server?</string>
     <string name="clear_server_confirm_message_no_apps">This will remove your Prism server configuration.</string>
