@@ -49,12 +49,12 @@ class PrismInternalService : InternalService() {
 
     override fun getDebugInfo(): String = "Prism Distributor"
 
-    override fun runAppMigration() {}
+    override fun runAppMigration() = Unit
 
     override fun account(): IAccount = object : IAccount {
         override fun get(): String? = null
-        override fun logout() {}
-        override fun login(data: Bundle) {}
+        override fun logout() = Unit
+        override fun login(data: Bundle) = Unit
     }
 
     override fun api(): IApi = object : IApi {
@@ -116,10 +116,8 @@ class PrismInternalService : InternalService() {
                 )
             }
 
-        override fun copyEndpoint(token: String?) {
-        }
+        override fun copyEndpoint(token: String?) = Unit
 
-        override fun addLocal(title: String) {
-        }
+        override fun addLocal(title: String) = Unit
     }
 }

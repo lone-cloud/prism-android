@@ -18,8 +18,8 @@ import org.unifiedpush.android.distributor.callback.CallbackFactory
 object BatteryCallbackFactory : CallbackFactory<BatteryCallbackFactory.MainBatteryCallback>() {
 
     class MainBatteryCallback : BatteryCallback() {
-        override fun onBatteryLow(context: Context) {}
-        override fun onBatteryOk(context: Context) {}
+        override fun onBatteryLow(context: Context) = Unit
+        override fun onBatteryOk(context: Context) = Unit
     }
 
     override fun new(context: Context): MainBatteryCallback = MainBatteryCallback()

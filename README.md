@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="app/src/main/prism.webp" alt="Prism Icon" width="160" height="160" />
+<img src="app/src/main/prism.webp" alt="Prism Icon" width="80" height="80" />
 
 # Prism
 
@@ -12,4 +12,4 @@ A notification provider for [Prism](https://github.com/lone-cloud/prism) and [Un
 
 Use this SHA-256 signing certificate fingerprint to verify releases:
 
-`A7:24:46:C6:C1:DD:C0:77:AE:91:17:2B:F6:14:74:73:A2:40:9D:30:63:53:23:25:F6:99:AC:28:63:8B:8E:B3`
+`FD:29:86:45:7A:6A:6E:4D:D9:05:6B:3C:A5:A6:9E:0E:DF:D5:AA:9D:D4:5B:3D:78:DB:21:E8:AD:72:FB:AE:AD`
