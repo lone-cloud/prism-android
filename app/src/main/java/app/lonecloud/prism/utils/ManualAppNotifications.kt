@@ -45,31 +45,26 @@ object ManualAppNotifications {
 
         val hasTitle = payload.title.isNotBlank()
         val hasMessage = payload.message.isNotBlank()
-        val sender = if (hasTitle && hasMessage) payload.title else null
-        val bodyText = when {
-            hasMessage -> payload.message
-            hasTitle -> payload.title
-            else -> ""
-        }
 
         val notificationId = getNotificationId(payload.tag)
         val packageName = resolveTargetPackage(app)
 
-        val contentText = sender?.let { "$it: $bodyText" } ?: bodyText
-        val bigTextStyle = NotificationCompat.BigTextStyle()
-            .bigText(bodyText)
-            .also { style ->
-                sender?.let { style.setSummaryText(it) }
-            }
+        val contentTitle = if (hasTitle) payload.title else appTitle
+        val contentText = if (hasMessage) payload.message else ""
+
+        val bigTextStyle = NotificationCompat.BigTextStyle().bigText(contentText)
 
         val notificationBuilder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(appTitle)
+            .setContentTitle(contentTitle)
             .setContentText(contentText)
             .setStyle(bigTextStyle)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setGroup(app.connectorToken)
+            .apply {
+                if (hasTitle) setSubText(appTitle)
+            }
 
         resolveAppIconBitmap(context, packageName)?.let { appIcon ->
             notificationBuilder.setLargeIcon(appIcon)
@@ -108,10 +103,9 @@ object ManualAppNotifications {
         incrementMessageCount(context, app)
         refreshMessageCount(context)
 
-        val previewSender = sender ?: ""
         val logMessage =
             "Displayed notification for manual app '${app.title}' " +
-                "sender='$previewSender' body='${bodyText.take(120)}' (tag: ${payload.tag})"
+                "title='${payload.title.take(80)}' body='${contentText.take(120)}' (tag: ${payload.tag})"
         Log.d(TAG, logMessage)
     }
 

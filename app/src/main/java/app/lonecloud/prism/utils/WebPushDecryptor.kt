@@ -49,7 +49,7 @@ object WebPushDecryptor {
             val salt = ByteArray(SALT_SIZE)
             record.get(salt)
 
-            val recordSize = record.int
+            record.position(record.position() + RECORD_SIZE_LEN)
             val publicKeySize = record.get().toInt()
             if (publicKeySize != PUBLIC_KEY_SIZE) return null
 
