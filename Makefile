@@ -3,12 +3,12 @@ SHELL := /bin/bash
 GRADLEW := ./gradlew
 WORKFLOW := release.yml
 
-.PHONY: debug release-apk lint release
+.PHONY: debug release-local lint release
 
 debug:
 	$(GRADLEW) assembleDebug --stacktrace
 
-release-apk:
+release-local:
 	$(GRADLEW) assembleRelease --stacktrace
 
 lint:
