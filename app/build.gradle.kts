@@ -33,29 +33,31 @@ android {
     }
 
     dependenciesInfo {
-        // Disables dependency metadata when building APKs and Bundles.
         includeInApk = false
         includeInBundle = false
     }
 
     compileSdk = 36
 
+    val versionString = rootProject.file("VERSION").readText().trim()
+    val (vMajor, vMinor, vPatch) = versionString.split(".").map { it.toInt() }
+
     defaultConfig {
         applicationId = "app.lonecloud.prism"
         minSdk = 29
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = vMajor * 10000 + vMinor * 100 + vPatch
+        versionName = versionString
 
         buildConfigField("String", "DEFAULT_API_URL", "\"https://push.services.mozilla.com\"")
     }
 
     signingConfigs {
         create("release") {
-            storeFile = file("../prism-release.keystore")
-            storePassword = "android123"
-            keyAlias = "prism"
-            keyPassword = "android123"
+            storeFile = file(System.getenv("ANDROID_SIGNING_STORE_FILE") ?: "../prism-release.keystore")
+            storePassword = System.getenv("ANDROID_SIGNING_STORE_PASSWORD") ?: "android123"
+            keyAlias = System.getenv("ANDROID_SIGNING_KEY_ALIAS") ?: "prism"
+            keyPassword = System.getenv("ANDROID_SIGNING_KEY_PASSWORD") ?: "android123"
         }
     }
 
