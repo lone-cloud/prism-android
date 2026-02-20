@@ -7,6 +7,7 @@
 - Prefer self-documenting code with clear variable and function names over comments
 - Avoid redundant comments like "// Create button" or "// Set text color"
 - Do NOT add copyright headers to new files
+- all terminal commands must work for zsh
 
 ## Examples of BAD comments to avoid:
 ```kotlin
