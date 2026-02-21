@@ -28,11 +28,10 @@ object Distributor : UnifiedPushDistributor() {
         vapid: String?,
         description: String?
     ) {
-        val uuid = channelId
         MessageSender.send(
             context,
             ClientMessage.Register(
-                channelID = uuid,
+                channelID = channelId,
                 key = vapid
             )
         )
