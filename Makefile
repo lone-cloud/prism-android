@@ -3,7 +3,15 @@ SHELL := /bin/bash
 GRADLEW := ./gradlew
 WORKFLOW := release.yml
 
-.PHONY: debug release-local lint release
+.PHONY: debug release-local lint release check-updates
+
+check-updates:
+	$(GRADLEW) :app:dependencyUpdates --no-configuration-cache
+	@echo "Direct dependency updates:" && \
+	grep -oP 'module\s*=\s*"\K[^"]+' gradle/libs.versions.toml | \
+	sed 's|.*|^ - & \\[|' | \
+	grep -hEf - app/build/dependencyUpdates/report.txt \
+	|| echo "All direct dependencies are up to date."
 
 debug:
 	$(GRADLEW) assembleDebug --stacktrace

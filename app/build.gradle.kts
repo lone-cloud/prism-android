@@ -9,11 +9,19 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.versions)
 }
 
 detekt {
     config.setFrom(files("${rootProject.projectDir}/detekt.yml"))
     buildUponDefaultConfig = true
+}
+
+tasks.withType<com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask> {
+    rejectVersionIf {
+        val v = candidate.version.lowercase()
+        listOf("alpha", "beta", "-rc", "cr", "preview").any { v.contains(it) }
+    }
 }
 
 kotlin {
@@ -44,7 +52,7 @@ android {
 
     defaultConfig {
         applicationId = "app.lonecloud.prism"
-        minSdk = 29
+        minSdk = 31
         targetSdk = 36
         versionCode = vMajor * 10000 + vMinor * 100 + vPatch
         versionName = versionString
@@ -106,7 +114,6 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.work.runtime.ktx)
-    implementation(libs.appcompat)
     implementation(libs.okhttp)
     implementation(libs.androidx.material3.android)
     implementation(libs.androidx.material.icons.core)

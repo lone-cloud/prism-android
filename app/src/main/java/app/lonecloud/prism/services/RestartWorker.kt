@@ -6,13 +6,13 @@
  * Licensed under Apache License 2.0
  */
 
-@file:Suppress("ktlint:standard:no-wildcard-imports", "WildcardImport")
-
 package app.lonecloud.prism.services
 
 import android.content.Context
 import android.util.Log
-import androidx.work.*
+import androidx.work.ListenableWorker.Result
+import androidx.work.Worker
+import androidx.work.WorkerParameters
 import app.lonecloud.prism.Distributor
 import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.api.MessageSender

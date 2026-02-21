@@ -20,6 +20,7 @@ plugins {
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.versions) apply false
 }
 
 tasks.register<Delete>("clean") {
