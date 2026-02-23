@@ -40,17 +40,19 @@ class NotificationActionReceiver : BroadcastReceiver() {
 
         Log.d(TAG, "Notification action triggered: $actionLabel ($actionID) for channel $channelID")
 
+        if (notificationTag.isNotEmpty() && notificationId != -1) {
+            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+                .cancel(notificationTag, notificationId)
+        }
+
+        val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 executeAction(context, actionEndpoint, actionMethod, data)
-
-                if (notificationTag.isNotEmpty() && notificationId != -1) {
-                    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                    notificationManager.cancel(notificationTag, notificationId)
-                    Log.d(TAG, "Dismissed notification with tag: $notificationTag")
-                }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to execute notification action: ${e.message}", e)
+            } finally {
+                pendingResult.finish()
             }
         }
     }
