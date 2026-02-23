@@ -130,7 +130,10 @@ sealed class ClientMessage {
     data class ClientAck(val channelID: String, val version: String)
 
     fun serialize(): String {
-        val json = Json { ignoreUnknownKeys = true }
+        val json = Json {
+            ignoreUnknownKeys = true
+            explicitNulls = false
+        }
         return when (this) {
             Ping -> "{}"
             else -> json.encodeToString<ClientMessage>(this)

@@ -13,14 +13,17 @@ import android.util.Log
 import app.lonecloud.prism.api.data.ClientMessage
 import app.lonecloud.prism.services.RestartWorker
 import app.lonecloud.prism.utils.TAG
+import java.util.Calendar
 import okhttp3.WebSocket
 
 object MessageSender {
     private var websocket: WebSocket? = null
+    private var lastPing: Calendar? = null
 
     fun newWs(ws: WebSocket) {
         synchronized(this) {
             websocket = ws
+            lastPing = null
         }
     }
 
@@ -40,8 +43,23 @@ object MessageSender {
         }
     }
 
+    /**
+     * Send a ping to the server if we haven't done it in the last 60 seconds.
+     * The server silently closes the connection if pings are sent too frequently.
+     */
     fun ping(context: Context) {
-        send(context, ClientMessage.Ping)
-        ServerConnection.waitingPong.set(true)
+        val now = Calendar.getInstance()
+        val sendPing = lastPing?.let { last ->
+            val threshold = Calendar.getInstance().also {
+                it.time = last.time
+                it.add(Calendar.SECOND, 60)
+            }
+            now.after(threshold)
+        } ?: true
+        if (sendPing) {
+            send(context, ClientMessage.Ping)
+            ServerConnection.waitingPong.set(true)
+            lastPing = now
+        }
     }
 }
