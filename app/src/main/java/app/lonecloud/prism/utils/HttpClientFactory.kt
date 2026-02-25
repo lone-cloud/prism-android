@@ -11,6 +11,12 @@ object HttpClientFactory {
             .build()
     }
 
+    val action: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .callTimeout(8, TimeUnit.SECONDS)
+            .build()
+    }
+
     val longLived: OkHttpClient by lazy {
         OkHttpClient.Builder()
             .readTimeout(0, TimeUnit.MILLISECONDS)

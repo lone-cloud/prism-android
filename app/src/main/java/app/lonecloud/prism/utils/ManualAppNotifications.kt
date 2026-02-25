@@ -22,6 +22,7 @@ private const val MANUAL_CHANNEL_PREFIX = "manual_app_"
 object ManualAppNotifications {
 
     private val notificationIds = mutableMapOf<String, Int>()
+    private val summaryNotificationIds = mutableMapOf<String, Int>()
     private var nextNotificationId = NOTIFICATION_BASE_ID
 
     fun showNotification(
@@ -99,6 +100,8 @@ object ManualAppNotifications {
             notificationId,
             notificationBuilder.build()
         )
+
+        postGroupSummary(context, app.connectorToken, channelId, packageName)
 
         incrementMessageCount(context, app)
         refreshMessageCount(context)
@@ -182,6 +185,32 @@ object ManualAppNotifications {
         nextNotificationId++
     }
 
+    private fun getSummaryNotificationId(connectorToken: String): Int = summaryNotificationIds.getOrPut(connectorToken) {
+        nextNotificationId++
+    }
+
+    private fun postGroupSummary(
+        context: Context,
+        connectorToken: String,
+        channelId: String,
+        packageName: String?
+    ) {
+        val summaryId = getSummaryNotificationId(connectorToken)
+        val summaryBuilder = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setGroup(connectorToken)
+            .setGroupSummary(true)
+            .setAutoCancel(true)
+
+        val contentIntent = packageName?.let { createContentIntent(context, it, summaryId) }
+        if (contentIntent != null) {
+            summaryBuilder.setContentIntent(contentIntent)
+        }
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(summaryId, summaryBuilder.build())
+    }
+
     private fun resolveTargetPackage(app: Database.App): String? {
         val appPackage = app.packageName.takeIf { it.isNotBlank() }
         if (appPackage != null && appPackage != "app.lonecloud.prism" && appPackage != "app.lonecloud.prism.debug") {
@@ -240,7 +269,7 @@ object ManualAppNotifications {
             }
         }
 
-        val requestCode = (channelID + action.id).hashCode()
+        val requestCode = (channelID + action.id + notificationTag).hashCode()
         return PendingIntent.getBroadcast(
             context,
             requestCode,
