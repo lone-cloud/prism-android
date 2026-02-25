@@ -87,7 +87,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
 
         Log.d(TAG, "Executing action: $method $fullUrl with data: $jsonBody")
 
-        HttpClientFactory.shared.newCall(request).execute().use { response ->
+        HttpClientFactory.action.newCall(request).execute().use { response ->
             if (response.isSuccessful) {
                 Log.d(TAG, "Action executed successfully: ${response.code}")
             } else {

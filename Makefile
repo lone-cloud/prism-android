@@ -17,7 +17,12 @@ debug:
 	$(GRADLEW) assembleDebug --stacktrace
 
 release-local:
-	$(GRADLEW) assembleRelease --stacktrace
+	@set -a && . ./.env && set +a && \
+	KEYSTORE_TMP=$$(mktemp /tmp/prism-release-XXXXXX.keystore) && \
+	echo "$$ANDROID_SIGNING_KEYSTORE_B64" | tr -d '[:space:]' | base64 -d > "$$KEYSTORE_TMP" && \
+	ANDROID_SIGNING_STORE_FILE="$$KEYSTORE_TMP" \
+	$(GRADLEW) assembleRelease --stacktrace; \
+	EXIT=$$?; rm -f "$$KEYSTORE_TMP"; exit $$EXIT
 
 lint:
 	$(GRADLEW) ktlintCheck detekt --stacktrace
