@@ -1,7 +1,3 @@
-import RunBundletoolTask.Companion.aapt2
-import com.android.SdkConstants
-import org.gradle.kotlin.dsl.register
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -122,36 +118,4 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview.android)
     implementation(libs.androidx.navigation.compose)
     debugImplementation(libs.androidx.ui.tooling)
-}
-
-val buildTools = RunBundletoolTask.Companion.BuildTools(
-    SdkConstants.CURRENT_BUILD_TOOLS_VERSION,
-    SdkConstants.FD_BUILD_TOOLS
-)
-
-tasks.register<RunBundletoolTask>("reproduceUniversal") {
-    group = "build"
-    description = "Generate universal .apks from .aab with bundletool"
-    dependsOn("bundleRelease")
-    aabFile = project.rootDir.resolve("app/build/outputs/bundle/release/app-release.aab")
-    universalApks = project.rootDir.resolve("universal.apks")
-    aapt2 = project.aapt2(androidComponents, buildTools)
-    signature.set(RunBundletoolTask.Signature.UnsignedOrDebug)
-}
-
-tasks.register<RunBundletoolTask>("bundletoolBuildApks") {
-    group = "build"
-    description = "Generate default and universal .apks from .aab with bundletool"
-
-    val aabPath = System.getenv("AAB") ?: error("AAB not set")
-    aabFile = project.rootDir.resolve(aabPath)
-    universalApks = project.rootDir.resolve("universal.apks")
-    defaultApks = project.rootDir.resolve("app.apks")
-    aapt2 = project.aapt2(androidComponents, buildTools)
-
-    val ks = System.getenv("KS") ?: error("KS not set")
-    val ksPass = System.getenv("KS_PASS") ?: error("KS_PASS not set")
-    val keyAlias = System.getenv("KEY_ALIAS") ?: error("KEY_ALIAS not set")
-
-    signature.set(RunBundletoolTask.Signature.Signed(ks, ksPass, keyAlias))
 }
