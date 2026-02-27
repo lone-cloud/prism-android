@@ -8,6 +8,7 @@ import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.utils.HttpClientFactory
 import app.lonecloud.prism.utils.ManualAppNotifications
 import app.lonecloud.prism.utils.TAG
+import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -24,8 +25,8 @@ class NotificationActionReceiver : BroadcastReceiver() {
         val actionLabel = intent.getStringExtra("actionLabel") ?: ""
         val actionEndpoint = intent.getStringExtra("actionEndpoint") ?: return
         val actionMethod = intent.getStringExtra("actionMethod") ?: "POST"
+        val connectorToken = intent.getStringExtra("connectorToken")
         val notificationTag = intent.getStringExtra("notificationTag") ?: ""
-        val notificationId = intent.getIntExtra("notificationId", -1)
 
         val data = mutableMapOf<String, String>()
         intent.extras?.keySet()?.forEach { key ->
@@ -40,15 +41,17 @@ class NotificationActionReceiver : BroadcastReceiver() {
 
         Log.d(TAG, "Notification action triggered: $actionLabel ($actionID) for channel $channelID")
 
-        if (notificationTag.isNotEmpty() && notificationId != -1) {
-            ManualAppNotifications.dismissNotification(context, notificationTag)
+        if (notificationTag.isNotEmpty()) {
+            ManualAppNotifications.dismissNotification(context, notificationTag, connectorToken)
         }
 
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 executeAction(context, actionEndpoint, actionMethod, data)
-            } catch (e: Exception) {
+            } catch (e: IOException) {
+                Log.e(TAG, "Failed to execute notification action: ${e.message}", e)
+            } catch (e: IllegalArgumentException) {
                 Log.e(TAG, "Failed to execute notification action: ${e.message}", e)
             } finally {
                 pendingResult.finish()

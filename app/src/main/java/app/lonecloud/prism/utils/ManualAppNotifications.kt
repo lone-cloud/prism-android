@@ -1,8 +1,10 @@
 package app.lonecloud.prism.utils
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.pm.PackageManager
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -13,6 +15,7 @@ import app.lonecloud.prism.R
 import app.lonecloud.prism.api.data.NotificationAction
 import app.lonecloud.prism.api.data.NotificationPayload
 import app.lonecloud.prism.receivers.NotificationActionReceiver
+import app.lonecloud.prism.receivers.NotificationDismissReceiver
 import app.lonecloud.prism.services.MainRegistrationCounter
 import org.unifiedpush.android.distributor.Database
 
@@ -86,8 +89,8 @@ object ManualAppNotifications {
                     context,
                     channelID,
                     action,
-                    payload.tag,
-                    notificationId
+                    app.connectorToken,
+                    payload.tag
                 )
                 notificationBuilder.addAction(
                     0,
@@ -95,6 +98,14 @@ object ManualAppNotifications {
                     actionIntent
                 )
             }
+
+        notificationBuilder.setDeleteIntent(
+            createDismissIntent(
+                context = context,
+                connectorToken = app.connectorToken,
+                notificationTag = payload.tag
+            )
+        )
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(
@@ -119,7 +130,14 @@ object ManualAppNotifications {
 
         return try {
             context.packageManager.getApplicationIcon(packageName).toBitmap()
-        } catch (e: Exception) {
+        } catch (e: PackageManager.NameNotFoundException) {
+            Log.w(
+                TAG,
+                "Could not resolve app icon for package: $packageName",
+                e
+            )
+            null
+        } catch (e: IllegalArgumentException) {
             Log.w(
                 TAG,
                 "Could not resolve app icon for package: $packageName",
@@ -129,9 +147,13 @@ object ManualAppNotifications {
         }
     }
 
-    fun dismissNotification(context: Context, tag: String) {
+    fun dismissNotification(
+        context: Context,
+        tag: String,
+        connectorTokenHint: String? = null
+    ) {
         val notificationId = notificationIds[tag]
-        val connectorToken = notificationConnectorTokens[tag]
+        val connectorToken = notificationConnectorTokens[tag] ?: connectorTokenHint
         if (notificationId != null) {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.cancel(tag, notificationId)
@@ -140,17 +162,31 @@ object ManualAppNotifications {
             connectorToken?.let { dismissSummaryIfGroupEmpty(context, it) }
             Log.d(TAG, "Dismissed notification with tag: $tag")
         } else {
+            connectorToken?.let { dismissSummaryIfGroupEmpty(context, it) }
             Log.w(TAG, "Cannot dismiss notification - tag not found: $tag")
         }
     }
 
     private fun dismissSummaryIfGroupEmpty(context: Context, connectorToken: String) {
-        val hasRemainingChildren = notificationConnectorTokens.values.any { it == connectorToken }
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val hasRemainingChildren = notificationManager.activeNotifications.any { statusBarNotification ->
+            statusBarNotification.notification.group == connectorToken &&
+                (statusBarNotification.notification.flags and Notification.FLAG_GROUP_SUMMARY) == 0
+        }
         if (hasRemainingChildren) return
 
-        val summaryId = summaryNotificationIds.remove(connectorToken) ?: return
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.cancel(summaryId)
+        summaryNotificationIds.remove(connectorToken)?.let { summaryId ->
+            notificationManager.cancel(summaryId)
+        }
+
+        notificationManager.activeNotifications
+            .filter { statusBarNotification ->
+                statusBarNotification.notification.group == connectorToken &&
+                    (statusBarNotification.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0
+            }
+            .forEach { statusBarNotification ->
+                notificationManager.cancel(statusBarNotification.tag, statusBarNotification.id)
+            }
     }
 
     private fun createNotificationChannel(
@@ -266,8 +302,8 @@ object ManualAppNotifications {
         context: Context,
         channelID: String,
         action: NotificationAction,
-        notificationTag: String,
-        notificationId: Int
+        connectorToken: String,
+        notificationTag: String
     ): PendingIntent {
         val intent = Intent(context, NotificationActionReceiver::class.java).apply {
             putExtra("channelID", channelID)
@@ -275,8 +311,8 @@ object ManualAppNotifications {
             putExtra("actionLabel", action.label)
             putExtra("actionEndpoint", action.endpoint)
             putExtra("actionMethod", action.method)
+            putExtra("connectorToken", connectorToken)
             putExtra("notificationTag", notificationTag)
-            putExtra("notificationId", notificationId)
 
             action.data.forEach { (key, value) ->
                 putExtra("data_$key", value.toString())
@@ -287,6 +323,24 @@ object ManualAppNotifications {
         return PendingIntent.getBroadcast(
             context,
             requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    private fun createDismissIntent(
+        context: Context,
+        connectorToken: String,
+        notificationTag: String
+    ): PendingIntent {
+        val intent = Intent(context, NotificationDismissReceiver::class.java).apply {
+            putExtra("connectorToken", connectorToken)
+            putExtra("notificationTag", notificationTag)
+        }
+
+        return PendingIntent.getBroadcast(
+            context,
+            (connectorToken + notificationTag + "dismiss").hashCode(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
