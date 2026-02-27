@@ -1,12 +1,12 @@
 package app.lonecloud.prism.receivers
 
-import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.utils.HttpClientFactory
+import app.lonecloud.prism.utils.ManualAppNotifications
 import app.lonecloud.prism.utils.TAG
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,8 +41,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
         Log.d(TAG, "Notification action triggered: $actionLabel ($actionID) for channel $channelID")
 
         if (notificationTag.isNotEmpty() && notificationId != -1) {
-            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-                .cancel(notificationTag, notificationId)
+            ManualAppNotifications.dismissNotification(context, notificationTag)
         }
 
         val pendingResult = goAsync()
