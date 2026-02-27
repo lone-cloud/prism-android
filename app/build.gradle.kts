@@ -1,11 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
-    alias(libs.plugins.versions)
 }
 
 detekt {
@@ -13,27 +11,10 @@ detekt {
     buildUponDefaultConfig = true
 }
 
-tasks.withType<com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask> {
-    rejectVersionIf {
-        val v = candidate.version.lowercase()
-        listOf("alpha", "beta", "-rc", "cr", "preview").any { v.contains(it) }
-    }
-}
-
-kotlin {
-    jvmToolchain(21)
-}
-
 android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
-    }
-
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
-        }
     }
 
     dependenciesInfo {
@@ -68,6 +49,7 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+        resValues = true
     }
 
     buildTypes {

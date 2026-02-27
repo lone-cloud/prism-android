@@ -1,6 +1,9 @@
 package app.lonecloud.prism.api.data
 
+import android.util.Log
+import app.lonecloud.prism.utils.TAG
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 
 data class NotificationPayload(
@@ -32,7 +35,8 @@ data class NotificationPayload(
             }
 
             NotificationPayload(title, message, tag, actions)
-        } catch (e: Exception) {
+        } catch (e: JSONException) {
+            Log.w(TAG, "Failed to parse notification payload", e)
             null
         }
 

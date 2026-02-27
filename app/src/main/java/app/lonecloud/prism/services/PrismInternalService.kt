@@ -2,12 +2,14 @@ package app.lonecloud.prism.services
 
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import androidx.core.graphics.drawable.toBitmap
 import app.lonecloud.prism.BuildConfig
 import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.Distributor
 import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.api.ApiUrlCandidate
+import app.lonecloud.prism.utils.TAG
 import org.unifiedpush.android.distributor.Database
 import org.unifiedpush.android.distributor.MigrationManager
 import org.unifiedpush.android.distributor.SourceManager
@@ -98,6 +100,7 @@ class PrismInternalService : InternalService() {
                     val appInfo = pm.getApplicationInfo(packageToResolve, PackageManager.GET_META_DATA)
                     pm.getApplicationLabel(appInfo).toString()
                 } catch (e: PackageManager.NameNotFoundException) {
+                    Log.w(TAG, "Package label not found for $packageToResolve, using package name", e)
                     packageToResolve
                 }
 

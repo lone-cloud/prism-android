@@ -15,6 +15,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONException
 import org.json.JSONObject
 
 object PrismServerClient {
@@ -136,7 +137,7 @@ object PrismServerClient {
 
                             Log.d(TAG, "Successfully registered app: $appName (ID: $subscriptionId)")
                             withContext(Dispatchers.Main) { onSuccess() }
-                        } catch (e: Exception) {
+                        } catch (e: JSONException) {
                             val error = "Failed to parse registration response: ${e.message}"
                             Log.e(TAG, error)
                             Log.e(TAG, "Response body: $responseBody")
@@ -405,7 +406,10 @@ object PrismServerClient {
                         withContext(Dispatchers.Main) { onError("Failed to fetch apps: ${response.code}") }
                     }
                 }
-            } catch (e: Exception) {
+            } catch (e: IOException) {
+                Log.e(TAG, "Error fetching registered apps: ${e.message}", e)
+                withContext(Dispatchers.Main) { onError(e.message ?: "Unknown error") }
+            } catch (e: JSONException) {
                 Log.e(TAG, "Error fetching registered apps: ${e.message}", e)
                 withContext(Dispatchers.Main) { onError(e.message ?: "Unknown error") }
             }

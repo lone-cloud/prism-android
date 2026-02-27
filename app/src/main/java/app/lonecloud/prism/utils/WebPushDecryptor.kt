@@ -3,6 +3,8 @@ package app.lonecloud.prism.utils
 import com.google.crypto.tink.subtle.EllipticCurves
 import com.google.crypto.tink.subtle.Hkdf
 import java.nio.ByteBuffer
+import java.nio.BufferUnderflowException
+import java.security.GeneralSecurityException
 import java.security.KeyFactory
 import java.security.interfaces.ECPrivateKey
 import java.security.spec.PKCS8EncodedKeySpec
@@ -88,7 +90,14 @@ object WebPushDecryptor {
             if (plaintext[index] != 0x02.toByte()) return null
 
             return plaintext.copyOf(index)
-        } catch (e: Exception) {
+        } catch (e: GeneralSecurityException) {
+            android.util.Log.w(TAG, "Failed to decrypt WebPush payload", e)
+            return null
+        } catch (e: BufferUnderflowException) {
+            android.util.Log.w(TAG, "Failed to decrypt WebPush payload", e)
+            return null
+        } catch (e: IllegalArgumentException) {
+            android.util.Log.w(TAG, "Failed to decrypt WebPush payload", e)
             return null
         }
     }

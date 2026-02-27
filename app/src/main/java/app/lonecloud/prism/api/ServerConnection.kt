@@ -164,7 +164,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
                         Log.e(TAG, "Decryption failed for channel ${message.channelID}")
                         encryptedData
                     }
-                } catch (e: Exception) {
+                } catch (e: IllegalArgumentException) {
                     Log.e(TAG, "Decryption error for channel ${message.channelID}: ${e.message}")
                     encryptedData
                 }
@@ -351,10 +351,11 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         val isManualChannel = appForChannel?.let { DescriptionParser.isManualApp(it.description) } == true
 
         if (isManualChannel) {
+            val vapidKey = channelVapidPair.second
             Log.w(TAG, "Received unregister for manual channel ${message.channelID}; re-registering instead of deleting app")
             ClientMessage.Register(
                 channelID = message.channelID,
-                key = channelVapidPair!!.second
+                key = vapidKey
             ).send(webSocket)
             return
         }

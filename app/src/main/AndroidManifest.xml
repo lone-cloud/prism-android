@@ -93,6 +93,10 @@
             android:name=".receivers.NotificationActionReceiver"
             android:enabled="true"
             android:exported="false" />
+        <receiver
+            android:name=".receivers.NotificationDismissReceiver"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -37,7 +37,7 @@ object MessageSender {
                 try {
                     RestartWorker.run(context, delay = 0)
                 } catch (e: IllegalStateException) {
-                    Log.d(TAG, "WorkManager not available in this process, service will handle restart")
+                    Log.d(TAG, "WorkManager not available in this process, service will handle restart", e)
                 }
             }
         }

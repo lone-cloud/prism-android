@@ -6,12 +6,25 @@ WORKFLOW := release.yml
 .PHONY: debug release-local lint release check-updates
 
 check-updates:
-	$(GRADLEW) :app:dependencyUpdates --no-configuration-cache
-	@echo "Direct dependency updates:" && \
-	grep -oP 'module\s*=\s*"\K[^"]+' gradle/libs.versions.toml | \
-	sed 's|.*|^ - & \\[|' | \
-	grep -hEf - app/build/dependencyUpdates/report.txt \
-	|| echo "All direct dependencies are up to date."
+	@set -e; \
+	UPDATE_FILE=gradle/libs.versions.updates.toml; \
+	CHECK_LOG=$$(mktemp /tmp/prism-check-updates-XXXXXX.log); \
+	rm -f "$$UPDATE_FILE"; \
+	$(GRADLEW) versionCatalogUpdate --interactive --no-configuration-cache --no-parallel >"$$CHECK_LOG" 2>&1; \
+	echo "Direct dependency updates:"; \
+	if [[ -f "$$UPDATE_FILE" ]] && grep -Eq '^[[:space:]]*[A-Za-z0-9_.-]+[[:space:]]*=' "$$UPDATE_FILE"; then \
+		grep -E '^[[:space:]]*[A-Za-z0-9_.-]+[[:space:]]*=' "$$UPDATE_FILE"; \
+	else \
+		echo "All direct dependencies are up to date."; \
+	fi; \
+	if grep -q "There are libraries that could not be resolved:" "$$CHECK_LOG"; then \
+		echo; \
+		echo "Unresolved dependencies detected:"; \
+		sed -n '/There are libraries that could not be resolved:/,/^$$/p' "$$CHECK_LOG"; \
+		rm -f "$$UPDATE_FILE" "$$CHECK_LOG"; \
+		exit 1; \
+	fi; \
+	rm -f "$$UPDATE_FILE" "$$CHECK_LOG"
 
 debug:
 	$(GRADLEW) assembleDebug --stacktrace
