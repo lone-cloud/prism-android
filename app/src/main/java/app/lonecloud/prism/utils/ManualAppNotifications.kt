@@ -22,6 +22,7 @@ private const val MANUAL_CHANNEL_PREFIX = "manual_app_"
 object ManualAppNotifications {
 
     private val notificationIds = mutableMapOf<String, Int>()
+    private val notificationConnectorTokens = mutableMapOf<String, String>()
     private val summaryNotificationIds = mutableMapOf<String, Int>()
     private var nextNotificationId = NOTIFICATION_BASE_ID
 
@@ -48,6 +49,7 @@ object ManualAppNotifications {
         val hasMessage = payload.message.isNotBlank()
 
         val notificationId = getNotificationId(payload.tag)
+        notificationConnectorTokens[payload.tag] = app.connectorToken
         val packageName = resolveTargetPackage(app)
 
         val contentTitle = if (hasTitle) payload.title else appTitle
@@ -129,14 +131,26 @@ object ManualAppNotifications {
 
     fun dismissNotification(context: Context, tag: String) {
         val notificationId = notificationIds[tag]
+        val connectorToken = notificationConnectorTokens[tag]
         if (notificationId != null) {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.cancel(tag, notificationId)
             notificationIds.remove(tag)
+            notificationConnectorTokens.remove(tag)
+            connectorToken?.let { dismissSummaryIfGroupEmpty(context, it) }
             Log.d(TAG, "Dismissed notification with tag: $tag")
         } else {
             Log.w(TAG, "Cannot dismiss notification - tag not found: $tag")
         }
+    }
+
+    private fun dismissSummaryIfGroupEmpty(context: Context, connectorToken: String) {
+        val hasRemainingChildren = notificationConnectorTokens.values.any { it == connectorToken }
+        if (hasRemainingChildren) return
+
+        val summaryId = summaryNotificationIds.remove(connectorToken) ?: return
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(summaryId)
     }
 
     private fun createNotificationChannel(
