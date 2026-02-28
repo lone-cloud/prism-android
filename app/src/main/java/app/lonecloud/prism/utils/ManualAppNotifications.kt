@@ -7,6 +7,8 @@ import android.app.PendingIntent
 import android.content.pm.PackageManager
 import android.content.Context
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.toBitmap
@@ -28,6 +30,7 @@ object ManualAppNotifications {
     private val notificationConnectorTokens = mutableMapOf<String, String>()
     private val summaryNotificationIds = mutableMapOf<String, Int>()
     private var nextNotificationId = NOTIFICATION_BASE_ID
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     fun showNotification(
         context: Context,
@@ -51,8 +54,9 @@ object ManualAppNotifications {
         val hasTitle = payload.title.isNotBlank()
         val hasMessage = payload.message.isNotBlank()
 
-        val notificationId = getNotificationId(payload.tag)
-        notificationConnectorTokens[payload.tag] = app.connectorToken
+        val notificationTag = resolveNotificationTag(payload.tag, channelID)
+        val notificationId = getNotificationId(notificationTag)
+        notificationConnectorTokens[notificationTag] = app.connectorToken
         val packageName = resolveTargetPackage(app)
 
         val contentTitle = if (hasTitle) payload.title else appTitle
@@ -90,7 +94,7 @@ object ManualAppNotifications {
                     channelID,
                     action,
                     app.connectorToken,
-                    payload.tag
+                    notificationTag
                 )
                 notificationBuilder.addAction(
                     0,
@@ -103,13 +107,13 @@ object ManualAppNotifications {
             createDismissIntent(
                 context = context,
                 connectorToken = app.connectorToken,
-                notificationTag = payload.tag
+                notificationTag = notificationTag
             )
         )
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(
-            payload.tag,
+            notificationTag,
             notificationId,
             notificationBuilder.build()
         )
@@ -121,7 +125,7 @@ object ManualAppNotifications {
 
         val logMessage =
             "Displayed notification for manual app '${app.title}' " +
-                "title='${payload.title.take(80)}' body='${contentText.take(120)}' (tag: ${payload.tag})"
+                "title='${payload.title.take(80)}' body='${contentText.take(120)}' (tag: $notificationTag)"
         Log.d(TAG, logMessage)
     }
 
@@ -159,21 +163,50 @@ object ManualAppNotifications {
             notificationManager.cancel(tag, notificationId)
             notificationIds.remove(tag)
             notificationConnectorTokens.remove(tag)
-            connectorToken?.let { dismissSummaryIfGroupEmpty(context, it) }
+            connectorToken?.let { dismissSummaryIfGroupEmpty(context, it, forceWhenNoTracked = true) }
             Log.d(TAG, "Dismissed notification with tag: $tag")
         } else {
-            connectorToken?.let { dismissSummaryIfGroupEmpty(context, it) }
+            connectorToken?.let { dismissSummaryIfGroupEmpty(context, it, forceWhenNoTracked = false) }
             Log.w(TAG, "Cannot dismiss notification - tag not found: $tag")
         }
     }
 
-    private fun dismissSummaryIfGroupEmpty(context: Context, connectorToken: String) {
+    private fun dismissSummaryIfGroupEmpty(
+        context: Context,
+        connectorToken: String,
+        forceWhenNoTracked: Boolean
+    ) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val hasTrackedChildren = notificationConnectorTokens.values.any { it == connectorToken }
+        if (!hasTrackedChildren && forceWhenNoTracked) {
+            cancelGroupSummaries(notificationManager, connectorToken)
+            mainHandler.postDelayed(
+                { cancelGroupSummaries(notificationManager, connectorToken) },
+                250L
+            )
+            return
+        }
+
         val hasRemainingChildren = notificationManager.activeNotifications.any { statusBarNotification ->
             statusBarNotification.notification.group == connectorToken &&
                 (statusBarNotification.notification.flags and Notification.FLAG_GROUP_SUMMARY) == 0
         }
         if (hasRemainingChildren) return
+
+        if (hasTrackedChildren) {
+            cancelGroupSummaries(notificationManager, connectorToken)
+            return
+        }
+
+        if (!forceWhenNoTracked) {
+            cancelGroupSummaries(notificationManager, connectorToken)
+        }
+    }
+
+    private fun cancelGroupSummaries(
+        notificationManager: NotificationManager,
+        connectorToken: String
+    ) {
 
         summaryNotificationIds.remove(connectorToken)?.let { summaryId ->
             notificationManager.cancel(summaryId)
@@ -187,6 +220,11 @@ object ManualAppNotifications {
             .forEach { statusBarNotification ->
                 notificationManager.cancel(statusBarNotification.tag, statusBarNotification.id)
             }
+    }
+
+    private fun resolveNotificationTag(payloadTag: String, channelID: String): String {
+        if (payloadTag.isNotBlank()) return payloadTag
+        return "auto-$channelID-${System.currentTimeMillis()}-${++nextNotificationId}"
     }
 
     private fun createNotificationChannel(
