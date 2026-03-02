@@ -41,3 +41,6 @@ object WebPushEncryptionKeys {
     private fun base64UrlEncode(data: ByteArray): String =
         Base64.encodeToString(data, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
 }
+
+fun ByteArray.toBase64Url(): String =
+    Base64.encodeToString(this, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)

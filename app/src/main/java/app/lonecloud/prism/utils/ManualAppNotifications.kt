@@ -19,6 +19,8 @@ import app.lonecloud.prism.api.data.NotificationPayload
 import app.lonecloud.prism.receivers.NotificationActionReceiver
 import app.lonecloud.prism.receivers.NotificationDismissReceiver
 import app.lonecloud.prism.services.MainRegistrationCounter
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 import org.unifiedpush.android.distributor.Database
 
 private const val NOTIFICATION_BASE_ID = 52000
@@ -26,10 +28,10 @@ private const val MANUAL_CHANNEL_PREFIX = "manual_app_"
 
 object ManualAppNotifications {
 
-    private val notificationIds = mutableMapOf<String, Int>()
-    private val notificationConnectorTokens = mutableMapOf<String, String>()
-    private val summaryNotificationIds = mutableMapOf<String, Int>()
-    private var nextNotificationId = NOTIFICATION_BASE_ID
+    private val notificationIds = ConcurrentHashMap<String, Int>()
+    private val notificationConnectorTokens = ConcurrentHashMap<String, String>()
+    private val summaryNotificationIds = ConcurrentHashMap<String, Int>()
+    private val nextNotificationId = AtomicInteger(NOTIFICATION_BASE_ID)
     private val mainHandler = Handler(Looper.getMainLooper())
 
     fun showNotification(
@@ -224,7 +226,7 @@ object ManualAppNotifications {
 
     private fun resolveNotificationTag(payloadTag: String, channelID: String): String {
         if (payloadTag.isNotBlank()) return payloadTag
-        return "auto-$channelID-${System.currentTimeMillis()}-${++nextNotificationId}"
+        return "auto-$channelID-${System.currentTimeMillis()}-${nextNotificationId.incrementAndGet()}"
     }
 
     private fun createNotificationChannel(
@@ -270,11 +272,11 @@ object ManualAppNotifications {
     private fun channelIdForToken(connectorToken: String): String = "$MANUAL_CHANNEL_PREFIX$connectorToken"
 
     private fun getNotificationId(tag: String): Int = notificationIds.getOrPut(tag) {
-        nextNotificationId++
+        nextNotificationId.incrementAndGet()
     }
 
     private fun getSummaryNotificationId(connectorToken: String): Int = summaryNotificationIds.getOrPut(connectorToken) {
-        nextNotificationId++
+        nextNotificationId.incrementAndGet()
     }
 
     private fun postGroupSummary(

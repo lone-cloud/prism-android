@@ -28,8 +28,6 @@ import androidx.core.graphics.drawable.toBitmap
 import app.lonecloud.prism.R
 import app.lonecloud.prism.utils.DescriptionParser
 
-data class PrismServerApp(val name: String, val matchedInstalledApp: InstalledApp? = null)
-
 @Composable
 fun AppPickerScreen(
     apps: List<InstalledApp>,
@@ -135,7 +133,9 @@ fun AppPickerScreen(
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            if (showContent && prismAppsLoaded && prismServerApps.isNotEmpty() && onSelectPrismApp != null && searchQuery.isBlank()) {
+            val showPrismAppsSection = showContent && prismAppsLoaded &&
+                prismServerApps.isNotEmpty() && onSelectPrismApp != null && searchQuery.isBlank()
+            if (showPrismAppsSection) {
                 item {
                     Text(
                         text = stringResource(R.string.from_your_server),

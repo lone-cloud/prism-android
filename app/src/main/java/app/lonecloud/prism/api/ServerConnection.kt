@@ -34,6 +34,7 @@ import app.lonecloud.prism.utils.ManualAppNotifications
 import app.lonecloud.prism.utils.TAG
 import app.lonecloud.prism.utils.WebPushDecryptor
 import app.lonecloud.prism.utils.WebPushEncryptionKeys
+import app.lonecloud.prism.utils.toBase64Url
 import java.util.Calendar
 import java.util.concurrent.atomic.AtomicBoolean
 import okhttp3.Request
@@ -69,6 +70,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     override fun onMessage(webSocket: WebSocket, text: String) {
         val message = ServerMessage.deserialize(text) ?: run {
             Log.d(TAG, "Couldn't deserialize $text")
+            return
         }
         Log.d(TAG, "New message: ${message::class.java.simpleName}")
         lastEventDate = Calendar.getInstance()
@@ -129,6 +131,24 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         }
     }
 
+    private fun decryptNotificationData(
+        channelID: String,
+        encryptedData: ByteArray
+    ): ByteArray {
+        val keys = EncryptionKeyStore(context).getKeys(channelID) ?: run {
+            Log.d(TAG, "No encryption keys found for manual app $channelID, message may be unencrypted")
+            return encryptedData
+        }
+        val publicKeyBytes = Base64.decode(keys.p256dh, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+        return try {
+            WebPushDecryptor.decrypt(encryptedData, keys.privateKey, publicKeyBytes, keys.authSecret)
+                ?: encryptedData.also { Log.e(TAG, "Decryption failed for channel $channelID") }
+        } catch (e: IllegalArgumentException) {
+            Log.e(TAG, "Decryption error for channel $channelID: ${e.message}")
+            encryptedData
+        }
+    }
+
     private fun onNotification(webSocket: WebSocket, message: ServerMessage.Notification) {
         val encryptedData = Base64.decode(message.data, Base64.URL_SAFE)
 
@@ -144,34 +164,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         }
 
         val decryptedData = if (app != null) {
-            val keyStore = EncryptionKeyStore(context)
-            val keys = keyStore.getKeys(message.channelID)
-
-            if (keys != null) {
-                val (privateKeyBytes, authSecret, publicKey) = keys
-
-                try {
-                    val publicKeyBytes = Base64.decode(publicKey, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
-
-                    val decrypted = WebPushDecryptor.decrypt(
-                        encryptedData,
-                        privateKeyBytes,
-                        publicKeyBytes,
-                        authSecret
-                    )
-
-                    decrypted ?: run {
-                        Log.e(TAG, "Decryption failed for channel ${message.channelID}")
-                        encryptedData
-                    }
-                } catch (e: IllegalArgumentException) {
-                    Log.e(TAG, "Decryption error for channel ${message.channelID}: ${e.message}")
-                    encryptedData
-                }
-            } else {
-                Log.d(TAG, "No encryption keys found for manual app ${message.channelID}, message may be unencrypted")
-                encryptedData
-            }
+            decryptNotificationData(message.channelID, encryptedData)
         } else {
             encryptedData
         }
@@ -231,7 +224,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
 
         if (app != null) {
             Log.d(TAG, "Auto-registering manual app '${app.title}' with Prism server")
-            val vapidPrivateKey = DescriptionParser.extractValue(app.description, VAPID_PRIVATE_DESC_PREFIX)
+            val vapidPrivateKey = DescriptionParser.extractValue(app.description, DescriptionParser.VAPID_PRIVATE_KEY_PREFIX)
                 ?: PrismPreferences(context).getVapidPrivateKey(app.connectorToken)
             if (vapidPrivateKey.isNullOrBlank()) {
                 handleManualRegistrationFailure(
@@ -268,14 +261,13 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
 
             PrismServerClient.registerApp(
                 context,
-                app.connectorToken,
-                app.title ?: "Unknown App",
-                message.pushEndpoint,
-                vapidPrivateKey = vapidPrivateKey,
-                p256dh = keys.third,
-                auth = android.util.Base64.encodeToString(
-                    keys.second,
-                    android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING or android.util.Base64.NO_WRAP
+                PrismServerClient.WebPushRegistration(
+                    connectorToken = app.connectorToken,
+                    appName = app.title ?: "Unknown App",
+                    webpushUrl = message.pushEndpoint,
+                    vapidPrivateKey = vapidPrivateKey,
+                    p256dh = keys.p256dh,
+                    auth = keys.authSecret.toBase64Url()
                 ),
                 onSuccess = {
                     Log.d(TAG, "Successfully registered '${app.title}' with Prism server")
@@ -352,6 +344,11 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
 
         if (isManualChannel) {
             val vapidKey = channelVapidPair.second
+            if (PrismPreferences(context).isPendingChannelDeletion(message.channelID)) {
+                Log.d(TAG, "Channel ${message.channelID} is pending deletion, skipping re-registration")
+                PrismPreferences(context).removePendingChannelDeletion(message.channelID)
+                return
+            }
             Log.w(TAG, "Received unregister for manual channel ${message.channelID}; re-registering instead of deleting app")
             ClientMessage.Register(
                 channelID = message.channelID,
@@ -430,7 +427,6 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     }
 
     companion object {
-        private const val VAPID_PRIVATE_DESC_PREFIX = "vp:"
         var lastEventDate: Calendar? = null
         var waitingPong = AtomicBoolean(false)
         fun destroy() = SourceManager.removeSource()

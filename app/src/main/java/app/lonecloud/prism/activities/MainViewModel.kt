@@ -13,7 +13,6 @@ import androidx.lifecycle.viewModelScope
 import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.EncryptionKeyStore
 import app.lonecloud.prism.PrismPreferences
-import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.activities.ui.InstalledApp
 import app.lonecloud.prism.activities.ui.MainUiState
 import app.lonecloud.prism.utils.DescriptionParser
@@ -37,10 +36,6 @@ class MainViewModel(
     val messenger: InternalMessenger?,
     val application: Application? = null
 ) : ViewModel() {
-    private companion object {
-        private const val VAPID_PRIVATE_DESC_PREFIX = "vp:"
-    }
-
     constructor(requireBatteryOpt: Boolean, messenger: InternalMessenger?, application: Application) : this(
         mainUiState = MainUiState(
             prismServerConfigured = PrismPreferences(application).getPrismServerConfig() != null
@@ -90,17 +85,13 @@ class MainViewModel(
 
     fun deleteSelection() {
         viewModelScope.launch {
-            Log.d(TAG, "deleteSelection called")
             application?.let { app ->
                 val selectedTokens = registrationsViewModel.state.list
                     .filter { it.selected }
                     .map { it.token }
 
-                Log.d(TAG, "Deleting ${selectedTokens.size} apps: $selectedTokens")
-
                 selectedTokens.forEach { token ->
                     if (token.startsWith("manual_app_")) {
-                        PrismServerClient.deleteApp(app, token)
                         ManualAppNotifications.deleteChannelForToken(app, token)
                     }
 
@@ -112,6 +103,7 @@ class MainViewModel(
                 }
 
                 registrationsViewModel.unselectAll()
+                refreshRegistrations()
             }
         }
     }
@@ -220,7 +212,7 @@ class MainViewModel(
 
                 val descriptionParts = mutableListOf("target:$targetPackageName")
                 description?.takeIf { it.isNotBlank() }?.let { descriptionParts.add(it) }
-                descriptionParts.add("$VAPID_PRIVATE_DESC_PREFIX${vapidKeys.privateKey}")
+                descriptionParts.add("${DescriptionParser.VAPID_PRIVATE_KEY_PREFIX}${vapidKeys.privateKey}")
                 val fullDescription = descriptionParts.joinToString("|")
 
                 val keyStore = EncryptionKeyStore(app)
@@ -258,7 +250,6 @@ class MainViewModel(
         viewModelScope.launch {
             application?.let { app ->
                 if (token.startsWith("manual_app_")) {
-                    PrismServerClient.deleteApp(app, token)
                     ManualAppNotifications.deleteChannelForToken(app, token)
                 }
 

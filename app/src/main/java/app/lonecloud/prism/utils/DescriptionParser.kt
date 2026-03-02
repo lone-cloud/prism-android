@@ -3,6 +3,8 @@ package app.lonecloud.prism.utils
 object DescriptionParser {
     private const val DELIMITER = "|"
 
+    const val VAPID_PRIVATE_KEY_PREFIX = "vp:"
+
     fun extractValue(description: String?, prefix: String): String? = description
         ?.split(DELIMITER)
         ?.firstOrNull { it.startsWith(prefix) }

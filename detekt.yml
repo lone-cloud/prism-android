@@ -1,5 +1,5 @@
 build:
-  maxIssues: 1000
+  maxIssues: 0
 
 style:
   MagicNumber:
@@ -16,6 +16,8 @@ style:
     active: false
   WildcardImport:
     active: false
+  ReturnCount:
+    active: false
 
 naming:
   FunctionNaming:
@@ -27,6 +29,11 @@ complexity:
     active: false
   TooManyFunctions:
     active: false
+  CyclomaticComplexMethod:
+    ignoreAnnotated: ['Composable']
+  LongParameterList:
+    functionThreshold: 9
+    ignoreAnnotated: ['Composable']
 
 potential-bugs:
   UnsafeCast:

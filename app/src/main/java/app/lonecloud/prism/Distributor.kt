@@ -47,15 +47,12 @@ object Distributor : UnifiedPushDistributor() {
     ) = backendRegisterNewChannelId(context, packageName, channelId, title, vapid, description)
 
     override fun backendUnregisterChannelId(context: Context, channelId: String) {
-        val db = getDb(context)
+        val preferences = PrismPreferences(context)
+        preferences.addPendingChannelDeletion(channelId)
 
-        val channelVapidPair = db.listChannelIdVapid().find { it.first == channelId }
-
-        if (channelVapidPair != null) {
-            val app = db.listApps().find { it.vapidKey == channelVapidPair.second }
-            if (app != null && DescriptionParser.isManualApp(app.description)) {
-                PrismServerClient.deleteApp(context, app.connectorToken)
-            }
+        val app = getDb(context).getAppFromChanId(channelId, false)
+        if (app != null && DescriptionParser.isManualApp(app.description)) {
+            PrismServerClient.deleteApp(context, app.connectorToken)
         }
 
         MessageSender.send(

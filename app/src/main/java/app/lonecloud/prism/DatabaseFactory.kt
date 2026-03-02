@@ -22,9 +22,8 @@ object DatabaseFactory {
 
     fun getDb(context: Context): Database {
         return db.get() ?: run {
-            val db = MainDatabase(context.applicationContext)
-            this.db.set(db)
-            return db
+            val newDb = MainDatabase(context.applicationContext)
+            if (db.compareAndSet(null, newDb)) newDb else db.get()!!
         }
     }
 }
