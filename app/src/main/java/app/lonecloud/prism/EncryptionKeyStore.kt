@@ -4,12 +4,28 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Base64
 import androidx.core.content.edit
-
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 class EncryptionKeyStore(context: Context) {
-    private val sharedPreferences: SharedPreferences = context.getSharedPreferences(
-        PREF_NAME,
-        Context.MODE_PRIVATE
+
+    data class EncryptionKeys(
+        val privateKey: ByteArray,
+        val authSecret: ByteArray,
+        val p256dh: String
     )
+
+    private val sharedPreferences: SharedPreferences = run {
+        val masterKey = MasterKey.Builder(context.applicationContext)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        EncryptedSharedPreferences.create(
+            context.applicationContext,
+            PREF_NAME,
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
 
     fun storeKeys(
         channelId: String,
@@ -24,17 +40,15 @@ class EncryptionKeyStore(context: Context) {
         }
     }
 
-    fun getKeys(channelId: String): Triple<ByteArray, ByteArray, String>? {
+    fun getKeys(channelId: String): EncryptionKeys? {
         val privateKeyB64 = sharedPreferences.getString(keyFor(channelId, KEY_PRIVATE), null)
         val authSecretB64 = sharedPreferences.getString(keyFor(channelId, KEY_AUTH), null)
         val publicKey = sharedPreferences.getString(keyFor(channelId, KEY_PUBLIC), null)
 
-        if (privateKeyB64 == null || authSecretB64 == null || publicKey == null) {
-            return null
-        }
+        if (privateKeyB64 == null || authSecretB64 == null || publicKey == null) return null
 
         return try {
-            Triple(base64Decode(privateKeyB64), base64Decode(authSecretB64), publicKey)
+            EncryptionKeys(base64Decode(privateKeyB64), base64Decode(authSecretB64), publicKey)
         } catch (_: IllegalArgumentException) {
             deleteKeys(channelId)
             null
@@ -49,9 +63,10 @@ class EncryptionKeyStore(context: Context) {
         }
     }
 
-    fun hasKeys(channelId: String): Boolean = sharedPreferences.contains(keyFor(channelId, KEY_PRIVATE)) &&
-        sharedPreferences.contains(keyFor(channelId, KEY_AUTH)) &&
-        sharedPreferences.contains(keyFor(channelId, KEY_PUBLIC))
+    fun hasKeys(channelId: String): Boolean =
+        sharedPreferences.contains(keyFor(channelId, KEY_PRIVATE)) &&
+            sharedPreferences.contains(keyFor(channelId, KEY_AUTH)) &&
+            sharedPreferences.contains(keyFor(channelId, KEY_PUBLIC))
 
     private fun keyFor(channelId: String, suffix: String): String = "$PREF_PREFIX$channelId$suffix"
 

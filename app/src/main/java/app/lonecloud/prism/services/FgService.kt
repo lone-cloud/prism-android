@@ -9,6 +9,7 @@
 package app.lonecloud.prism.services
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import app.lonecloud.prism.api.MessageSender
 import app.lonecloud.prism.api.ServerConnection
@@ -36,6 +37,16 @@ class FgService : ForegroundService() {
 
     override fun shouldAbortNewSync(): Boolean = SourceManager.isRunningWithoutFailure
 
+    // Force a fresh DB read before the base class checks oneOrMore() to avoid stale
+    // in-memory count from a previous start where the DB was empty (e.g. fresh install).
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        registrationCounter.refresh(this)
+        return super.onStartCommand(intent, flags, startId)
+    }
+
+    // The actual connection check is delegated to shouldAbortNewSync() via SourceManager.
+    // The base class splits these concerns: isConnected() gates reconnect scheduling,
+    // while shouldAbortNewSync() gates whether a new sync attempt should proceed.
     override fun isConnected(): Boolean = true
 
     override fun sync(releaseLock: () -> Unit) {

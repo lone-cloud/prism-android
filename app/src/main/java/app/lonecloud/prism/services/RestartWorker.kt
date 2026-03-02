@@ -46,7 +46,7 @@ class RestartWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, params
     }
 
     companion object : WorkerCompanion(RestartWorker::class.java) {
-        private val lock = Object()
+        private val lock = Any()
 
         override fun canRun(context: Context): Boolean = !PrismPreferences(context).migrated
 

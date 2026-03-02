@@ -7,8 +7,8 @@ import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.utils.DescriptionParser
 import app.lonecloud.prism.utils.HttpClientFactory
+import app.lonecloud.prism.utils.toBase64Url
 import java.io.IOException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -20,18 +20,21 @@ import org.json.JSONObject
 
 object PrismServerClient {
     private const val TAG = "PrismServerClient"
-    private const val VAPID_PRIVATE_DESC_PREFIX = "vp:"
+
+    data class WebPushRegistration(
+        val connectorToken: String,
+        val appName: String,
+        val webpushUrl: String,
+        val vapidPrivateKey: String? = null,
+        val p256dh: String? = null,
+        val auth: String? = null
+    )
 
     private fun getAuthHeader(apiKey: String): String = "Bearer $apiKey"
 
     fun registerApp(
         context: Context,
-        connectorToken: String,
-        appName: String,
-        webpushUrl: String,
-        vapidPrivateKey: String? = null,
-        p256dh: String? = null,
-        auth: String? = null,
+        registration: WebPushRegistration,
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
@@ -44,117 +47,114 @@ object PrismServerClient {
         }
         val (serverUrl, apiKey) = config
         val store = PrismPreferences(context)
-        val existingSubscriptionId = store.getSubscriptionId(connectorToken)
-            ?: getSubscriptionIdFromDb(context, connectorToken)?.also {
-                store.setSubscriptionId(connectorToken, it)
-                Log.d(TAG, "registerApp: restored subscriptionId from description for $connectorToken")
+        val existingSubscriptionId = store.getSubscriptionId(registration.connectorToken)
+            ?: getSubscriptionIdFromDb(context, registration.connectorToken)?.also {
+                store.setSubscriptionId(registration.connectorToken, it)
+                Log.d(TAG, "registerApp: restored subscriptionId from description for ${registration.connectorToken}")
             }
-        val knownEndpoint = store.getRegisteredEndpoint(connectorToken)
-            ?: getEndpointFromDb(context, connectorToken)?.also {
-                store.setRegisteredEndpoint(connectorToken, it)
-                Log.d(TAG, "registerApp: restored endpoint from db for $connectorToken")
+        val knownEndpoint = store.getRegisteredEndpoint(registration.connectorToken)
+            ?: getEndpointFromDb(context, registration.connectorToken)?.also {
+                store.setRegisteredEndpoint(registration.connectorToken, it)
+                Log.d(TAG, "registerApp: restored endpoint from db for ${registration.connectorToken}")
             }
 
-        Log.d(
-            TAG,
-            "registerApp decision: token=$connectorToken existingSub=${!existingSubscriptionId.isNullOrBlank()} endpointMatch=${knownEndpoint == webpushUrl}"
-        )
+        Log.d(TAG, "registerApp decision: token=${registration.connectorToken} existingSub=${!existingSubscriptionId.isNullOrBlank()} endpointMatch=${knownEndpoint == registration.webpushUrl}")
 
-        if (!existingSubscriptionId.isNullOrBlank() && knownEndpoint == webpushUrl) {
-            Log.d(TAG, "registerApp: skipping duplicate create for $appName (endpoint unchanged)")
+        if (!existingSubscriptionId.isNullOrBlank() && knownEndpoint == registration.webpushUrl) {
+            Log.d(TAG, "registerApp: skipping duplicate create for ${registration.appName} (endpoint unchanged)")
             onSuccess()
             return
         }
 
-        if (vapidPrivateKey.isNullOrBlank() || !isValidVapidPrivateKey(vapidPrivateKey)) {
-            val error = "Invalid VAPID private key for $appName. Delete and re-register the app."
+        if (registration.vapidPrivateKey.isNullOrBlank() || !isValidVapidPrivateKey(registration.vapidPrivateKey)) {
+            val error = "Invalid VAPID private key for ${registration.appName}. Delete and re-register the app."
             Log.e(TAG, error)
             onError(error)
             return
         }
-        val validatedVapidPrivateKey = requireNotNull(vapidPrivateKey)
 
-        CoroutineScope(Dispatchers.IO).launch {
+        AppScope.launch {
             try {
-                if (
-                    !existingSubscriptionId.isNullOrBlank() &&
-                    !knownEndpoint.isNullOrBlank() &&
-                    knownEndpoint != webpushUrl
-                ) {
-                    val deleteRequest = Request.Builder()
-                        .url("$serverUrl/api/v1/webpush/subscriptions/$existingSubscriptionId")
-                        .addHeader("Authorization", getAuthHeader(apiKey))
-                        .delete()
-                        .build()
+                deleteStaleSubscription(serverUrl, apiKey, store, registration, existingSubscriptionId, knownEndpoint)
+                    .onFailure { withContext(Dispatchers.Main) { onError(it.message ?: "Failed to replace subscription") }; return@launch }
 
-                    Log.w(
-                        TAG,
-                        "registerApp: endpoint changed for $appName, replacing subscription $existingSubscriptionId"
-                    )
-
-                    HttpClientFactory.shared.newCall(deleteRequest).execute().use { deleteResponse ->
-                        if (deleteResponse.isSuccessful || deleteResponse.code == 404) {
-                            store.removeSubscriptionId(connectorToken)
-                            store.removeRegisteredEndpoint(connectorToken)
-                        } else {
-                            val body = deleteResponse.body.string()
-                            val error = "Failed to replace subscription: ${deleteResponse.code} ${deleteResponse.message}"
-                            Log.e(TAG, "$error - Response: $body")
-                            withContext(Dispatchers.Main) { onError(error) }
-                            return@launch
-                        }
-                    }
-                }
-
-                val json = JSONObject().apply {
-                    put("appName", appName)
-                    put("pushEndpoint", webpushUrl)
-                    put("vapidPrivateKey", validatedVapidPrivateKey)
-                    p256dh?.let { put("p256dh", it) }
-                    auth?.let { put("auth", it) }
-                }
-
-                val url = "$serverUrl/api/v1/webpush/subscriptions"
-                val request = Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", getAuthHeader(apiKey))
-                    .addHeader("Content-Type", "application/json")
-                    .post(json.toString().toRequestBody("application/json".toMediaType()))
-                    .build()
-
-                Log.d(TAG, "Registering app with Prism server: $appName")
-
-                HttpClientFactory.shared.newCall(request).execute().use { response ->
-                    if (response.isSuccessful) {
-                        val responseBody = response.body.string()
-
-                        try {
-                            val responseJson = JSONObject(responseBody)
-                            val subscriptionId = responseJson.getString("subscriptionId")
-
-                            store.setSubscriptionId(connectorToken, subscriptionId)
-                            store.setRegisteredEndpoint(connectorToken, webpushUrl)
-
-                            Log.d(TAG, "Successfully registered app: $appName (ID: $subscriptionId)")
-                            withContext(Dispatchers.Main) { onSuccess() }
-                        } catch (e: JSONException) {
-                            val error = "Failed to parse registration response: ${e.message}"
-                            Log.e(TAG, error)
-                            Log.e(TAG, "Response body: $responseBody")
-                            withContext(Dispatchers.Main) { onError(error) }
-                        }
-                    } else {
-                        val responseBody = response.body.string()
-                        val error = "Failed to register app: ${response.code} ${response.message}"
-                        Log.e(TAG, "$error - Response: $responseBody")
-                        withContext(Dispatchers.Main) { onError(error) }
-                    }
-                }
+                postSubscription(serverUrl, apiKey, store, registration, requireNotNull(registration.vapidPrivateKey))
+                    .onSuccess { Log.d(TAG, "Successfully registered app: ${registration.appName} (ID: $it)"); withContext(Dispatchers.Main) { onSuccess() } }
+                    .onFailure { withContext(Dispatchers.Main) { onError(it.message ?: "Failed to register app") } }
             } catch (e: IOException) {
                 val error = "Error registering app: ${e.message}"
                 Log.e(TAG, error, e)
                 withContext(Dispatchers.Main) { onError(error) }
             }
+        }
+    }
+
+    private suspend fun deleteStaleSubscription(
+        serverUrl: String,
+        apiKey: String,
+        store: PrismPreferences,
+        registration: WebPushRegistration,
+        existingSubscriptionId: String?,
+        knownEndpoint: String?
+    ): Result<Unit> {
+        if (existingSubscriptionId.isNullOrBlank() || knownEndpoint.isNullOrBlank() || knownEndpoint == registration.webpushUrl) {
+            return Result.success(Unit)
+        }
+        Log.w(TAG, "registerApp: endpoint changed for ${registration.appName}, replacing subscription $existingSubscriptionId")
+        val request = Request.Builder()
+            .url("$serverUrl/api/v1/webpush/subscriptions/$existingSubscriptionId")
+            .addHeader("Authorization", getAuthHeader(apiKey))
+            .delete()
+            .build()
+        HttpClientFactory.shared.newCall(request).execute().use { response ->
+            if (response.isSuccessful || response.code == 404) {
+                store.removeSubscriptionId(registration.connectorToken)
+                store.removeRegisteredEndpoint(registration.connectorToken)
+                return Result.success(Unit)
+            }
+            val error = "Failed to replace subscription: ${response.code} ${response.message}"
+            Log.e(TAG, "$error - Response: ${response.body.string()}")
+            return Result.failure(IOException(error))
+        }
+    }
+
+    private suspend fun postSubscription(
+        serverUrl: String,
+        apiKey: String,
+        store: PrismPreferences,
+        registration: WebPushRegistration,
+        vapidPrivateKey: String
+    ): Result<String> {
+        val json = JSONObject().apply {
+            put("appName", registration.appName)
+            put("pushEndpoint", registration.webpushUrl)
+            put("vapidPrivateKey", vapidPrivateKey)
+            registration.p256dh?.let { put("p256dh", it) }
+            registration.auth?.let { put("auth", it) }
+        }
+        val request = Request.Builder()
+            .url("$serverUrl/api/v1/webpush/subscriptions")
+            .addHeader("Authorization", getAuthHeader(apiKey))
+            .addHeader("Content-Type", "application/json")
+            .post(json.toString().toRequestBody("application/json".toMediaType()))
+            .build()
+        Log.d(TAG, "Registering app with Prism server: ${registration.appName}")
+        HttpClientFactory.shared.newCall(request).execute().use { response ->
+            if (response.isSuccessful) {
+                return try {
+                    val subscriptionId = JSONObject(response.body.string()).getString("subscriptionId")
+                    store.setSubscriptionId(registration.connectorToken, subscriptionId)
+                    store.setRegisteredEndpoint(registration.connectorToken, registration.webpushUrl)
+                    Result.success(subscriptionId)
+                } catch (e: JSONException) {
+                    val error = "Failed to parse registration response: ${e.message}"
+                    Log.e(TAG, error)
+                    Result.failure(IOException(error))
+                }
+            }
+            val error = "Failed to register app: ${response.code} ${response.message}"
+            Log.e(TAG, "$error - Response: ${response.body.string()}")
+            return Result.failure(IOException(error))
         }
     }
 
@@ -166,7 +166,7 @@ object PrismServerClient {
         }
         val store = PrismPreferences(context)
 
-        CoroutineScope(Dispatchers.IO).launch {
+        AppScope.launch {
             try {
                 val db = DatabaseFactory.getDb(context)
                 val apps = db.listApps()
@@ -191,17 +191,14 @@ object PrismServerClient {
 
                         registerApp(
                             context,
-                            app.connectorToken,
-                            appName,
-                            endpoint,
-                            vapidPrivateKey = storedVapidPrivateKey,
-                            p256dh = keys?.third,
-                            auth = keys?.second?.let { authBytes ->
-                                android.util.Base64.encodeToString(
-                                    authBytes,
-                                    android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING or android.util.Base64.NO_WRAP
-                                )
-                            }
+                            WebPushRegistration(
+                                connectorToken = app.connectorToken,
+                                appName = appName,
+                                webpushUrl = endpoint,
+                                vapidPrivateKey = storedVapidPrivateKey,
+                                p256dh = keys?.p256dh,
+                                auth = keys?.authSecret?.toBase64Url()
+                            )
                         )
                     } ?: run {
                         Log.w(TAG, "Skipping app ${app.title} - no endpoint available")
@@ -221,8 +218,6 @@ object PrismServerClient {
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
-        Log.d(TAG, "deleteApp called for connectorToken: $connectorToken")
-
         val config = if (serverUrl != null && apiKey != null) {
             serverUrl to apiKey
         } else {
@@ -240,7 +235,6 @@ object PrismServerClient {
             ?: getSubscriptionIdFromDb(context, connectorToken)?.also {
                 store.setSubscriptionId(connectorToken, it)
             }
-        Log.d(TAG, "Retrieved subscriptionId: $subscriptionId for token: $connectorToken")
 
         if (subscriptionId == null) {
             Log.w(TAG, "No subscription ID found for token: $connectorToken")
@@ -248,7 +242,7 @@ object PrismServerClient {
             return
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        AppScope.launch {
             try {
                 val request = Request.Builder()
                     .url("$url/api/v1/webpush/subscriptions/$subscriptionId")
@@ -256,13 +250,10 @@ object PrismServerClient {
                     .delete()
                     .build()
 
-                Log.d(TAG, "Deleting subscription from Prism server: $subscriptionId")
-
                 HttpClientFactory.shared.newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
                         store.removeSubscriptionId(connectorToken)
                         store.removeRegisteredEndpoint(connectorToken)
-                        Log.d(TAG, "Successfully deleted subscription: $subscriptionId")
                         withContext(Dispatchers.Main) { onSuccess() }
                     } else {
                         val error = "Failed to delete subscription: ${response.code} ${response.message}"
@@ -297,7 +288,7 @@ object PrismServerClient {
     }
 
     private fun getVapidPrivateKeyFromDescription(description: String?): String? =
-        DescriptionParser.extractValue(description, VAPID_PRIVATE_DESC_PREFIX)
+        DescriptionParser.extractValue(description, DescriptionParser.VAPID_PRIVATE_KEY_PREFIX)
 
     private fun isValidVapidPrivateKey(privateKey: String): Boolean = try {
         Base64.decode(privateKey, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP).size == 32
@@ -322,7 +313,7 @@ object PrismServerClient {
         }
         val (url, key) = config
 
-        CoroutineScope(Dispatchers.IO).launch {
+        AppScope.launch {
             try {
                 val db = DatabaseFactory.getDb(context)
                 val apps = db.listApps()
@@ -346,7 +337,7 @@ object PrismServerClient {
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        CoroutineScope(Dispatchers.IO).launch {
+        AppScope.launch {
             try {
                 val healthUrl = "$serverUrl/api/v1/health"
                 val request = Request.Builder()
@@ -384,7 +375,7 @@ object PrismServerClient {
         }
         val (serverUrl, apiKey) = config
 
-        CoroutineScope(Dispatchers.IO).launch {
+        AppScope.launch {
             try {
                 val request = Request.Builder()
                     .url("$serverUrl/api/v1/apps")

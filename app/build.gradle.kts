@@ -39,10 +39,10 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file(System.getenv("ANDROID_SIGNING_STORE_FILE") ?: "../prism-release.keystore")
-            storePassword = System.getenv("ANDROID_SIGNING_STORE_PASSWORD") ?: "android123"
-            keyAlias = System.getenv("ANDROID_SIGNING_KEY_ALIAS") ?: "prism"
-            keyPassword = System.getenv("ANDROID_SIGNING_KEY_PASSWORD") ?: "android123"
+            storeFile = file(System.getenv("ANDROID_SIGNING_STORE_FILE") ?: "non-existent.keystore")
+            storePassword = System.getenv("ANDROID_SIGNING_STORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("ANDROID_SIGNING_KEY_ALIAS") ?: ""
+            keyPassword = System.getenv("ANDROID_SIGNING_KEY_PASSWORD") ?: ""
         }
     }
 
@@ -57,7 +57,13 @@ android {
             resValue("string", "app_name", "Prism")
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
+            val signingEnvVarsPresent = listOf(
+                "ANDROID_SIGNING_STORE_FILE",
+                "ANDROID_SIGNING_STORE_PASSWORD",
+                "ANDROID_SIGNING_KEY_ALIAS",
+                "ANDROID_SIGNING_KEY_PASSWORD"
+            ).all { System.getenv(it) != null }
+            if (signingEnvVarsPresent) signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -83,6 +89,10 @@ android {
     namespace = "app.lonecloud.prism"
 }
 
+kotlin {
+    jvmToolchain(21)
+}
+
 dependencies {
     implementation(libs.unifiedpush.distributor)
     implementation(libs.unifiedpush.distributor.base)
@@ -99,5 +109,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.ui.tooling.preview.android)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.security.crypto)
     debugImplementation(libs.androidx.ui.tooling)
 }

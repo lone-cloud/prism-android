@@ -4,13 +4,12 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import app.lonecloud.prism.AppScope
 import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.utils.HttpClientFactory
 import app.lonecloud.prism.utils.ManualAppNotifications
 import app.lonecloud.prism.utils.TAG
 import java.io.IOException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
@@ -46,7 +45,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
         }
 
         val pendingResult = goAsync()
-        CoroutineScope(Dispatchers.IO).launch {
+        AppScope.launch {
             try {
                 executeAction(context, actionEndpoint, actionMethod, data)
             } catch (e: IOException) {
