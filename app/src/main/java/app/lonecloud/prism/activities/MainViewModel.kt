@@ -215,6 +215,7 @@ class MainViewModel(
 
                 val descriptionParts = mutableListOf("target:$targetPackageName")
                 description?.takeIf { it.isNotBlank() }?.let { descriptionParts.add(it) }
+                descriptionParts.add("${DescriptionParser.VAPID_PRIVATE_KEY_PREFIX}${vapidKeys.privateKey}")
                 val fullDescription = descriptionParts.joinToString("|")
 
                 val keyStore = EncryptionKeyStore(app)

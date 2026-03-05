@@ -169,13 +169,13 @@ class PrismPreferences(private val context: Context) :
     }
 
     fun setVapidPrivateKey(connectorToken: String, privateKey: String) {
-        securePreferences.edit { putString("vapid_private_$connectorToken", privateKey) }
+        securePreferences.edit(commit = true) { putString("vapid_private_$connectorToken", privateKey) }
     }
 
     fun getVapidPrivateKey(connectorToken: String): String? = securePreferences.getString("vapid_private_$connectorToken", null)
 
     fun removeVapidPrivateKey(connectorToken: String) {
-        securePreferences.edit { remove("vapid_private_$connectorToken") }
+        securePreferences.edit(commit = true) { remove("vapid_private_$connectorToken") }
     }
 
     fun addPendingChannelDeletion(channelId: String) {
