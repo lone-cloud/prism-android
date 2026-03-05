@@ -21,7 +21,9 @@ import app.lonecloud.prism.utils.TAG
 import app.lonecloud.prism.utils.VapidKeyGenerator
 import app.lonecloud.prism.utils.WebPushEncryptionKeys
 import java.util.UUID
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.unifiedpush.android.distributor.data.App
 import org.unifiedpush.android.distributor.ipc.InternalMessenger
 import org.unifiedpush.android.distributor.ipc.InternalOpcode
@@ -173,23 +175,24 @@ class MainViewModel(
             application?.let { app ->
                 val pm = app.packageManager
                 val prismPackageName = app.packageName
-                val apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
-                    .filterNot { (it.flags and ApplicationInfo.FLAG_SYSTEM) != 0 }
-                    .filterNot { hasUnifiedPushSupport(pm, it.packageName) }
-                    .map { appInfo ->
-                        InstalledApp(
-                            packageName = appInfo.packageName,
-                            appName = appInfo.loadLabel(pm).toString(),
-                            icon = appInfo.loadIcon(pm)
+                val apps = withContext(Dispatchers.Default) {
+                    pm.getInstalledApplications(PackageManager.GET_META_DATA)
+                        .filterNot { (it.flags and ApplicationInfo.FLAG_SYSTEM) != 0 }
+                        .filterNot { hasUnifiedPushSupport(pm, it.packageName) }
+                        .map { appInfo ->
+                            InstalledApp(
+                                packageName = appInfo.packageName,
+                                appName = appInfo.loadLabel(pm).toString(),
+                                icon = appInfo.loadIcon(pm)
+                            )
+                        }
+                        .sortedWith(
+                            compareBy(
+                                { it.packageName != prismPackageName },
+                                { it.appName }
+                            )
                         )
-                    }
-                    .sortedWith(
-                        compareBy(
-                            { it.packageName != prismPackageName },
-                            { it.appName }
-                        )
-                    )
-
+                }
                 mainUiState = mainUiState.copy(installedApps = apps)
             }
         }
@@ -212,7 +215,6 @@ class MainViewModel(
 
                 val descriptionParts = mutableListOf("target:$targetPackageName")
                 description?.takeIf { it.isNotBlank() }?.let { descriptionParts.add(it) }
-                descriptionParts.add("${DescriptionParser.VAPID_PRIVATE_KEY_PREFIX}${vapidKeys.privateKey}")
                 val fullDescription = descriptionParts.joinToString("|")
 
                 val keyStore = EncryptionKeyStore(app)

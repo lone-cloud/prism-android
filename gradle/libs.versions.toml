@@ -1,11 +1,10 @@
 [versions]
-android-gradle-plugin = "9.0.1"
+android-gradle-plugin = "9.1.0"
 androidx-activityCompose = "1.12.4"
 androidx-lifecycle = "2.10.0"
 androidx-work = "2.11.1"
 unifiedpush_distributor = "0.7.4"
 unifiedpush_distributor_base = "0.7.3"
-accompanist_permissions = "0.37.3"
 tink = "1.20.0"
 kotlin = "2.3.10"
 kotlinx_serializationJson = "1.10.0"
@@ -32,7 +31,6 @@ androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version
 unifiedpush-distributor = { module = "org.unifiedpush.android:distributor", version.ref = "unifiedpush_distributor" }
 unifiedpush-distributor-base = { module = "org.unifiedpush.android:distributor-base", version.ref = "unifiedpush_distributor_base" }
 unifiedpush-distributor-ui = { module = "org.unifiedpush.android:distributor-ui", version.ref = "unifiedpush_distributor" }
-accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist_permissions" }
 tink-android = { module = "com.google.crypto.tink:tink-android", version.ref = "tink" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx_serializationJson" }

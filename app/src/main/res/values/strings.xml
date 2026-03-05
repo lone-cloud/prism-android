@@ -6,13 +6,9 @@
     <string name="warning">Warning</string>
     <string name="warning_notif_content">%1$s is disconnected</string>
     <string name="warning_notif_description">Warn when %1$s is disconnected or an issue occurred.</string>
-    <string name="warning_notif_ticker">Prism Warning</string>
     <string name="foreground_service">Foreground Service</string>
     <string name="foreground_notif_description">Notification to run in the foreground</string>
     <string name="foreground_notif_content_no_reg">Waiting for apps to register</string>
-    <string name="foreground_notif_ticker">Prism</string>
-    <string name="bar_unregister_title">%d selected</string>
-    <string name="dialog_unregistering_content">Are you sure to unregister this app?</string>
     <plurals name="foreground_notif_content_with_reg">
         <item quantity="one">Connected for %d app</item>
         <item quantity="other">Connected for %d apps</item>
@@ -52,6 +48,8 @@
     <string name="prism_server_url_placeholder">prism.example.com</string>
     <string name="prism_api_key_label">API Key</string>
     <string name="prism_api_key_placeholder">Enter API key</string>
+    <string name="show_password_content_description">Show password</string>
+    <string name="hide_password_content_description">Hide password</string>
     <string name="testing_connection">Testing connection…</string>
     <string name="connection_successful">Connection successful</string>
     <string name="connection_failed">Connection failed</string>
@@ -59,7 +57,10 @@
     <string name="clear_server_button">Remove</string>
     <string name="clear_server_confirm_title">Remove Prism Server?</string>
     <string name="clear_server_confirm_message_no_apps">This will remove your Prism server configuration.</string>
-    <string name="clear_server_confirm_message_with_apps">You have %d manual app(s). Clearing the server will unregister them from the server and remove the configuration.</string>
+    <plurals name="clear_server_confirm_message_with_apps">
+        <item quantity="one">You have %1$d manual app. Clearing the server will unregister it from the server and remove the configuration.</item>
+        <item quantity="other">You have %1$d manual apps. Clearing the server will unregister them from the server and remove the configuration.</item>
+    </plurals>
     <string name="app_dropdown_show_toasts">Registration alerts</string>
     <string name="show_toasts_description">Show a notification when apps register</string>
     <string name="dynamic_colors_title">Dynamic colors</string>
@@ -76,6 +77,18 @@
     <string name="delete_registration_title">Delete registration?</string>
     <string name="delete_registration_message">This will unregister the app and remove it from your list.</string>
     <string name="delete_registration_confirm">Delete</string>
+    <string name="manual_app_generic_name">app</string>
+    <string name="manual_app_registration_failed">Failed to register %1$s: %2$s</string>
+    <string name="change_server_title">Change Prism Server?</string>
+    <plurals name="change_server_warning_message">
+        <item quantity="one">You have %1$d manual app registered with the current server.
+
+Changing to %2$s will delete registrations from the old server and re-register with the new one.</item>
+        <item quantity="other">You have %1$d manual apps registered with the current server.
+
+Changing to %2$s will delete registrations from the old server and re-register with the new one.</item>
+    </plurals>
+    <string name="change_server_confirm_button">Continue</string>
 
     <!-- Intro screen strings -->
     <string name="intro_welcome_message">Prism handles push notifications for your apps. Connect a Prism server to also receive notifications from custom services.</string>

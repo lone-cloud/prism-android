@@ -13,8 +13,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import app.lonecloud.prism.R
 
 @Composable
 fun PasswordTextField(
@@ -38,7 +40,11 @@ fun PasswordTextField(
             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                 Icon(
                     imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                    contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                    contentDescription = if (passwordVisible) {
+                        stringResource(R.string.hide_password_content_description)
+                    } else {
+                        stringResource(R.string.show_password_content_description)
+                    }
                 )
             }
         },

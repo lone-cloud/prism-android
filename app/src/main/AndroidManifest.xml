@@ -14,7 +14,8 @@
 
     <application
         android:name=".PrismApplication"
-        android:allowBackup="true"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -46,6 +47,7 @@
         <service
             android:name=".services.FgService"
             android:enabled="true"
+            android:exported="false"
             android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
             android:value="This service needs to be constantly connected to the server via WebSocket to receive push notifications."/>
@@ -82,7 +84,8 @@
         <receiver
             android:name=".receivers.RegisterBroadcastReceiver"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
             <intent-filter>
                 <action android:name="org.unifiedpush.android.distributor.feature.BYTES_MESSAGE"/>
                 <action android:name="org.unifiedpush.android.distributor.REGISTER" />

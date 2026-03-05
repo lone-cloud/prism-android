@@ -5,9 +5,9 @@ style:
   MagicNumber:
     active: false
   ForbiddenComment:
-    active: false
+    active: true
   UnusedImports:
-    active: false
+    active: true
   UnusedPrivateMember:
     active: true
   UnusedPrivateClass:
@@ -15,7 +15,7 @@ style:
   MaxLineLength:
     active: false
   WildcardImport:
-    active: false
+    active: true
   ReturnCount:
     active: false
 
@@ -26,7 +26,9 @@ naming:
 
 complexity:
   LongMethod:
-    active: false
+    active: true
+    threshold: 70
+    ignoreAnnotated: ['Composable']
   TooManyFunctions:
     active: false
   CyclomaticComplexMethod:

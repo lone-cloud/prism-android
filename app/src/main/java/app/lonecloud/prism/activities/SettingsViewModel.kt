@@ -11,6 +11,7 @@ import app.lonecloud.prism.BuildConfig
 import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.activities.ui.SettingsState
+import app.lonecloud.prism.utils.UiActions
 import app.lonecloud.prism.receivers.PrismConfigReceiver
 import app.lonecloud.prism.utils.normalizeUrl
 import kotlinx.coroutines.launch
@@ -88,7 +89,7 @@ class SettingsViewModel(
                 }
 
                 if (sendAction) {
-                    sendUiAction(app, "UpdatePrismServerConfigured")
+                    sendUiAction(app, UiActions.UpdatePrismServerConfigured)
                 }
             }
         }
@@ -107,7 +108,7 @@ class SettingsViewModel(
                 }
 
                 if (sendAction) {
-                    sendUiAction(app, "UpdatePrismServerConfigured")
+                    sendUiAction(app, UiActions.UpdatePrismServerConfigured)
                 }
             }
         }
@@ -136,7 +137,7 @@ class SettingsViewModel(
                     PrismServerClient.registerAllApps(app)
                 }
 
-                sendUiAction(app, "UpdatePrismServerConfigured")
+                sendUiAction(app, UiActions.UpdatePrismServerConfigured)
             }
         }
     }
