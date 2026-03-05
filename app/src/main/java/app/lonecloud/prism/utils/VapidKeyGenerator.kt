@@ -1,8 +1,8 @@
 package app.lonecloud.prism.utils
 
 import android.util.Base64
+import com.google.crypto.tink.subtle.EllipticCurves
 import java.security.KeyPairGenerator
-import java.security.interfaces.ECPrivateKey
 import java.security.interfaces.ECPublicKey
 import java.security.spec.ECGenParameterSpec
 
@@ -16,22 +16,17 @@ object VapidKeyGenerator {
 
     fun generateKeyPair(): VapidKeyPair {
         val keyPairGenerator = KeyPairGenerator.getInstance("EC")
-        val ecSpec = ECGenParameterSpec("secp256r1")
-        keyPairGenerator.initialize(ecSpec)
-
+        keyPairGenerator.initialize(ECGenParameterSpec("secp256r1"))
         val keyPair = keyPairGenerator.generateKeyPair()
-        val publicKey = keyPair.public as ECPublicKey
-        val privateKey = keyPair.private as ECPrivateKey
 
-        val xCoord = publicKey.w.affineX.toByteArray().trimLeadingZeros()
-        val yCoord = publicKey.w.affineY.toByteArray().trimLeadingZeros()
+        val publicKeyBytes = EllipticCurves.pointEncode(
+            EllipticCurves.CurveType.NIST_P256,
+            EllipticCurves.PointFormatType.UNCOMPRESSED,
+            (keyPair.public as ECPublicKey).w
+        )
 
-        val publicKeyBytes = ByteArray(65)
-        publicKeyBytes[0] = 0x04
-        xCoord.copyInto(publicKeyBytes, 1 + (32 - xCoord.size))
-        yCoord.copyInto(publicKeyBytes, 33 + (32 - yCoord.size))
-
-        val privateKeyBytes = privateKey.s.toByteArray().trimLeadingZeros()
+        val privateKeyBytes = (keyPair.private as java.security.interfaces.ECPrivateKey)
+            .s.toByteArray().trimLeadingZeros()
         val privateKeyPadded = ByteArray(32)
         privateKeyBytes.copyInto(privateKeyPadded, 32 - privateKeyBytes.size)
 

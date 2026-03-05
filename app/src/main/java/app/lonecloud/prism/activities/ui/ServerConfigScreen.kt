@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,8 +32,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.R
 import app.lonecloud.prism.activities.ui.components.PasswordTextField
@@ -52,6 +55,7 @@ fun ServerConfigScreen(
     var testResult by remember { mutableStateOf<String?>(null) }
     var showServerChangeWarning by remember { mutableStateOf(false) }
     var showClearConfirmation by remember { mutableStateOf(false) }
+    var manualAppsCount by remember { mutableIntStateOf(0) }
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val successMessage = stringResource(R.string.connection_successful)
@@ -146,7 +150,11 @@ fun ServerConfigScreen(
         ) {
             if (initialUrl.isNotBlank()) {
                 OutlinedButton(
-                    onClick = { showClearConfirmation = true },
+                    onClick = {
+                        manualAppsCount = DatabaseFactory.getDb(context).listApps()
+                            .count { DescriptionParser.isManualApp(it.description) }
+                        showClearConfirmation = true
+                    },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(stringResource(R.string.clear_server_button))
@@ -164,10 +172,11 @@ fun ServerConfigScreen(
                     val isServerChanging = initialUrl.isNotBlank() && normalizedUrl != initialUrl
 
                     if (isServerChanging) {
-                        val db = app.lonecloud.prism.DatabaseFactory.getDb(context)
-                        val manualAppsCount = db.listApps()
+                        val db = DatabaseFactory.getDb(context)
+                        val count = db.listApps()
                             .count { DescriptionParser.isManualApp(it.description) }
-                        if (manualAppsCount > 0) {
+                        if (count > 0) {
+                            manualAppsCount = count
                             showServerChangeWarning = true
                             return@Button
                         }
@@ -187,6 +196,7 @@ fun ServerConfigScreen(
         ServerChangeWarningDialog(
             newUrl = normalizeUrl(url),
             initialUrl = initialUrl,
+            manualAppsCount = manualAppsCount,
             onConfirm = { normalizedUrl ->
                 showServerChangeWarning = false
                 testAndSave(normalizedUrl)
@@ -198,6 +208,7 @@ fun ServerConfigScreen(
     if (showClearConfirmation) {
         ClearServerConfirmationDialog(
             initialUrl = initialUrl,
+            manualAppsCount = manualAppsCount,
             onConfirm = {
                 showClearConfirmation = false
                 onSave("", "")
@@ -237,23 +248,23 @@ internal fun PrismInfoWithLink(uriHandler: androidx.compose.ui.platform.UriHandl
 private fun ServerChangeWarningDialog(
     newUrl: String,
     initialUrl: String,
+    manualAppsCount: Int,
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    val db = app.lonecloud.prism.DatabaseFactory.getDb(context)
-    val manualAppsCount = db.listApps()
-        .count { DescriptionParser.isManualApp(it.description) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Change Prism Server?") },
+        title = { Text(stringResource(R.string.change_server_title)) },
         text = {
             Text(
-                "You have $manualAppsCount manual app${if (manualAppsCount == 1) "" else "s"}" +
-                    " registered with the current server.\n\n" +
-                    "Changing to $newUrl will delete registrations from the old server" +
-                    " and re-register with the new one."
+                pluralStringResource(
+                    R.plurals.change_server_warning_message,
+                    manualAppsCount,
+                    manualAppsCount,
+                    newUrl
+                )
             )
         },
         confirmButton = {
@@ -270,12 +281,12 @@ private fun ServerChangeWarningDialog(
                     onConfirm(newUrl)
                 }
             ) {
-                Text("Continue")
+                Text(stringResource(R.string.change_server_confirm_button))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel_button))
             }
         }
     )
@@ -284,13 +295,11 @@ private fun ServerChangeWarningDialog(
 @Composable
 private fun ClearServerConfirmationDialog(
     initialUrl: String,
+    manualAppsCount: Int,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    val db = app.lonecloud.prism.DatabaseFactory.getDb(context)
-    val manualAppsCount = db.listApps()
-        .count { DescriptionParser.isManualApp(it.description) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -298,8 +307,9 @@ private fun ClearServerConfirmationDialog(
         text = {
             Text(
                 if (manualAppsCount > 0) {
-                    stringResource(
-                        R.string.clear_server_confirm_message_with_apps,
+                    pluralStringResource(
+                        R.plurals.clear_server_confirm_message_with_apps,
+                        manualAppsCount,
                         manualAppsCount
                     )
                 } else {
@@ -321,12 +331,12 @@ private fun ClearServerConfirmationDialog(
                     onConfirm()
                 }
             ) {
-                Text("Remove")
+                Text(stringResource(R.string.clear_server_button))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel_button))
             }
         }
     )

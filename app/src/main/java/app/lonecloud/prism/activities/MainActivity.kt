@@ -17,12 +17,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lonecloud.prism.activities.ui.App
 import app.lonecloud.prism.activities.ui.theme.AppTheme
 import app.lonecloud.prism.utils.TAG
-import kotlin.system.exitProcess
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.unifiedpush.android.distributor.ipc.InternalMessenger
 
 class MainActivity : ComponentActivity() {
@@ -32,11 +26,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         messenger = InternalMessenger(this)
-        jobs.removeAll {
-            Log.d(TAG, "Cancelling exitProcess job")
-            it.cancel()
-            true
-        }
 
         enableEdgeToEdge()
 
@@ -54,13 +43,5 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         Log.d(TAG, "Destroy")
         super.onDestroy()
-        jobs += CoroutineScope(Dispatchers.Main + Job()).launch {
-            delay(5_000)
-            exitProcess(0)
-        }
-    }
-
-    companion object {
-        val jobs = emptyList<Job>().toMutableList()
     }
 }

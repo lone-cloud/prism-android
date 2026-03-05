@@ -3,10 +3,9 @@ package app.lonecloud.prism
 import android.content.Context
 import android.util.Base64
 import android.util.Log
-import app.lonecloud.prism.DatabaseFactory
-import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.utils.DescriptionParser
 import app.lonecloud.prism.utils.HttpClientFactory
+import app.lonecloud.prism.utils.redactIdentifier
 import app.lonecloud.prism.utils.toBase64Url
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +19,11 @@ import org.json.JSONObject
 
 object PrismServerClient {
     private const val TAG = "PrismServerClient"
+
+    private data class ServerConfig(
+        val serverUrl: String,
+        val apiKey: String
+    )
 
     data class WebPushRegistration(
         val connectorToken: String,
@@ -38,31 +42,11 @@ object PrismServerClient {
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
-        val config = PrismPreferences(context).getPrismServerConfig()
+        val config = resolveServerConfig(context)
         if (config == null) {
             val error = "Prism server not configured"
             Log.d(TAG, "$error, skipping registration")
             onError(error)
-            return
-        }
-        val (serverUrl, apiKey) = config
-        val store = PrismPreferences(context)
-        val existingSubscriptionId = store.getSubscriptionId(registration.connectorToken)
-            ?: getSubscriptionIdFromDb(context, registration.connectorToken)?.also {
-                store.setSubscriptionId(registration.connectorToken, it)
-                Log.d(TAG, "registerApp: restored subscriptionId from description for ${registration.connectorToken}")
-            }
-        val knownEndpoint = store.getRegisteredEndpoint(registration.connectorToken)
-            ?: getEndpointFromDb(context, registration.connectorToken)?.also {
-                store.setRegisteredEndpoint(registration.connectorToken, it)
-                Log.d(TAG, "registerApp: restored endpoint from db for ${registration.connectorToken}")
-            }
-
-        Log.d(TAG, "registerApp decision: token=${registration.connectorToken} existingSub=${!existingSubscriptionId.isNullOrBlank()} endpointMatch=${knownEndpoint == registration.webpushUrl}")
-
-        if (!existingSubscriptionId.isNullOrBlank() && knownEndpoint == registration.webpushUrl) {
-            Log.d(TAG, "registerApp: skipping duplicate create for ${registration.appName} (endpoint unchanged)")
-            onSuccess()
             return
         }
 
@@ -73,13 +57,35 @@ object PrismServerClient {
             return
         }
 
+        val (serverUrl, apiKey) = config
+
         AppScope.launch {
             try {
+                val store = PrismPreferences(context)
+                val existingSubscriptionId = store.getSubscriptionId(registration.connectorToken)
+                    ?: getSubscriptionIdFromDb(context, registration.connectorToken)?.also {
+                        store.setSubscriptionId(registration.connectorToken, it)
+                        Log.d(TAG, "registerApp: restored subscriptionId for token=${redactIdentifier(registration.connectorToken)}")
+                    }
+                val knownEndpoint = store.getRegisteredEndpoint(registration.connectorToken)
+                    ?: getEndpointFromDb(context, registration.connectorToken)?.also {
+                        store.setRegisteredEndpoint(registration.connectorToken, it)
+                        Log.d(TAG, "registerApp: restored endpoint for token=${redactIdentifier(registration.connectorToken)}")
+                    }
+
+                Log.d(TAG, "registerApp decision: token=${redactIdentifier(registration.connectorToken)} existingSub=${!existingSubscriptionId.isNullOrBlank()} endpointMatch=${knownEndpoint == registration.webpushUrl}")
+
+                if (!existingSubscriptionId.isNullOrBlank() && knownEndpoint == registration.webpushUrl) {
+                    Log.d(TAG, "registerApp: skipping duplicate create for ${registration.appName} (endpoint unchanged)")
+                    withContext(Dispatchers.Main) { onSuccess() }
+                    return@launch
+                }
+
                 deleteStaleSubscription(serverUrl, apiKey, store, registration, existingSubscriptionId, knownEndpoint)
                     .onFailure { withContext(Dispatchers.Main) { onError(it.message ?: "Failed to replace subscription") }; return@launch }
 
                 postSubscription(serverUrl, apiKey, store, registration, requireNotNull(registration.vapidPrivateKey))
-                    .onSuccess { Log.d(TAG, "Successfully registered app: ${registration.appName} (ID: $it)"); withContext(Dispatchers.Main) { onSuccess() } }
+                    .onSuccess { Log.d(TAG, "Successfully registered app: ${registration.appName} (ID: ${redactIdentifier(it)})"); withContext(Dispatchers.Main) { onSuccess() } }
                     .onFailure { withContext(Dispatchers.Main) { onError(it.message ?: "Failed to register app") } }
             } catch (e: IOException) {
                 val error = "Error registering app: ${e.message}"
@@ -100,7 +106,7 @@ object PrismServerClient {
         if (existingSubscriptionId.isNullOrBlank() || knownEndpoint.isNullOrBlank() || knownEndpoint == registration.webpushUrl) {
             return Result.success(Unit)
         }
-        Log.w(TAG, "registerApp: endpoint changed for ${registration.appName}, replacing subscription $existingSubscriptionId")
+        Log.w(TAG, "registerApp: endpoint changed for ${registration.appName}, replacing subscription ${redactIdentifier(existingSubscriptionId)}")
         val request = Request.Builder()
             .url("$serverUrl/api/v1/webpush/subscriptions/$existingSubscriptionId")
             .addHeader("Authorization", getAuthHeader(apiKey))
@@ -113,7 +119,7 @@ object PrismServerClient {
                 return Result.success(Unit)
             }
             val error = "Failed to replace subscription: ${response.code} ${response.message}"
-            Log.e(TAG, "$error - Response: ${response.body.string()}")
+            Log.e(TAG, error)
             return Result.failure(IOException(error))
         }
     }
@@ -153,13 +159,13 @@ object PrismServerClient {
                 }
             }
             val error = "Failed to register app: ${response.code} ${response.message}"
-            Log.e(TAG, "$error - Response: ${response.body.string()}")
+            Log.e(TAG, error)
             return Result.failure(IOException(error))
         }
     }
 
     fun registerAllApps(context: Context) {
-        val config = PrismPreferences(context).getPrismServerConfig()
+        val config = resolveServerConfig(context)
         if (config == null) {
             Log.d(TAG, "Prism server not configured, skipping bulk registration")
             return
@@ -169,9 +175,8 @@ object PrismServerClient {
         AppScope.launch {
             try {
                 val db = DatabaseFactory.getDb(context)
-                val apps = db.listApps()
-
-                val manualApps = apps.filter { DescriptionParser.isManualApp(it.description) }
+                val manualApps = listManualApps(context)
+                val channelByVapid = db.listChannelIdVapid().associate { (channelId, vapid) -> vapid to channelId }
 
                 Log.d(TAG, "Registering ${manualApps.size} manual apps with Prism server")
 
@@ -179,9 +184,7 @@ object PrismServerClient {
                     app.endpoint?.let { endpoint ->
                         val appName = app.title ?: app.packageName
 
-                        val channelId = db.listChannelIdVapid()
-                            .find { (_, vapid) -> vapid == app.vapidKey }
-                            ?.first
+                        val channelId = channelByVapid[app.vapidKey]
 
                         val keyStore = EncryptionKeyStore(context)
                         val keys = channelId?.let { keyStore.getKeys(it) }
@@ -218,11 +221,7 @@ object PrismServerClient {
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
-        val config = if (serverUrl != null && apiKey != null) {
-            serverUrl to apiKey
-        } else {
-            PrismPreferences(context).getPrismServerConfig()
-        }
+        val config = resolveServerConfig(context, serverUrl, apiKey)
 
         if (config == null) {
             Log.d(TAG, "Prism server not configured, skipping deletion")
@@ -237,7 +236,7 @@ object PrismServerClient {
             }
 
         if (subscriptionId == null) {
-            Log.w(TAG, "No subscription ID found for token: $connectorToken")
+            Log.w(TAG, "No subscription ID found for token=${redactIdentifier(connectorToken)}")
             onError("No subscription ID found")
             return
         }
@@ -301,11 +300,7 @@ object PrismServerClient {
         serverUrl: String? = null,
         apiKey: String? = null
     ) {
-        val config = if (serverUrl != null && apiKey != null) {
-            serverUrl to apiKey
-        } else {
-            PrismPreferences(context).getPrismServerConfig()
-        }
+        val config = resolveServerConfig(context, serverUrl, apiKey)
 
         if (config == null) {
             Log.d(TAG, "Prism server not configured, skipping bulk deletion")
@@ -315,10 +310,7 @@ object PrismServerClient {
 
         AppScope.launch {
             try {
-                val db = DatabaseFactory.getDb(context)
-                val apps = db.listApps()
-
-                val manualApps = apps.filter { DescriptionParser.isManualApp(it.description) }
+                val manualApps = listManualApps(context)
 
                 Log.d(TAG, "Deleting ${manualApps.size} manual apps from Prism server")
 
@@ -368,7 +360,7 @@ object PrismServerClient {
         onSuccess: (List<String>) -> Unit,
         onError: (String) -> Unit
     ) {
-        val config = PrismPreferences(context).getPrismServerConfig()
+        val config = resolveServerConfig(context)
         if (config == null) {
             onSuccess(emptyList())
             return
@@ -406,4 +398,25 @@ object PrismServerClient {
             }
         }
     }
+
+    private fun resolveServerConfig(
+        context: Context,
+        serverUrl: String? = null,
+        apiKey: String? = null
+    ): ServerConfig? {
+        val resolved = if (!serverUrl.isNullOrBlank() && !apiKey.isNullOrBlank()) {
+            serverUrl to apiKey
+        } else {
+            PrismPreferences(context).getPrismServerConfig()
+        } ?: return null
+
+        return ServerConfig(
+            serverUrl = resolved.first,
+            apiKey = resolved.second
+        )
+    }
+
+    private fun listManualApps(context: Context) = DatabaseFactory.getDb(context)
+        .listApps()
+        .filter { DescriptionParser.isManualApp(it.description) }
 }

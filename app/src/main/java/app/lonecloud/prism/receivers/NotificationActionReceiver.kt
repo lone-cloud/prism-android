@@ -10,6 +10,8 @@ import app.lonecloud.prism.utils.HttpClientFactory
 import app.lonecloud.prism.utils.ManualAppNotifications
 import app.lonecloud.prism.utils.TAG
 import java.io.IOException
+import java.net.URI
+import java.util.Locale
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
@@ -70,10 +72,11 @@ class NotificationActionReceiver : BroadcastReceiver() {
             return
         }
         val (serverUrl, apiKey) = config
-        val fullUrl = if (endpoint.startsWith("http")) {
-            endpoint
-        } else {
-            serverUrl.trimEnd('/') + "/" + endpoint.trimStart('/')
+        val normalizedMethod = method.uppercase(Locale.US)
+        require(normalizedMethod in SUPPORTED_METHODS) { "Unsupported action method: $method" }
+
+        val fullUrl = requireNotNull(resolveAndValidateActionUrl(serverUrl, endpoint)) {
+            "Action endpoint must match configured Prism server origin"
         }
 
         val jsonBody = JSONObject(data as Map<*, *>).toString()
@@ -81,12 +84,12 @@ class NotificationActionReceiver : BroadcastReceiver() {
 
         val request = Request.Builder()
             .url(fullUrl)
-            .method(method, if (method == "GET" || method == "HEAD") null else requestBody)
+            .method(normalizedMethod, if (normalizedMethod == "GET" || normalizedMethod == "HEAD") null else requestBody)
             .addHeader("Authorization", "Bearer $apiKey")
             .addHeader("Content-Type", "application/json")
             .build()
 
-        Log.d(TAG, "Executing action: $method $fullUrl with data: $jsonBody")
+        Log.d(TAG, "Executing action: $normalizedMethod ${request.url.encodedPath}")
 
         HttpClientFactory.action.newCall(request).execute().use { response ->
             if (response.isSuccessful) {
@@ -95,5 +98,49 @@ class NotificationActionReceiver : BroadcastReceiver() {
                 Log.e(TAG, "Action failed: ${response.code} ${response.message}")
             }
         }
+    }
+
+    private fun resolveAndValidateActionUrl(serverUrl: String, endpoint: String): String? {
+        val baseUri = parseHttpUri(serverUrl) ?: return null
+        val resolvedUri = parseHttpUri(baseUri.resolve(endpoint.trim()).toString()) ?: return null
+        if (!isSameOrigin(baseUri, resolvedUri)) {
+            return null
+        }
+        return resolvedUri.toString()
+    }
+
+    private fun parseHttpUri(value: String): URI? {
+        val uri = try {
+            URI(value.trim())
+        } catch (_: IllegalArgumentException) {
+            return null
+        }
+        val scheme = uri.scheme?.lowercase(Locale.US) ?: return null
+        if (scheme != "http" && scheme != "https") {
+            return null
+        }
+        if (uri.host.isNullOrBlank()) {
+            return null
+        }
+        return uri
+    }
+
+    private fun isSameOrigin(base: URI, candidate: URI): Boolean {
+        val baseScheme = base.scheme.lowercase(Locale.US)
+        val candidateScheme = candidate.scheme.lowercase(Locale.US)
+        return baseScheme == candidateScheme &&
+            base.host.equals(candidate.host, ignoreCase = true) &&
+            normalizedPort(base) == normalizedPort(candidate)
+    }
+
+    private fun normalizedPort(uri: URI): Int =
+        when {
+            uri.port != -1 -> uri.port
+            uri.scheme.equals("https", ignoreCase = true) -> 443
+            else -> 80
+        }
+
+    companion object {
+        private val SUPPORTED_METHODS = setOf("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE")
     }
 }

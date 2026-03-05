@@ -28,6 +28,7 @@ import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.R
 import app.lonecloud.prism.activities.MainViewModel
 import app.lonecloud.prism.activities.PreviewFactory
+import app.lonecloud.prism.utils.UiActions
 import org.unifiedpush.android.distributor.ui.compose.AppBar
 import org.unifiedpush.android.distributor.ui.compose.CardDisableBatteryOptimisation
 import org.unifiedpush.android.distributor.ui.compose.CardDisabledForMigration
@@ -85,8 +86,8 @@ fun MainScreen(
     LaunchedEffect(Unit) {
         uiActionsFlow?.collect { action ->
             when (action) {
-                "RefreshRegistrations" -> viewModel.refreshRegistrations()
-                "UpdatePrismServerConfigured" -> {
+                UiActions.RefreshRegistrations -> viewModel.refreshRegistrations()
+                UiActions.UpdatePrismServerConfigured -> {
                     viewModel.application?.let { app ->
                         val store = PrismPreferences(app)
                         viewModel.updatePrismServerConfigured(

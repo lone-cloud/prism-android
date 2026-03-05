@@ -50,7 +50,7 @@ object ManualAppNotifications {
         }
 
         val channelId = channelIdForToken(app.connectorToken)
-        val appTitle = app.title ?: "Unknown App"
+        val appTitle = app.title ?: context.getString(R.string.manual_app_generic_name)
         createNotificationChannel(context, channelId, appTitle)
 
         val hasTitle = payload.title.isNotBlank()
@@ -87,23 +87,14 @@ object ManualAppNotifications {
             notificationBuilder.setContentIntent(contentIntent)
         }
 
-        payload.actions
-            .filter { it.label.isNotBlank() && it.endpoint.isNotBlank() }
-            .take(3)
-            .forEach { action ->
-                val actionIntent = createActionIntent(
-                    context,
-                    channelID,
-                    action,
-                    app.connectorToken,
-                    notificationTag
-                )
-                notificationBuilder.addAction(
-                    0,
-                    action.label,
-                    actionIntent
-                )
-            }
+        addActions(
+            builder = notificationBuilder,
+            context = context,
+            channelID = channelID,
+            connectorToken = app.connectorToken,
+            notificationTag = notificationTag,
+            actions = payload.actions
+        )
 
         notificationBuilder.setDeleteIntent(
             createDismissIntent(
@@ -113,7 +104,7 @@ object ManualAppNotifications {
             )
         )
 
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = notificationManager(context)
         notificationManager.notify(
             notificationTag,
             notificationId,
@@ -161,7 +152,7 @@ object ManualAppNotifications {
         val notificationId = notificationIds[tag]
         val connectorToken = notificationConnectorTokens[tag] ?: connectorTokenHint
         if (notificationId != null) {
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationManager = notificationManager(context)
             notificationManager.cancel(tag, notificationId)
             notificationIds.remove(tag)
             notificationConnectorTokens.remove(tag)
@@ -178,7 +169,7 @@ object ManualAppNotifications {
         connectorToken: String,
         forceWhenNoTracked: Boolean
     ) {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = notificationManager(context)
         val hasTrackedChildren = notificationConnectorTokens.values.any { it == connectorToken }
         if (!hasTrackedChildren && forceWhenNoTracked) {
             cancelGroupSummaries(notificationManager, connectorToken)
@@ -242,13 +233,11 @@ object ManualAppNotifications {
             enableVibration(true)
         }
 
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
+        notificationManager(context).createNotificationChannel(channel)
     }
 
     fun deleteChannelForToken(context: Context, connectorToken: String) {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.deleteNotificationChannel(channelIdForToken(connectorToken))
+        notificationManager(context).deleteNotificationChannel(channelIdForToken(connectorToken))
     }
 
     fun pruneOrphanedChannels(context: Context) {
@@ -260,7 +249,7 @@ object ManualAppNotifications {
             .map { channelIdForToken(it) }
             .toSet()
 
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = notificationManager(context)
         notificationManager.notificationChannels
             .asSequence()
             .map { it.id }
@@ -297,9 +286,36 @@ object ManualAppNotifications {
             summaryBuilder.setContentIntent(contentIntent)
         }
 
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = notificationManager(context)
         notificationManager.notify(summaryId, summaryBuilder.build())
     }
+
+    private fun addActions(
+        builder: NotificationCompat.Builder,
+        context: Context,
+        channelID: String,
+        connectorToken: String,
+        notificationTag: String,
+        actions: List<NotificationAction>
+    ) {
+        actions
+            .asSequence()
+            .filter { it.label.isNotBlank() && it.endpoint.isNotBlank() }
+            .take(3)
+            .forEach { action ->
+                val actionIntent = createActionIntent(
+                    context = context,
+                    channelID = channelID,
+                    action = action,
+                    connectorToken = connectorToken,
+                    notificationTag = notificationTag
+                )
+                builder.addAction(0, action.label, actionIntent)
+            }
+    }
+
+    private fun notificationManager(context: Context): NotificationManager =
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     private fun resolveTargetPackage(app: Database.App): String? {
         val appPackage = app.packageName.takeIf { it.isNotBlank() }

@@ -97,7 +97,6 @@ dependencies {
     implementation(libs.unifiedpush.distributor)
     implementation(libs.unifiedpush.distributor.base)
     implementation(libs.unifiedpush.distributor.ui)
-    implementation(libs.accompanist.permissions)
     implementation(libs.tink.android)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
