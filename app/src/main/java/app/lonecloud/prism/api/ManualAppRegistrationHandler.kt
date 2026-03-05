@@ -39,8 +39,8 @@ class ManualAppRegistrationHandler(private val context: Context) {
         }
 
         Log.d(TAG, "Auto-registering manual app '${app.title}' with Prism server")
-        val vapidPrivateKey = PrismPreferences(context).getVapidPrivateKey(app.connectorToken)
-            ?: DescriptionParser.extractValue(app.description, DescriptionParser.VAPID_PRIVATE_KEY_PREFIX)
+        val vapidPrivateKey = DescriptionParser.extractValue(app.description, DescriptionParser.VAPID_PRIVATE_KEY_PREFIX)
+            ?: PrismPreferences(context).getVapidPrivateKey(app.connectorToken)
 
         if (vapidPrivateKey.isNullOrBlank()) {
             handleFailure(
@@ -113,8 +113,10 @@ class ManualAppRegistrationHandler(private val context: Context) {
 
         val preferences = PrismPreferences(context)
         val isInitialPendingRegistration = preferences.isPendingManualToken(connectorToken)
+        val isLikelyNewManualApp = isLikelyNewManualApp(connectorToken)
+        val shouldRollback = isInitialPendingRegistration || isLikelyNewManualApp
 
-        if (isInitialPendingRegistration) {
+        if (shouldRollback) {
             Log.w(TAG, "Rolling back pending manual app '$appTitle' after registration failure")
             rollback(connectorToken)
         }
@@ -131,6 +133,14 @@ class ManualAppRegistrationHandler(private val context: Context) {
         }
 
         sendUiAction(context, UiActions.RefreshRegistrations)
+    }
+
+    private fun isLikelyNewManualApp(connectorToken: String): Boolean {
+        val app = DatabaseFactory.getDb(context)
+            .listApps()
+            .find { it.connectorToken == connectorToken }
+            ?: return false
+        return DescriptionParser.isManualApp(app.description) && app.endpoint.isNullOrBlank()
     }
 
     private fun rollback(connectorToken: String) {
