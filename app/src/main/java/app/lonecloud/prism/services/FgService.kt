@@ -39,7 +39,11 @@ class FgService : ForegroundService() {
 
     // Force a fresh DB read before the base class checks oneOrMore() to avoid stale
     // in-memory count from a previous start where the DB was empty (e.g. fresh install).
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int
+    ): Int {
         registrationCounter.refresh(this)
         return super.onStartCommand(intent, flags, startId)
     }

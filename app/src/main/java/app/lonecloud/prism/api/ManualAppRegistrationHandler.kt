@@ -101,7 +101,7 @@ class ManualAppRegistrationHandler(private val context: Context) {
     private fun onRegistrationSuccess(appTitle: String?, connectorToken: String) {
         Log.d(TAG, "Successfully registered '$appTitle' with Prism server")
         PrismPreferences(context).removePendingManualToken(connectorToken)
-        sendUiAction(context, UiActions.RefreshRegistrations)
+        sendUiAction(context, UiActions.REFRESH_REGISTRATIONS)
     }
 
     fun handleFailure(
@@ -132,7 +132,7 @@ class ManualAppRegistrationHandler(private val context: Context) {
             ).show()
         }
 
-        sendUiAction(context, UiActions.RefreshRegistrations)
+        sendUiAction(context, UiActions.REFRESH_REGISTRATIONS)
     }
 
     private fun isLikelyNewManualApp(connectorToken: String): Boolean {

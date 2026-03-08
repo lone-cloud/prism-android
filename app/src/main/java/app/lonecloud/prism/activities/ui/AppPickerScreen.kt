@@ -133,8 +133,11 @@ fun AppPickerScreen(
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            val showPrismAppsSection = showContent && prismAppsLoaded &&
-                prismServerApps.isNotEmpty() && onSelectPrismApp != null && searchQuery.isBlank()
+            val showPrismAppsSection = showContent &&
+                prismAppsLoaded &&
+                prismServerApps.isNotEmpty() &&
+                onSelectPrismApp != null &&
+                searchQuery.isBlank()
             if (showPrismAppsSection) {
                 item {
                     Text(

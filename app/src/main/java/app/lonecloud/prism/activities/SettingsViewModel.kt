@@ -11,8 +11,8 @@ import app.lonecloud.prism.BuildConfig
 import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.activities.ui.SettingsState
-import app.lonecloud.prism.utils.UiActions
 import app.lonecloud.prism.receivers.PrismConfigReceiver
+import app.lonecloud.prism.utils.UiActions
 import app.lonecloud.prism.utils.normalizeUrl
 import kotlinx.coroutines.launch
 import org.unifiedpush.android.distributor.ipc.InternalMessenger
@@ -89,7 +89,7 @@ class SettingsViewModel(
                 }
 
                 if (sendAction) {
-                    sendUiAction(app, UiActions.UpdatePrismServerConfigured)
+                    sendUiAction(app, UiActions.UPDATE_PRISM_SERVER_CONFIGURED)
                 }
             }
         }
@@ -108,7 +108,7 @@ class SettingsViewModel(
                 }
 
                 if (sendAction) {
-                    sendUiAction(app, UiActions.UpdatePrismServerConfigured)
+                    sendUiAction(app, UiActions.UPDATE_PRISM_SERVER_CONFIGURED)
                 }
             }
         }
@@ -137,7 +137,7 @@ class SettingsViewModel(
                     PrismServerClient.registerAllApps(app)
                 }
 
-                sendUiAction(app, UiActions.UpdatePrismServerConfigured)
+                sendUiAction(app, UiActions.UPDATE_PRISM_SERVER_CONFIGURED)
             }
         }
     }

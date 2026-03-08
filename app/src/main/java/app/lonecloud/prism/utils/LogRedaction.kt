@@ -2,7 +2,11 @@ package app.lonecloud.prism.utils
 
 import java.net.URI
 
-fun redactIdentifier(value: String?, visiblePrefix: Int = 4, visibleSuffix: Int = 3): String {
+fun redactIdentifier(
+    value: String?,
+    visiblePrefix: Int = 4,
+    visibleSuffix: Int = 3
+): String {
     if (value.isNullOrBlank()) return "<none>"
     val trimmed = value.trim()
     if (trimmed.length <= visiblePrefix + visibleSuffix + 1) return "***"

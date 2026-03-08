@@ -63,10 +63,9 @@ class EncryptionKeyStore(context: Context) {
         }
     }
 
-    fun hasKeys(channelId: String): Boolean =
-        sharedPreferences.contains(keyFor(channelId, KEY_PRIVATE)) &&
-            sharedPreferences.contains(keyFor(channelId, KEY_AUTH)) &&
-            sharedPreferences.contains(keyFor(channelId, KEY_PUBLIC))
+    fun hasKeys(channelId: String): Boolean = sharedPreferences.contains(keyFor(channelId, KEY_PRIVATE)) &&
+        sharedPreferences.contains(keyFor(channelId, KEY_AUTH)) &&
+        sharedPreferences.contains(keyFor(channelId, KEY_PUBLIC))
 
     private fun keyFor(channelId: String, suffix: String): String = "$PREF_PREFIX$channelId$suffix"
 

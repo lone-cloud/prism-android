@@ -129,10 +129,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         }
     }
 
-    private fun decryptNotificationData(
-        channelID: String,
-        encryptedData: ByteArray
-    ): ByteArray {
+    private fun decryptNotificationData(channelID: String, encryptedData: ByteArray): ByteArray {
         val keys = EncryptionKeyStore(context).getKeys(channelID) ?: run {
             Log.d(TAG, "No encryption keys found for manual channel=${redactIdentifier(channelID)}, message may be unencrypted")
             return encryptedData
@@ -226,7 +223,10 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
                 PrismPreferences(context).removePendingChannelDeletion(message.channelID)
                 return
             }
-            Log.w(TAG, "Received unregister for manual channel ${redactIdentifier(message.channelID)}; re-registering instead of deleting app")
+            Log.w(
+                TAG,
+                "Received unregister for manual channel ${redactIdentifier(message.channelID)}; re-registering instead of deleting app"
+            )
             ClientMessage.Register(
                 channelID = message.channelID,
                 key = vapidKey

@@ -20,10 +20,8 @@ object DatabaseFactory {
 
     private val db: AtomicReference<Database?> = AtomicReference(null)
 
-    fun getDb(context: Context): Database {
-        return db.get() ?: run {
-            val newDb = MainDatabase(context.applicationContext)
-            if (db.compareAndSet(null, newDb)) newDb else db.get()!!
-        }
+    fun getDb(context: Context): Database = db.get() ?: run {
+        val newDb = MainDatabase(context.applicationContext)
+        if (db.compareAndSet(null, newDb)) newDb else db.get()!!
     }
 }
