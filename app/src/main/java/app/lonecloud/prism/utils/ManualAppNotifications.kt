@@ -4,9 +4,9 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.pm.PackageManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -196,11 +196,7 @@ object ManualAppNotifications {
         }
     }
 
-    private fun cancelGroupSummaries(
-        notificationManager: NotificationManager,
-        connectorToken: String
-    ) {
-
+    private fun cancelGroupSummaries(notificationManager: NotificationManager, connectorToken: String) {
         summaryNotificationIds.remove(connectorToken)?.let { summaryId ->
             notificationManager.cancel(summaryId)
         }

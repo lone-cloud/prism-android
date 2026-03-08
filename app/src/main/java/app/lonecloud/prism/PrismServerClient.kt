@@ -20,10 +20,7 @@ import org.json.JSONObject
 object PrismServerClient {
     private const val TAG = "PrismServerClient"
 
-    private data class ServerConfig(
-        val serverUrl: String,
-        val apiKey: String
-    )
+    private data class ServerConfig(val serverUrl: String, val apiKey: String)
 
     data class WebPushRegistration(
         val connectorToken: String,
@@ -73,7 +70,12 @@ object PrismServerClient {
                         Log.d(TAG, "registerApp: restored endpoint for token=${redactIdentifier(registration.connectorToken)}")
                     }
 
-                Log.d(TAG, "registerApp decision: token=${redactIdentifier(registration.connectorToken)} existingSub=${!existingSubscriptionId.isNullOrBlank()} endpointMatch=${knownEndpoint == registration.webpushUrl}")
+                Log.d(
+                    TAG,
+                    "registerApp decision: token=${redactIdentifier(
+                        registration.connectorToken
+                    )} existingSub=${!existingSubscriptionId.isNullOrBlank()} endpointMatch=${knownEndpoint == registration.webpushUrl}"
+                )
 
                 if (!existingSubscriptionId.isNullOrBlank() && knownEndpoint == registration.webpushUrl) {
                     Log.d(TAG, "registerApp: skipping duplicate create for ${registration.appName} (endpoint unchanged)")
@@ -82,10 +84,16 @@ object PrismServerClient {
                 }
 
                 deleteStaleSubscription(serverUrl, apiKey, store, registration, existingSubscriptionId, knownEndpoint)
-                    .onFailure { withContext(Dispatchers.Main) { onError(it.message ?: "Failed to replace subscription") }; return@launch }
+                    .onFailure {
+                        withContext(Dispatchers.Main) { onError(it.message ?: "Failed to replace subscription") }
+                        return@launch
+                    }
 
                 postSubscription(serverUrl, apiKey, store, registration, requireNotNull(registration.vapidPrivateKey))
-                    .onSuccess { Log.d(TAG, "Successfully registered app: ${registration.appName} (ID: ${redactIdentifier(it)})"); withContext(Dispatchers.Main) { onSuccess() } }
+                    .onSuccess {
+                        Log.d(TAG, "Successfully registered app: ${registration.appName} (ID: ${redactIdentifier(it)})")
+                        withContext(Dispatchers.Main) { onSuccess() }
+                    }
                     .onFailure { withContext(Dispatchers.Main) { onError(it.message ?: "Failed to register app") } }
             } catch (e: IOException) {
                 val error = "Error registering app: ${e.message}"
@@ -106,7 +114,10 @@ object PrismServerClient {
         if (existingSubscriptionId.isNullOrBlank() || knownEndpoint.isNullOrBlank() || knownEndpoint == registration.webpushUrl) {
             return Result.success(Unit)
         }
-        Log.w(TAG, "registerApp: endpoint changed for ${registration.appName}, replacing subscription ${redactIdentifier(existingSubscriptionId)}")
+        Log.w(
+            TAG,
+            "registerApp: endpoint changed for ${registration.appName}, replacing subscription ${redactIdentifier(existingSubscriptionId)}"
+        )
         val request = Request.Builder()
             .url("$serverUrl/api/v1/webpush/subscriptions/$existingSubscriptionId")
             .addHeader("Authorization", getAuthHeader(apiKey))

@@ -24,7 +24,7 @@ object MainRegistrationCounter : RegistrationCounter() {
 
     override fun onCountRefreshed(context: Context) {
         ForegroundNotification(context).update()
-        sendUiAction(context, UiActions.RefreshRegistrations)
+        sendUiAction(context, UiActions.REFRESH_REGISTRATIONS)
     }
 
     override fun getDb(context: Context): Database = DatabaseFactory.getDb(context)

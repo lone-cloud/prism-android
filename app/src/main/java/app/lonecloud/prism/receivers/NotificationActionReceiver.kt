@@ -133,12 +133,11 @@ class NotificationActionReceiver : BroadcastReceiver() {
             normalizedPort(base) == normalizedPort(candidate)
     }
 
-    private fun normalizedPort(uri: URI): Int =
-        when {
-            uri.port != -1 -> uri.port
-            uri.scheme.equals("https", ignoreCase = true) -> 443
-            else -> 80
-        }
+    private fun normalizedPort(uri: URI): Int = when {
+        uri.port != -1 -> uri.port
+        uri.scheme.equals("https", ignoreCase = true) -> 443
+        else -> 80
+    }
 
     companion object {
         private val SUPPORTED_METHODS = setOf("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE")
