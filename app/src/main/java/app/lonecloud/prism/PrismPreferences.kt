@@ -1,10 +1,7 @@
 package app.lonecloud.prism
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.core.content.edit
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
 import org.unifiedpush.android.distributor.MigrationManager
 import org.unifiedpush.android.distributor.Store
 
@@ -12,18 +9,11 @@ class PrismPreferences(private val context: Context) :
     Store(context, PREF_NAME),
     MigrationManager.MigrationStore {
 
-    private val securePreferences: SharedPreferences by lazy {
-        val masterKey = MasterKey.Builder(context.applicationContext)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-        EncryptedSharedPreferences.create(
-            context.applicationContext,
-            SECURE_PREF_NAME,
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-    }
+    private val securePreferences = SecureStringPreferences(
+        context = context,
+        prefName = SECURE_PREF_NAME,
+        keyAlias = SECURE_PREF_KEY_ALIAS
+    )
     var uaid: String?
         get() = sharedPreferences
             .getString(PREF_UAID, null)
@@ -107,9 +97,7 @@ class PrismPreferences(private val context: Context) :
 
     var prismApiKey: String?
         get() = securePreferences.getString(PREF_PRISM_API_KEY, null)
-        set(value) = securePreferences.edit {
-            if (value == null) remove(PREF_PRISM_API_KEY) else putString(PREF_PRISM_API_KEY, value)
-        }
+        set(value) = securePreferences.putString(PREF_PRISM_API_KEY, value)
 
     var introCompleted: Boolean
         get() = sharedPreferences
@@ -169,13 +157,13 @@ class PrismPreferences(private val context: Context) :
     }
 
     fun setVapidPrivateKey(connectorToken: String, privateKey: String) {
-        securePreferences.edit(commit = true) { putString("vapid_private_$connectorToken", privateKey) }
+        securePreferences.putString("vapid_private_$connectorToken", privateKey)
     }
 
     fun getVapidPrivateKey(connectorToken: String): String? = securePreferences.getString("vapid_private_$connectorToken", null)
 
     fun removeVapidPrivateKey(connectorToken: String) {
-        securePreferences.edit(commit = true) { remove("vapid_private_$connectorToken") }
+        securePreferences.remove("vapid_private_$connectorToken")
     }
 
     fun addPendingChannelDeletion(channelId: String) {
@@ -225,6 +213,7 @@ class PrismPreferences(private val context: Context) :
     companion object {
         internal const val PREF_NAME = "Prism"
         private const val SECURE_PREF_NAME = "PrismSecure"
+        private const val SECURE_PREF_KEY_ALIAS = "prism_secure_preferences"
         private const val PREF_UAID = "uaid"
         private const val PREF_API_URL = "api_url"
         private const val PREF_FALLBACK_INTRO_SHOWN = "fallback_intro_shown"

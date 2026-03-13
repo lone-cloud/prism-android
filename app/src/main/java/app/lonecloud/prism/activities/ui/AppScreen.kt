@@ -124,6 +124,7 @@ fun App(
                             }
                         )
                     }
+
                     AppScreen.RegistrationDetails -> {
                         AppBar(
                             title = R.string.registration_details_title,
@@ -143,6 +144,7 @@ fun App(
                             }
                         )
                     }
+
                     else -> null
                 } ?: DefaultTopBar(
                     currentScreen,

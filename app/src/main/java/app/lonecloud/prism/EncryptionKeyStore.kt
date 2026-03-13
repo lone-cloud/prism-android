@@ -1,11 +1,8 @@
 package app.lonecloud.prism
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.util.Base64
-import androidx.core.content.edit
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
+
 class EncryptionKeyStore(context: Context) {
 
     data class EncryptionKeys(
@@ -14,18 +11,11 @@ class EncryptionKeyStore(context: Context) {
         val p256dh: String
     )
 
-    private val sharedPreferences: SharedPreferences = run {
-        val masterKey = MasterKey.Builder(context.applicationContext)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-        EncryptedSharedPreferences.create(
-            context.applicationContext,
-            PREF_NAME,
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-    }
+    private val securePreferences = SecureStringPreferences(
+        context = context,
+        prefName = PREF_NAME,
+        keyAlias = KEY_ALIAS
+    )
 
     fun storeKeys(
         channelId: String,
@@ -33,17 +23,15 @@ class EncryptionKeyStore(context: Context) {
         authSecret: ByteArray,
         publicKey: String
     ) {
-        sharedPreferences.edit(commit = true) {
-            putString(keyFor(channelId, KEY_PRIVATE), base64Encode(privateKey))
-            putString(keyFor(channelId, KEY_AUTH), base64Encode(authSecret))
-            putString(keyFor(channelId, KEY_PUBLIC), publicKey)
-        }
+        securePreferences.putString(keyFor(channelId, KEY_PRIVATE), base64Encode(privateKey))
+        securePreferences.putString(keyFor(channelId, KEY_AUTH), base64Encode(authSecret))
+        securePreferences.putString(keyFor(channelId, KEY_PUBLIC), publicKey)
     }
 
     fun getKeys(channelId: String): EncryptionKeys? {
-        val privateKeyB64 = sharedPreferences.getString(keyFor(channelId, KEY_PRIVATE), null)
-        val authSecretB64 = sharedPreferences.getString(keyFor(channelId, KEY_AUTH), null)
-        val publicKey = sharedPreferences.getString(keyFor(channelId, KEY_PUBLIC), null)
+        val privateKeyB64 = securePreferences.getString(keyFor(channelId, KEY_PRIVATE), null)
+        val authSecretB64 = securePreferences.getString(keyFor(channelId, KEY_AUTH), null)
+        val publicKey = securePreferences.getString(keyFor(channelId, KEY_PUBLIC), null)
 
         if (privateKeyB64 == null || authSecretB64 == null || publicKey == null) return null
 
@@ -56,16 +44,14 @@ class EncryptionKeyStore(context: Context) {
     }
 
     fun deleteKeys(channelId: String) {
-        sharedPreferences.edit(commit = true) {
-            remove(keyFor(channelId, KEY_PRIVATE))
-            remove(keyFor(channelId, KEY_AUTH))
-            remove(keyFor(channelId, KEY_PUBLIC))
-        }
+        securePreferences.remove(keyFor(channelId, KEY_PRIVATE))
+        securePreferences.remove(keyFor(channelId, KEY_AUTH))
+        securePreferences.remove(keyFor(channelId, KEY_PUBLIC))
     }
 
-    fun hasKeys(channelId: String): Boolean = sharedPreferences.contains(keyFor(channelId, KEY_PRIVATE)) &&
-        sharedPreferences.contains(keyFor(channelId, KEY_AUTH)) &&
-        sharedPreferences.contains(keyFor(channelId, KEY_PUBLIC))
+    fun hasKeys(channelId: String): Boolean = securePreferences.contains(keyFor(channelId, KEY_PRIVATE)) &&
+        securePreferences.contains(keyFor(channelId, KEY_AUTH)) &&
+        securePreferences.contains(keyFor(channelId, KEY_PUBLIC))
 
     private fun keyFor(channelId: String, suffix: String): String = "$PREF_PREFIX$channelId$suffix"
 
@@ -75,6 +61,7 @@ class EncryptionKeyStore(context: Context) {
 
     companion object {
         private const val PREF_NAME = "WebPushEncryptionKeys"
+        private const val KEY_ALIAS = "prism_webpush_encryption_keys"
         private const val PREF_PREFIX = "channel_"
         private const val KEY_PRIVATE = "_private"
         private const val KEY_AUTH = "_auth"

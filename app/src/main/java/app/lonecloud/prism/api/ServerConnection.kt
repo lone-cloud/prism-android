@@ -14,6 +14,7 @@ import android.os.Looper
 import android.util.Base64
 import android.util.Log
 import android.widget.Toast
+import app.lonecloud.prism.BuildConfig
 import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.Distributor
 import app.lonecloud.prism.Distributor.sendMessage
@@ -49,7 +50,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     fun start(): WebSocket {
         val url = ApiUrlCandidate.getTest() ?: store.apiUrl
         val uaid = store.uaid
-        Log.d(TAG, "Connecting to ${redactUrl(url)} [uaid?=${uaid != null}]")
+        debugLog { "Connecting to ${redactUrl(url)} [uaid?=${uaid != null}]" }
         val request = Request.Builder()
             .url(url)
             .build()
@@ -62,39 +63,45 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     override fun onOpen(webSocket: WebSocket, response: Response) {
         SourceManager.setConnected(context, webSocket)
         releaseLock()
-        Log.d(TAG, "onOpen: " + response.code)
+        debugLog { "onOpen: ${response.code}" }
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
         val message = ServerMessage.deserialize(text) ?: run {
-            Log.d(TAG, "Couldn't deserialize incoming server message")
+            debugLog { "Couldn't deserialize incoming server message" }
             return
         }
-        Log.d(TAG, "New message: ${message::class.java.simpleName}")
+        debugLog { "New message: ${message::class.java.simpleName}" }
         lastEventDate = Calendar.getInstance()
         when (message) {
             is ServerMessage.Broadcast -> ignoreEvent()
+
             is ServerMessage.Hello -> onHello(webSocket, message)
+
             is ServerMessage.Notification -> onNotification(webSocket, message)
+
             ServerMessage.Ping -> onPing(webSocket)
+
             is ServerMessage.Register -> onRegister(message)
+
             is ServerMessage.Unregister -> onUnregister(webSocket, message)
+
             is ServerMessage.Urgency -> {
-                Log.d(TAG, "Urgency status=${message.status}")
+                debugLog { "Urgency status=${message.status}" }
             }
         }
     }
 
     private fun ignoreEvent() {
-        Log.d(TAG, "Ignoring event")
+        debugLog { "Ignoring event" }
     }
 
     private fun onHello(webSocket: WebSocket, message: ServerMessage.Hello) {
-        Log.d(TAG, "Hello")
+        debugLog { "Hello" }
         SourceManager.debugStarted()
         ApiUrlCandidate.finish(context)?.let {
             store.apiUrl = it
-            Log.d(TAG, "Successfully using ${redactUrl(it)}")
+            debugLog { "Successfully using ${redactUrl(it)}" }
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(
                     context,
@@ -105,7 +112,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         }
         val db = DatabaseFactory.getDb(context)
         if (message.uaid != store.uaid) {
-            Log.d(TAG, "We received a new uaid")
+            debugLog { "We received a new uaid" }
             store.uaid = message.uaid
             db.listChannelIdVapid().forEach { pair ->
                 ClientMessage.Register(
@@ -116,11 +123,11 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             db.deleteDisabledApps()
         } else {
             db.listDisabledChannelIds().forEach {
-                Log.d(TAG, "Hello, unregistering $it")
+                debugLog { "Hello, unregistering $it" }
                 ClientMessage.Unregister(channelID = it).send(webSocket)
             }
             db.listPendingChannelIdVapid().forEach { pair ->
-                Log.d(TAG, "Hello, registering channel=${redactIdentifier(pair.first)}")
+                debugLog { "Hello, registering channel=${redactIdentifier(pair.first)}" }
                 ClientMessage.Register(
                     channelID = pair.first,
                     key = pair.second
@@ -131,7 +138,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
 
     private fun decryptNotificationData(channelID: String, encryptedData: ByteArray): ByteArray {
         val keys = EncryptionKeyStore(context).getKeys(channelID) ?: run {
-            Log.d(TAG, "No encryption keys found for manual channel=${redactIdentifier(channelID)}, message may be unencrypted")
+            debugLog { "No encryption keys found for manual channel=${redactIdentifier(channelID)}, message may be unencrypted" }
             return encryptedData
         }
         val publicKeyBytes = Base64.decode(keys.p256dh, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
@@ -169,7 +176,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
             val payload = NotificationPayload.fromJson(dataString)
 
             if (payload != null) {
-                Log.d(TAG, "Displaying notification for manual app '${app.title}': ${payload.title}")
+                debugLog { "Displaying notification for manual app '${app.title}': ${payload.title}" }
                 ManualAppNotifications.showNotification(
                     context,
                     message.channelID,
@@ -192,15 +199,15 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
     private fun onPing(webSocket: WebSocket) {
         SourceManager.debugNewPing(context)
         if (!waitingPong.getAndSet(false)) {
-            Log.d(TAG, "Sending Pong")
+            debugLog { "Sending Pong" }
             ClientMessage.Ping.send(webSocket)
         } else {
-            Log.d(TAG, "Received Pong")
+            debugLog { "Received Pong" }
         }
     }
 
     private fun onRegister(message: ServerMessage.Register) {
-        Log.d(TAG, "New endpoint received for channel=${redactIdentifier(message.channelID)}")
+        debugLog { "New endpoint received for channel=${redactIdentifier(message.channelID)}" }
         Distributor.finishRegistration(
             context,
             ChannelCreationStatus.Ok(message.channelID, message.pushEndpoint)
@@ -219,7 +226,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         if (isManualChannel) {
             val vapidKey = channelVapidPair.second
             if (PrismPreferences(context).isPendingChannelDeletion(message.channelID)) {
-                Log.d(TAG, "Channel ${redactIdentifier(message.channelID)} is pending deletion, skipping re-registration")
+                debugLog { "Channel ${redactIdentifier(message.channelID)} is pending deletion, skipping re-registration" }
                 PrismPreferences(context).removePendingChannelDeletion(message.channelID)
                 return
             }
@@ -241,7 +248,7 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         code: Int,
         reason: String
     ) {
-        Log.d(TAG, "onClosed: $webSocket")
+        debugLog { "onClosed: $webSocket" }
         webSocket.cancel()
         releaseLock()
         if (shouldRestart() && SourceManager.addFail(context, webSocket)) {
@@ -255,23 +262,23 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         t: Throwable,
         response: Response?
     ) {
-        Log.d(TAG, "onFailure: An error occurred: $t")
+        debugLog { "onFailure: An error occurred: $t" }
         response?.let {
-            Log.d(TAG, "onFailure: ${it.code}")
+            debugLog { "onFailure: ${it.code}" }
         }
         releaseLock()
         if (failToUseUrlCandidate(context)) return
         if (!shouldRestart()) return
         if (SourceManager.addFail(context, webSocket)) {
             val delay = SourceManager.getTimeout() ?: return
-            Log.d(TAG, "Retrying in $delay ms")
+            debugLog { "Retrying in $delay ms" }
             RestartWorker.run(context, delay = delay)
         }
     }
 
     private fun failToUseUrlCandidate(context: Context): Boolean {
         ApiUrlCandidate.finish(context)?.let { url ->
-            Log.d(TAG, "Fail to use ${redactUrl(url)}")
+            debugLog { "Fail to use ${redactUrl(url)}" }
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(
                     context,
@@ -285,22 +292,23 @@ class ServerConnection(private val context: Context, private val releaseLock: ()
         return false
     }
 
-    /**
-     * Check if service is started and if there is internet if the service has not started.
-     *
-     * @return [FgService.isServiceStarted]
-     */
     @Suppress("ReturnCount")
     private fun shouldRestart(): Boolean {
         if (!FgService.isServiceStarted()) {
-            Log.d(TAG, "StartService not started")
+            debugLog { "StartService not started" }
             return false
         }
         if (!NetworkCallbackFactory.hasInternet()) {
-            Log.d(TAG, "No Internet: do not restart")
+            debugLog { "No Internet: do not restart" }
             return false
         }
         return true
+    }
+
+    private inline fun debugLog(message: () -> String) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, message())
+        }
     }
 
     companion object {

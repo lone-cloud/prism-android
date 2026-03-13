@@ -87,6 +87,7 @@ fun MainScreen(
         uiActionsFlow?.collect { action ->
             when (action) {
                 UiActions.REFRESH_REGISTRATIONS -> viewModel.refreshRegistrations()
+
                 UiActions.UPDATE_PRISM_SERVER_CONFIGURED -> {
                     viewModel.application?.let { app ->
                         val store = PrismPreferences(app)

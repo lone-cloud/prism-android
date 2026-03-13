@@ -9,6 +9,7 @@ import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.utils.HttpClientFactory
 import app.lonecloud.prism.utils.ManualAppNotifications
 import app.lonecloud.prism.utils.TAG
+import app.lonecloud.prism.utils.redactIdentifier
 import java.io.IOException
 import java.net.URI
 import java.util.Locale
@@ -40,7 +41,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
             }
         }
 
-        Log.d(TAG, "Notification action triggered: $actionLabel ($actionID) for channel $channelID")
+        Log.d(TAG, "Notification action triggered: $actionLabel ($actionID) for channel=${redactIdentifier(channelID)}")
 
         if (notificationTag.isNotEmpty()) {
             ManualAppNotifications.dismissNotification(context, notificationTag, connectorToken)
@@ -51,13 +52,17 @@ class NotificationActionReceiver : BroadcastReceiver() {
             try {
                 executeAction(context, actionEndpoint, actionMethod, data)
             } catch (e: IOException) {
-                Log.e(TAG, "Failed to execute notification action: ${e.message}", e)
+                logActionFailure(e)
             } catch (e: IllegalArgumentException) {
-                Log.e(TAG, "Failed to execute notification action: ${e.message}", e)
+                logActionFailure(e)
             } finally {
                 pendingResult.finish()
             }
         }
+    }
+
+    private fun logActionFailure(error: Exception) {
+        Log.e(TAG, "Failed to execute notification action: ${error.message}", error)
     }
 
     private fun executeAction(

@@ -11,6 +11,10 @@ detekt {
     buildUponDefaultConfig = true
 }
 
+ktlint {
+    version.set("1.8.0")
+}
+
 android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
@@ -108,6 +112,5 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.ui.tooling.preview.android)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.security.crypto)
     debugImplementation(libs.androidx.ui.tooling)
 }

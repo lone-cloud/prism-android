@@ -140,7 +140,11 @@ sealed class ServerMessage {
                         null
                     }
                 } catch (innerE: SerializationException) {
-                    android.util.Log.w("ServerMessage", "Failed to deserialize: $jsonStr", innerE)
+                    android.util.Log.w(
+                        "ServerMessage",
+                        "Failed to deserialize server message (length=${jsonStr.length})",
+                        innerE
+                    )
                     null
                 }
             }
