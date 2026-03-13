@@ -20,13 +20,17 @@ class ViewModelFactory(val application: Application, val messenger: InternalMess
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
         modelClass.isAssignableFrom(MainViewModel::class.java) -> MainViewModel(requireBatteryOptimization, messenger, application)
+
         modelClass.isAssignableFrom(SettingsViewModel::class.java) -> SettingsViewModel(messenger, application)
+
         modelClass.isAssignableFrom(ThemeViewModel::class.java) -> ThemeViewModel(messenger, application)
+
         modelClass.isAssignableFrom(DistribMigrationViewModel::class.java) -> DistribMigrationViewModel(
             DistribMigrationState(),
             PrismConfig,
             messenger
         )
+
         else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     } as T
 }
@@ -48,6 +52,7 @@ class PreviewFactory(val context: Context) : ViewModelProvider.Factory {
                 null
             )
         }
+
         modelClass.isAssignableFrom(SettingsViewModel::class.java) -> {
             SettingsViewModel(
                 SettingsState(
@@ -60,7 +65,9 @@ class PreviewFactory(val context: Context) : ViewModelProvider.Factory {
                 null
             )
         }
+
         modelClass.isAssignableFrom(ThemeViewModel::class.java) -> ThemeViewModel(null, null)
+
         modelClass.isAssignableFrom(DistribMigrationViewModel::class.java) -> {
             DistribMigrationViewModel(
                 DistribMigrationState(),
@@ -68,6 +75,7 @@ class PreviewFactory(val context: Context) : ViewModelProvider.Factory {
                 null
             )
         }
+
         else -> throw IllegalArgumentException("Unknown ViewModel class")
     } as T
 }

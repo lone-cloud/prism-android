@@ -18,10 +18,12 @@ class PrismConfigReceiver : BroadcastReceiver() {
                 val url = intent.getStringExtra(EXTRA_URL) ?: ""
                 store.prismServerUrl = url
             }
+
             ACTION_SET_PRISM_API_KEY -> {
                 val apiKey = intent.getStringExtra(EXTRA_API_KEY) ?: ""
                 store.prismApiKey = apiKey
             }
+
             ACTION_SET_PUSH_SERVICE_URL -> {
                 val url = intent.getStringExtra(EXTRA_URL) ?: ""
                 if (url.isBlank()) {

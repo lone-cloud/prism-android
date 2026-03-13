@@ -9,14 +9,12 @@
 package app.lonecloud.prism.activities
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lonecloud.prism.activities.ui.App
 import app.lonecloud.prism.activities.ui.theme.AppTheme
-import app.lonecloud.prism.utils.TAG
 import org.unifiedpush.android.distributor.ipc.InternalMessenger
 
 class MainActivity : ComponentActivity() {
@@ -38,10 +36,5 @@ class MainActivity : ComponentActivity() {
                 App(factory, themeViewModel)
             }
         }
-    }
-
-    override fun onDestroy() {
-        Log.d(TAG, "Destroy")
-        super.onDestroy()
     }
 }

@@ -42,7 +42,7 @@ object PrismServerClient {
         val config = resolveServerConfig(context)
         if (config == null) {
             val error = "Prism server not configured"
-            Log.d(TAG, "$error, skipping registration")
+            debugLog { "$error, skipping registration" }
             onError(error)
             return
         }
@@ -62,23 +62,22 @@ object PrismServerClient {
                 val existingSubscriptionId = store.getSubscriptionId(registration.connectorToken)
                     ?: getSubscriptionIdFromDb(context, registration.connectorToken)?.also {
                         store.setSubscriptionId(registration.connectorToken, it)
-                        Log.d(TAG, "registerApp: restored subscriptionId for token=${redactIdentifier(registration.connectorToken)}")
+                        debugLog { "registerApp: restored subscriptionId for token=${redactIdentifier(registration.connectorToken)}" }
                     }
                 val knownEndpoint = store.getRegisteredEndpoint(registration.connectorToken)
                     ?: getEndpointFromDb(context, registration.connectorToken)?.also {
                         store.setRegisteredEndpoint(registration.connectorToken, it)
-                        Log.d(TAG, "registerApp: restored endpoint for token=${redactIdentifier(registration.connectorToken)}")
+                        debugLog { "registerApp: restored endpoint for token=${redactIdentifier(registration.connectorToken)}" }
                     }
 
-                Log.d(
-                    TAG,
+                debugLog {
                     "registerApp decision: token=${redactIdentifier(
                         registration.connectorToken
                     )} existingSub=${!existingSubscriptionId.isNullOrBlank()} endpointMatch=${knownEndpoint == registration.webpushUrl}"
-                )
+                }
 
                 if (!existingSubscriptionId.isNullOrBlank() && knownEndpoint == registration.webpushUrl) {
-                    Log.d(TAG, "registerApp: skipping duplicate create for ${registration.appName} (endpoint unchanged)")
+                    debugLog { "registerApp: skipping duplicate create for ${registration.appName} (endpoint unchanged)" }
                     withContext(Dispatchers.Main) { onSuccess() }
                     return@launch
                 }
@@ -91,7 +90,7 @@ object PrismServerClient {
 
                 postSubscription(serverUrl, apiKey, store, registration, requireNotNull(registration.vapidPrivateKey))
                     .onSuccess {
-                        Log.d(TAG, "Successfully registered app: ${registration.appName} (ID: ${redactIdentifier(it)})")
+                        debugLog { "Successfully registered app: ${registration.appName} (ID: ${redactIdentifier(it)})" }
                         withContext(Dispatchers.Main) { onSuccess() }
                     }
                     .onFailure { withContext(Dispatchers.Main) { onError(it.message ?: "Failed to register app") } }
@@ -155,7 +154,7 @@ object PrismServerClient {
             .addHeader("Content-Type", "application/json")
             .post(json.toString().toRequestBody("application/json".toMediaType()))
             .build()
-        Log.d(TAG, "Registering app with Prism server: ${registration.appName}")
+        debugLog { "Registering app with Prism server: ${registration.appName}" }
         HttpClientFactory.shared.newCall(request).execute().use { response ->
             if (response.isSuccessful) {
                 return try {
@@ -178,7 +177,7 @@ object PrismServerClient {
     fun registerAllApps(context: Context) {
         val config = resolveServerConfig(context)
         if (config == null) {
-            Log.d(TAG, "Prism server not configured, skipping bulk registration")
+            debugLog { "Prism server not configured, skipping bulk registration" }
             return
         }
         val store = PrismPreferences(context)
@@ -189,7 +188,7 @@ object PrismServerClient {
                 val manualApps = listManualApps(context)
                 val channelByVapid = db.listChannelIdVapid().associate { (channelId, vapid) -> vapid to channelId }
 
-                Log.d(TAG, "Registering ${manualApps.size} manual apps with Prism server")
+                debugLog { "Registering ${manualApps.size} manual apps with Prism server" }
 
                 manualApps.forEach { app ->
                     app.endpoint?.let { endpoint ->
@@ -235,7 +234,7 @@ object PrismServerClient {
         val config = resolveServerConfig(context, serverUrl, apiKey)
 
         if (config == null) {
-            Log.d(TAG, "Prism server not configured, skipping deletion")
+            debugLog { "Prism server not configured, skipping deletion" }
             return
         }
         val (url, key) = config
@@ -314,7 +313,7 @@ object PrismServerClient {
         val config = resolveServerConfig(context, serverUrl, apiKey)
 
         if (config == null) {
-            Log.d(TAG, "Prism server not configured, skipping bulk deletion")
+            debugLog { "Prism server not configured, skipping bulk deletion" }
             return
         }
         val (url, key) = config
@@ -323,7 +322,7 @@ object PrismServerClient {
             try {
                 val manualApps = listManualApps(context)
 
-                Log.d(TAG, "Deleting ${manualApps.size} manual apps from Prism server")
+                debugLog { "Deleting ${manualApps.size} manual apps from Prism server" }
 
                 manualApps.forEach { app ->
                     deleteApp(context, app.connectorToken, url, key)
@@ -430,4 +429,10 @@ object PrismServerClient {
     private fun listManualApps(context: Context) = DatabaseFactory.getDb(context)
         .listApps()
         .filter { DescriptionParser.isManualApp(it.description) }
+
+    private inline fun debugLog(message: () -> String) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, message())
+        }
+    }
 }

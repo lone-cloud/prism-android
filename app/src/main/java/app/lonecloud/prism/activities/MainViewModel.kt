@@ -20,6 +20,7 @@ import app.lonecloud.prism.utils.ManualAppNotifications
 import app.lonecloud.prism.utils.TAG
 import app.lonecloud.prism.utils.VapidKeyGenerator
 import app.lonecloud.prism.utils.WebPushEncryptionKeys
+import app.lonecloud.prism.utils.redactIdentifier
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -208,7 +209,7 @@ class MainViewModel(
                 val channelId = UUID.randomUUID().toString()
                 val connectorToken = "manual_app_${UUID.randomUUID()}"
 
-                Log.d(TAG, "Creating manual app: $name, token: $connectorToken")
+                Log.d(TAG, "Creating manual app: $name, token=${redactIdentifier(connectorToken)}")
 
                 val vapidKeys = VapidKeyGenerator.generateKeyPair()
                 val encryptionKeys = WebPushEncryptionKeys.generateKeySet()
