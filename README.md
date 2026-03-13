@@ -12,6 +12,10 @@ A [UnifiedPush](https://unifiedpush.org/) distributor with optional self-hosted 
 
 </div>
 
+## Reproducible builds
+
+Release APKs are [reproducible](https://f-droid.org/docs/Reproducible_Builds/). You can verify that the APK you download matches the source code by building it yourself and comparing the output.
+
 ## APK signature fingerprint
 
 Use this SHA-256 signing certificate fingerprint to verify releases:
