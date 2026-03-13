@@ -28,15 +28,12 @@ android {
 
     compileSdk = 36
 
-    val versionString = rootProject.file("VERSION").readText().trim()
-    val versionCodeInt = rootProject.file("VERSION_CODE").readText().trim().toInt()
-
     defaultConfig {
         applicationId = "app.lonecloud.prism"
         minSdk = 31
         targetSdk = 36
-        versionCode = versionCodeInt
-        versionName = versionString
+        versionCode = 10100
+        versionName = "1.1.0"
 
         buildConfigField("String", "DEFAULT_API_URL", "\"https://push.services.mozilla.com\"")
     }
