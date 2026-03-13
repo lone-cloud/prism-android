@@ -83,6 +83,10 @@ android {
         }
     }
 
+    vcsInfo {
+        include = false
+    }
+
     lint {
         disable += "QueryAllPackagesPermission"
     }
