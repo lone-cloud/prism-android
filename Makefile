@@ -48,7 +48,7 @@ release:
 	$(eval MINOR := $(word 2,$(VERSION_PARTS)))
 	$(eval PATCH := $(word 3,$(VERSION_PARTS)))
 	$(eval VCODE := $(shell echo $$(($(MAJOR) * 10000 + $(MINOR) * 100 + $(PATCH)))))
-	$(eval CHANGELOG := metadata/en-US/changelogs/$(VCODE).txt)
+	$(eval CHANGELOG := fastlane/metadata/android/en-US/changelogs/$(VCODE).txt)
 	@if [[ ! -f "$(CHANGELOG)" ]]; then \
 		$${EDITOR:-nano} "$(CHANGELOG)"; \
 	fi
