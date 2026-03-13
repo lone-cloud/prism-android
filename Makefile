@@ -48,7 +48,8 @@ release:
 	$(eval MINOR := $(word 2,$(VERSION_PARTS)))
 	$(eval PATCH := $(word 3,$(VERSION_PARTS)))
 	$(eval VCODE := $(shell echo $$(($(MAJOR) * 10000 + $(MINOR) * 100 + $(PATCH)))))
-	@echo -n "$(VCODE)" > VERSION_CODE
+	@sed -i 's/versionCode = [0-9]*/versionCode = $(VCODE)/' app/build.gradle.kts
+	@sed -i 's/versionName = "[^"]*"/versionName = "$(shell cat VERSION)"/' app/build.gradle.kts
 	$(eval CHANGELOG := fastlane/metadata/android/en-US/changelogs/$(VCODE).txt)
 	@if [[ ! -f "$(CHANGELOG)" ]]; then \
 		$${EDITOR:-nano} "$(CHANGELOG)"; \
@@ -58,8 +59,8 @@ release:
 		rm -f "$(CHANGELOG)"; \
 		exit 1; \
 	fi
-	git add "$(CHANGELOG)"
-	git diff --cached --quiet || git commit -m "Add changelog for $(TAG)"
+	git add app/build.gradle.kts "$(CHANGELOG)"
+	git diff --cached --quiet || git commit -m "Release $(TAG)"
 	@echo "Releasing $(TAG)"
 	git tag $(TAG)
 	git push origin $(TAG)
