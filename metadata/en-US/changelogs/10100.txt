@@ -1,0 +1,3 @@
+- dep updates
+- logging hardening
+- BREAKING: crypto storage modernization - this change is not backward compatible and requires re-installation

@@ -1,0 +1,12 @@
+Prism is a UnifiedPush distributor and companion app for the self-hosted Prism server.
+
+It provides push notifications to UnifiedPush-compatible apps on your device. When paired with a Prism server, it can also receive notifications sent via the server's ntfy-compatible webhook API or its built-in integrations (Signal, Telegram, Proton Mail).
+
+<b>Prism server features:</b>
+<ul>
+<li>ntfy-compatible webhook API for sending notifications from any source</li>
+<li>Signal, Telegram, and Proton Mail integrations</li>
+<li>End-to-end encrypted WebPush delivery to this app</li>
+<li>Manual apps/topics for custom notification sources</li>
+<li>Material You with light and dark themes</li>
+</ul>
