@@ -1,0 +1,1 @@
+Privacy-first UnifiedPush distributor with an optional self-hosted server

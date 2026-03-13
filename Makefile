@@ -43,6 +43,22 @@ lint:
 release:
 	@gh auth status >/dev/null
 	$(eval TAG := v$(shell cat VERSION))
+	$(eval VERSION_PARTS := $(subst ., ,$(shell cat VERSION)))
+	$(eval MAJOR := $(word 1,$(VERSION_PARTS)))
+	$(eval MINOR := $(word 2,$(VERSION_PARTS)))
+	$(eval PATCH := $(word 3,$(VERSION_PARTS)))
+	$(eval VCODE := $(shell echo $$(($(MAJOR) * 10000 + $(MINOR) * 100 + $(PATCH)))))
+	$(eval CHANGELOG := metadata/en-US/changelogs/$(VCODE).txt)
+	@if [[ ! -f "$(CHANGELOG)" ]]; then \
+		$${EDITOR:-nano} "$(CHANGELOG)"; \
+	fi
+	@if [[ ! -s "$(CHANGELOG)" ]]; then \
+		echo "Aborting: changelog is empty."; \
+		rm -f "$(CHANGELOG)"; \
+		exit 1; \
+	fi
+	git add "$(CHANGELOG)"
+	git diff --cached --quiet || git commit -m "Add changelog for $(TAG)"
 	@echo "Releasing $(TAG)"
 	git tag $(TAG)
 	git push origin $(TAG)
