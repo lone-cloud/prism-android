@@ -6,6 +6,12 @@
 
 A [UnifiedPush](https://unifiedpush.org/) distributor with optional self-hosted [Prism](https://github.com/lone-cloud/prism) server integration.
 
+<a href="https://f-droid.org/packages/app.lonecloud.prism">
+    <img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="80">
+</a>&nbsp;
+<a href="obtainium://add/https://github.com/lone-cloud/prism-android">
+    <img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="60">
+</a>&nbsp;
 <a href="https://github.com/lone-cloud/prism-android/releases">
     <img src="assets/get-it-on-github.png" alt="Get it on GitHub" height="80">
 </a>
