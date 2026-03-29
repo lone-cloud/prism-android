@@ -52,7 +52,7 @@ release:
 	@sed -i 's/versionName = "[^"]*"/versionName = "$(shell cat VERSION)"/' app/build.gradle.kts
 	$(eval CHANGELOG := fastlane/metadata/android/en-US/changelogs/$(VCODE).txt)
 	@if [[ ! -f "$(CHANGELOG)" ]]; then \
-		$${EDITOR:-nano} "$(CHANGELOG)"; \
+		$${EDITOR:-code --wait} "$(CHANGELOG)"; \
 	fi
 	@if [[ ! -s "$(CHANGELOG)" ]]; then \
 		echo "Aborting: changelog is empty."; \
