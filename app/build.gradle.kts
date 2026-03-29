@@ -32,8 +32,8 @@ android {
         applicationId = "app.lonecloud.prism"
         minSdk = 31
         targetSdk = 36
-        versionCode = 10101
-        versionName = "1.1.1"
+        versionCode = 10102
+        versionName = "1.1.2"
 
         buildConfigField("String", "DEFAULT_API_URL", "\"https://push.services.mozilla.com\"")
     }

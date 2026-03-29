@@ -1,0 +1,1 @@
+- Apps from your Prism Server can now be added even if they aren't installed on your phone (e.g. Beszel notifications)
