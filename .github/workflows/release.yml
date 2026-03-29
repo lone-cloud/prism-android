@@ -59,12 +59,22 @@ jobs:
           path: |
             prism.apk
 
+      - name: Resolve changelog path
+        id: changelog
+        run: |
+          VERSION=$(cat VERSION)
+          MAJOR=$(echo $VERSION | cut -d. -f1)
+          MINOR=$(echo $VERSION | cut -d. -f2)
+          PATCH=$(echo $VERSION | cut -d. -f3)
+          VCODE=$(( MAJOR * 10000 + MINOR * 100 + PATCH ))
+          echo "path=fastlane/metadata/android/en-US/changelogs/${VCODE}.txt" >> $GITHUB_OUTPUT
+
       - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.tag }}
           name: Prism ${{ inputs.tag }}
-          generate_release_notes: true
+          body_path: ${{ steps.changelog.outputs.path }}
           files: |
             prism.apk
         env:
