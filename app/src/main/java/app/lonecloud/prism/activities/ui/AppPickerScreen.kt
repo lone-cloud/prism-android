@@ -153,10 +153,16 @@ fun AppPickerScreen(
                         onClick = {
                             if (prismApp.matchedInstalledApp != null) {
                                 onSelect(prismApp.matchedInstalledApp)
-                                onNavigateBack()
                             } else {
-                                searchQuery = prismApp.name
+                                val prismIcon = try {
+                                    context.packageManager.getApplicationIcon(context.packageName)
+                                } catch (_: Exception) {
+                                    null
+                                }
+                                onSelect(InstalledApp(packageName = "", appName = prismApp.name, icon = prismIcon))
+                                onSelectPrismApp(prismApp.name)
                             }
+                            onNavigateBack()
                         }
                     )
                 }
