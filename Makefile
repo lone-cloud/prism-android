@@ -63,6 +63,7 @@ release:
 	git diff --cached --quiet || git commit -m "Release $(TAG)"
 	@echo "Releasing $(TAG)"
 	git tag $(TAG)
+	git push
 	git push origin $(TAG)
 	gh workflow run $(WORKFLOW) --ref $(TAG) -f tag=$(TAG)
 	gh run list --workflow $(WORKFLOW) --limit 1 | cat
