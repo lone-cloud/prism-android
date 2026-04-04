@@ -6,7 +6,9 @@
 
 A [UnifiedPush](https://unifiedpush.org/) distributor with optional self-hosted [Prism](https://github.com/lone-cloud/prism) server integration.
 
-<a href="https://f-droid.org/packages/app.lonecloud.prism" style="text-decoration: none;"><img src="assets/badges/fdroid-badge.png" alt="Get it on F-Droid" height="50" /></a><a href="obtainium://add/https://github.com/lone-cloud/prism-android" style="text-decoration: none;"><img src="assets/badges/obtainium-badge.png" alt="Get it on Obtainium" height="50" /></a><a href="https://github.com/lone-cloud/prism-android/releases" style="text-decoration: none;"><img src="assets/badges/github-badge.png" alt="Get it on GitHub" height="50" /></a>
+Uses [Mozilla Autopush](https://github.com/mozilla-services/autopush-rs) as the default transport layer. The transport URL is configurable in the app settings.
+
+<a href="https://f-droid.org/packages/app.lonecloud.prism" style="text-decoration: none;"><img src="assets/badges/fdroid-badge.png" alt="Get it on F-Droid" height="50" /></a>&nbsp;&nbsp;&nbsp;<a href="obtainium://add/https://github.com/lone-cloud/prism-android" style="text-decoration: none;"><img src="assets/badges/obtainium-badge.png" alt="Get it on Obtainium" height="50" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/lone-cloud/prism-android/releases" style="text-decoration: none;"><img src="assets/badges/github-badge.png" alt="Get it on GitHub" height="50" /></a>
 
 </div>
 
