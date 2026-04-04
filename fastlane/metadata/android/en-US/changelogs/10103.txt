@@ -1,0 +1,1 @@
+- show registered app description in the app list
