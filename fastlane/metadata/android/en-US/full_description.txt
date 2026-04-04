@@ -1,2 +1,3 @@
 Prism is a UnifiedPush distributor that uses Mozilla's push server for transport. It optionally pairs with a self-hosted Prism server, which can monitor your Proton Mail inbox and route notifications to Signal, Telegram or this app.
+
 The Prism server also accepts notifications from any source via a webhook API compatible with ntfy.

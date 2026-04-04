@@ -32,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import org.unifiedpush.android.distributor.data.Description
 import org.unifiedpush.android.distributor.ui.R
 import org.unifiedpush.android.distributor.ui.state.RegistrationState
 import org.unifiedpush.android.distributor.ui.vm.RegistrationsViewModel
@@ -122,6 +123,19 @@ private fun RegistrationRow(item: RegistrationState) {
                     MaterialTheme.colorScheme.onSurface
                 }
             )
+            val subtitle = (item.app.description as? Description.StringDescription)?.content
+                ?.takeIf { it.isNotBlank() }
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (item.selected) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                )
+            }
         }
 
         NotificationCount(item.msgCount)
