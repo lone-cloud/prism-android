@@ -10,7 +10,8 @@ data class NotificationPayload(
     val title: String,
     val message: String,
     val tag: String,
-    val actions: List<NotificationAction>
+    val actions: List<NotificationAction>,
+    val imageUrl: String
 ) {
     companion object {
         fun fromJson(jsonString: String): NotificationPayload? = try {
@@ -34,7 +35,7 @@ data class NotificationPayload(
                 actions.add(action)
             }
 
-            NotificationPayload(title, message, tag, actions)
+            NotificationPayload(title, message, tag, actions, json.optString("image", ""))
         } catch (e: JSONException) {
             Log.w(TAG, "Failed to parse notification payload", e)
             null

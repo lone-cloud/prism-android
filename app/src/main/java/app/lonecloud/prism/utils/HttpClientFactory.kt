@@ -1,11 +1,20 @@
 package app.lonecloud.prism.utils
 
 import java.util.concurrent.TimeUnit
+import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 
 object HttpClientFactory {
     val shared: OkHttpClient by lazy {
         OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .build()
+    }
+
+    val image: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .dispatcher(Dispatcher().apply { maxRequestsPerHost = 2 })
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .build()

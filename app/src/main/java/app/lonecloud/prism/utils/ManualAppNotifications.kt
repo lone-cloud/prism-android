@@ -7,11 +7,14 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.toBitmap
+import app.lonecloud.prism.AppScope
 import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.R
 import app.lonecloud.prism.api.data.NotificationAction
@@ -21,6 +24,7 @@ import app.lonecloud.prism.receivers.NotificationDismissReceiver
 import app.lonecloud.prism.services.MainRegistrationCounter
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import kotlinx.coroutines.launch
 import org.unifiedpush.android.distributor.Database
 
 private const val NOTIFICATION_BASE_ID = 52000
@@ -49,77 +53,108 @@ object ManualAppNotifications {
             return
         }
 
-        val channelId = channelIdForToken(app.connectorToken)
-        val appTitle = app.title ?: context.getString(R.string.manual_app_generic_name)
-        createNotificationChannel(context, channelId, appTitle)
+        AppScope.launch {
+            val channelId = channelIdForToken(app.connectorToken)
+            val appTitle = app.title ?: context.getString(R.string.manual_app_generic_name)
+            createNotificationChannel(context, channelId, appTitle)
 
-        val hasTitle = payload.title.isNotBlank()
-        val hasMessage = payload.message.isNotBlank()
+            val hasTitle = payload.title.isNotBlank()
+            val hasMessage = payload.message.isNotBlank()
 
-        val notificationTag = resolveNotificationTag(payload.tag, channelID)
-        val notificationId = getNotificationId(notificationTag)
-        notificationConnectorTokens[notificationTag] = app.connectorToken
-        val packageName = resolveTargetPackage(app)
+            val notificationTag = resolveNotificationTag(payload.tag, channelID)
+            val notificationId = getNotificationId(notificationTag)
+            notificationConnectorTokens[notificationTag] = app.connectorToken
+            val packageName = resolveTargetPackage(app)
 
-        val contentTitle = if (hasTitle) payload.title else appTitle
-        val contentText = if (hasMessage) payload.message else ""
+            val contentTitle = if (hasTitle) payload.title else appTitle
+            val contentText = if (hasMessage) payload.message else ""
 
-        val bigTextStyle = NotificationCompat.BigTextStyle().bigText(contentText)
+            val imageBitmap = fetchImageBitmap(payload.imageUrl)
 
-        val notificationBuilder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(contentTitle)
-            .setContentText(contentText)
-            .setStyle(bigTextStyle)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .setGroup(app.connectorToken)
-            .apply {
-                if (hasTitle) setSubText(appTitle)
+            val style: NotificationCompat.Style = if (imageBitmap != null) {
+                NotificationCompat.BigPictureStyle()
+                    .bigPicture(imageBitmap)
+                    .setSummaryText(contentText)
+            } else {
+                NotificationCompat.BigTextStyle().bigText(contentText)
             }
 
-        resolveAppIconBitmap(context, packageName)?.let { appIcon ->
-            notificationBuilder.setLargeIcon(appIcon)
-        }
+            val notificationBuilder = NotificationCompat.Builder(context, channelId)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(contentTitle)
+                .setContentText(contentText)
+                .setStyle(style)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .setGroup(app.connectorToken)
+                .apply {
+                    if (hasTitle) setSubText(appTitle)
+                }
 
-        val contentIntent = createContentIntent(context, packageName, notificationId)
-        if (contentIntent != null) {
-            notificationBuilder.setContentIntent(contentIntent)
-        }
+            resolveAppIconBitmap(context, packageName)?.let { appIcon ->
+                notificationBuilder.setLargeIcon(appIcon)
+            }
 
-        addActions(
-            builder = notificationBuilder,
-            context = context,
-            channelID = channelID,
-            connectorToken = app.connectorToken,
-            notificationTag = notificationTag,
-            actions = payload.actions
-        )
+            val contentIntent = createContentIntent(context, packageName, notificationId)
+            if (contentIntent != null) {
+                notificationBuilder.setContentIntent(contentIntent)
+            }
 
-        notificationBuilder.setDeleteIntent(
-            createDismissIntent(
+            addActions(
+                builder = notificationBuilder,
                 context = context,
+                channelID = channelID,
                 connectorToken = app.connectorToken,
-                notificationTag = notificationTag
+                notificationTag = notificationTag,
+                actions = payload.actions
             )
-        )
 
-        val notificationManager = notificationManager(context)
-        notificationManager.notify(
-            notificationTag,
-            notificationId,
-            notificationBuilder.build()
-        )
+            notificationBuilder.setDeleteIntent(
+                createDismissIntent(
+                    context = context,
+                    connectorToken = app.connectorToken,
+                    notificationTag = notificationTag
+                )
+            )
 
-        postGroupSummary(context, app.connectorToken, channelId, packageName)
+            val notificationManager = notificationManager(context)
+            notificationManager.notify(
+                notificationTag,
+                notificationId,
+                notificationBuilder.build()
+            )
 
-        incrementMessageCount(context, app)
-        refreshMessageCount(context)
+            postGroupSummary(context, app.connectorToken, channelId, packageName)
 
-        val logMessage =
-            "Displayed notification for manual app '${app.title}' " +
-                "title='${payload.title.take(80)}' body='${contentText.take(120)}' (tag: $notificationTag)"
-        Log.d(TAG, logMessage)
+            incrementMessageCount(context, app)
+            refreshMessageCount(context)
+
+            val imageInfo = if (payload.imageUrl.isNotBlank()) {
+                " imageUrl='${payload.imageUrl.take(80)}' imageFetched=${imageBitmap != null}"
+            } else {
+                ""
+            }
+            val logMessage =
+                "Displayed notification for manual app '${app.title}' " +
+                    "title='${payload.title.take(80)}' body='${contentText.take(120)}'" +
+                    "$imageInfo (tag: $notificationTag)"
+            Log.d(TAG, logMessage)
+        }
+    }
+
+    private fun fetchImageBitmap(imageUrl: String): Bitmap? {
+        if (imageUrl.isBlank()) return null
+        return try {
+            val request = okhttp3.Request.Builder().url(imageUrl).build()
+            HttpClientFactory.image.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return null
+                val bytes = response.body.bytes()
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to fetch notification image: ${e.message}")
+            null
+        }
     }
 
     private fun resolveAppIconBitmap(context: Context, packageName: String?): android.graphics.Bitmap? {
@@ -350,6 +385,8 @@ object ManualAppNotifications {
         }
     }
 
+    private val INTENT_SCHEMES = setOf("tel", "mailto", "sms", "geo")
+
     private fun createActionIntent(
         context: Context,
         channelID: String,
@@ -357,6 +394,20 @@ object ManualAppNotifications {
         connectorToken: String,
         notificationTag: String
     ): PendingIntent {
+        val requestCode = (channelID + action.id + notificationTag).hashCode()
+        val scheme = action.endpoint.trim().substringBefore(":").lowercase(java.util.Locale.US)
+        if (scheme in INTENT_SCHEMES) {
+            val activityIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(action.endpoint.trim())).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            return PendingIntent.getActivity(
+                context,
+                requestCode,
+                activityIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        }
+
         val intent = Intent(context, NotificationActionReceiver::class.java).apply {
             putExtra("channelID", channelID)
             putExtra("actionID", action.id)
@@ -371,7 +422,6 @@ object ManualAppNotifications {
             }
         }
 
-        val requestCode = (channelID + action.id + notificationTag).hashCode()
         return PendingIntent.getBroadcast(
             context,
             requestCode,
