@@ -71,25 +71,16 @@ object ManualAppNotifications {
 
             val imageBitmap = fetchImageBitmap(payload.imageUrl)
 
-            val style: NotificationCompat.Style = if (imageBitmap != null) {
-                NotificationCompat.BigPictureStyle()
-                    .bigPicture(imageBitmap)
-                    .setSummaryText(contentText)
-            } else {
-                NotificationCompat.BigTextStyle().bigText(contentText)
-            }
-
-            val notificationBuilder = NotificationCompat.Builder(context, channelId)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(contentTitle)
-                .setContentText(contentText)
-                .setStyle(style)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true)
-                .setGroup(app.connectorToken)
-                .apply {
-                    if (hasTitle) setSubText(appTitle)
-                }
+            val notificationBuilder = buildNotificationBuilder(
+                context = context,
+                channelId = channelId,
+                appTitle = appTitle,
+                contentTitle = contentTitle,
+                contentText = contentText,
+                imageBitmap = imageBitmap,
+                connectorToken = app.connectorToken,
+                hasTitle = hasTitle
+            )
 
             resolveAppIconBitmap(context, packageName)?.let { appIcon ->
                 notificationBuilder.setLargeIcon(appIcon)
@@ -129,16 +120,7 @@ object ManualAppNotifications {
             incrementMessageCount(context, app)
             refreshMessageCount(context)
 
-            val imageInfo = if (payload.imageUrl.isNotBlank()) {
-                " imageUrl='${payload.imageUrl.take(80)}' imageFetched=${imageBitmap != null}"
-            } else {
-                ""
-            }
-            val logMessage =
-                "Displayed notification for manual app '${app.title}' " +
-                    "title='${payload.title.take(80)}' body='${contentText.take(120)}'" +
-                    "$imageInfo (tag: $notificationTag)"
-            Log.d(TAG, logMessage)
+            logNotificationDisplayed(app, payload, contentText, imageBitmap, notificationTag)
         }
     }
 
@@ -151,10 +133,63 @@ object ManualAppNotifications {
                 val bytes = response.body.bytes()
                 BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
             }
-        } catch (e: Exception) {
+        } catch (e: java.io.IOException) {
+            Log.w(TAG, "Failed to fetch notification image: ${e.message}")
+            null
+        } catch (e: IllegalArgumentException) {
             Log.w(TAG, "Failed to fetch notification image: ${e.message}")
             null
         }
+    }
+
+    private fun buildNotificationBuilder(
+        context: Context,
+        channelId: String,
+        appTitle: String,
+        contentTitle: String,
+        contentText: String,
+        imageBitmap: Bitmap?,
+        connectorToken: String,
+        hasTitle: Boolean
+    ): NotificationCompat.Builder {
+        val style: NotificationCompat.Style = if (imageBitmap != null) {
+            NotificationCompat.BigPictureStyle()
+                .bigPicture(imageBitmap)
+                .setSummaryText(contentText)
+        } else {
+            NotificationCompat.BigTextStyle().bigText(contentText)
+        }
+
+        return NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(contentTitle)
+            .setContentText(contentText)
+            .setStyle(style)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setGroup(connectorToken)
+            .apply {
+                if (hasTitle) setSubText(appTitle)
+            }
+    }
+
+    private fun logNotificationDisplayed(
+        app: Database.App,
+        payload: NotificationPayload,
+        contentText: String,
+        imageBitmap: Bitmap?,
+        notificationTag: String
+    ) {
+        val imageInfo = if (payload.imageUrl.isNotBlank()) {
+            " imageUrl='${payload.imageUrl.take(80)}' imageFetched=${imageBitmap != null}"
+        } else {
+            ""
+        }
+        val logMessage =
+            "Displayed notification for manual app '${app.title}' " +
+                "title='${payload.title.take(80)}' body='${contentText.take(120)}'" +
+                "$imageInfo (tag: $notificationTag)"
+        Log.d(TAG, logMessage)
     }
 
     private fun resolveAppIconBitmap(context: Context, packageName: String?): android.graphics.Bitmap? {
