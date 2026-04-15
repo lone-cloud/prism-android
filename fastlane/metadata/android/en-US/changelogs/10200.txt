@@ -1,0 +1,3 @@
+- notification images now display when included in the push payload
+- new action types supported: phone calls (tel:), email (mailto:)
+- dep updates
