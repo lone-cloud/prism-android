@@ -4,13 +4,19 @@
 
 # Prism
 
-A [UnifiedPush](https://unifiedpush.org/) distributor with optional self-hosted [Prism](https://github.com/lone-cloud/prism) server integration.
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;">
+<a href="https://f-droid.org/packages/app.lonecloud.prism"><img src="assets/badges/fdroid-badge.png" alt="Get it on F-Droid" height="50" /></a>
+<a href="https://apt.izzysoft.de/packages/app.lonecloud.prism"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroidButtonGreyBorder_nofont.png" alt="Get it at IzzyOnDroid" height="50" /></a>
+<a href="https://github.com/lone-cloud/prism-android/releases"><img src="assets/badges/github-badge.png" alt="Get it on GitHub" height="50" /></a>
+</div>
 
-Uses [Mozilla Autopush](https://github.com/mozilla-services/autopush-rs) as the default transport layer. The transport URL is configurable in the app settings.
-
-<a href="https://f-droid.org/packages/app.lonecloud.prism" style="text-decoration: none;"><img src="assets/badges/fdroid-badge.png" alt="Get it on F-Droid" height="50" /></a>&nbsp;&nbsp;&nbsp;<a href="https://apt.izzysoft.de/packages/app.lonecloud.prism" style="text-decoration: none;"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroidButtonGreyBorder_nofont.png" alt="Get it at IzzyOnDroid" height="50" /></a>&nbsp;&nbsp;&nbsp;<a href="obtainium://add/https://github.com/lone-cloud/prism-android" style="text-decoration: none;"><img src="assets/badges/obtainium-badge.png" alt="Get it on Obtainium" height="50" /></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/lone-cloud/prism-android/releases" style="text-decoration: none;"><img src="assets/badges/github-badge.png" alt="Get it on GitHub" height="50" /></a>
+<br>
 
 </div>
+
+Prism is a [UnifiedPush](https://unifiedpush.org/) distributor with support for a self-hosted [Prism](https://github.com/lone-cloud/prism) server.
+
+Use it with any [UnifiedPush-compatible app](https://unifiedpush.org/users/apps/) to receive private, server-independent push notifications. Powered by [Mozilla Autopush](https://github.com/mozilla-services/autopush-rs) by default; transport URL is configurable in settings.
 
 ## Reproducible builds
 
