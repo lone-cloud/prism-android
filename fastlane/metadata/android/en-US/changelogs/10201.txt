@@ -1,0 +1,3 @@
+- allow app memmory tagging if the device supports it
+- pulling in the latest UnifiedPush distributor bug fixes
+- other minor dependency upgrades
