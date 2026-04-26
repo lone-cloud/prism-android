@@ -24,6 +24,8 @@
     <string name="push_service_url_placeholder">https://push.example.com</string>
     <string name="push_service_save_button">Save</string>
     <string name="push_service_reset_button">Use default</string>
+    <string name="invalid_url">Invalid URL</string>
+    <string name="invalid_api_key_chars">API key must contain only ASCII characters</string>
     <string name="add_custom_app_title">Register a New App</string>
     <string name="add_app_description">Register an app to receive notifications from your Prism server. Optionally choose a target app to deliver notifications to.</string>
     <string name="app_name_label">App Name</string>

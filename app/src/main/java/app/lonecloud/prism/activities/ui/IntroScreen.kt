@@ -15,7 +15,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,6 +32,8 @@ import androidx.compose.ui.unit.dp
 import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.R
 import app.lonecloud.prism.activities.ui.components.PasswordTextField
+import app.lonecloud.prism.activities.ui.components.UrlTextField
+import app.lonecloud.prism.utils.isValidUrl
 import app.lonecloud.prism.utils.normalizeUrl
 
 @Composable
@@ -87,16 +88,15 @@ fun IntroScreen(onComplete: (url: String, apiKey: String) -> Unit, onSkip: () ->
 
         PrismInfoWithLink(uriHandler = uriHandler)
 
-        OutlinedTextField(
+        UrlTextField(
             value = url,
             onValueChange = {
                 url = it
                 testResult = null
             },
-            label = { Text(stringResource(R.string.prism_server_url_label)) },
-            placeholder = { Text(stringResource(R.string.prism_server_url_placeholder)) },
+            label = stringResource(R.string.prism_server_url_label),
+            placeholder = stringResource(R.string.prism_server_url_placeholder),
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
             enabled = !isTesting
         )
 
@@ -146,7 +146,7 @@ fun IntroScreen(onComplete: (url: String, apiKey: String) -> Unit, onSkip: () ->
                 val normalizedUrl = normalizeUrl(url)
                 testAndSave(normalizedUrl)
             },
-            enabled = !isTesting,
+            enabled = !isTesting && (url.isBlank() || isValidUrl(url)),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(

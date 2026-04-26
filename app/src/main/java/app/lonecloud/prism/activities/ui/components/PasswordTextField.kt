@@ -18,6 +18,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import app.lonecloud.prism.R
 
+fun String.isAsciiPrintable(): Boolean = all { it.code in 0x20..0x7E }
+
 @Composable
 fun PasswordTextField(
     value: String,
@@ -29,12 +31,15 @@ fun PasswordTextField(
     singleLine: Boolean = true
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
+    val isError = value.isNotBlank() && !value.isAsciiPrintable()
 
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         placeholder = { Text(placeholder) },
+        isError = isError,
+        supportingText = if (isError) ({ Text(stringResource(R.string.invalid_api_key_chars)) }) else null,
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         trailingIcon = {
             IconButton(onClick = { passwordVisible = !passwordVisible }) {

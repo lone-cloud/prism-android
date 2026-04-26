@@ -12,7 +12,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.lonecloud.prism.R
+import app.lonecloud.prism.activities.ui.components.UrlTextField
+import app.lonecloud.prism.utils.isValidUrl
 import app.lonecloud.prism.utils.normalizeUrl
 
 @Composable
@@ -52,13 +53,12 @@ fun PushServiceConfigScreen(
             color = MaterialTheme.colorScheme.error
         )
 
-        OutlinedTextField(
+        UrlTextField(
             value = url,
             onValueChange = { url = it },
-            label = { Text(stringResource(R.string.push_service_url_label)) },
-            placeholder = { Text(stringResource(R.string.push_service_url_placeholder)) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            label = stringResource(R.string.push_service_url_label),
+            placeholder = stringResource(R.string.push_service_url_placeholder),
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -82,7 +82,7 @@ fun PushServiceConfigScreen(
                     onSave(normalizeUrl(url))
                     onNavigateBack()
                 },
-                enabled = url.isNotBlank(),
+                enabled = url.isNotBlank() && isValidUrl(url),
                 modifier = Modifier.weight(1f)
             ) {
                 Text(stringResource(R.string.push_service_save_button))
