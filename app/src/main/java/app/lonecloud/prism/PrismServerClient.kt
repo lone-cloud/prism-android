@@ -98,6 +98,10 @@ object PrismServerClient {
                 val error = "Error registering app: ${e.message}"
                 Log.e(TAG, error, e)
                 withContext(Dispatchers.Main) { onError(error) }
+            } catch (e: IllegalArgumentException) {
+                val error = "Invalid server configuration: ${e.message}"
+                Log.e(TAG, error, e)
+                withContext(Dispatchers.Main) { onError(error) }
             }
         }
     }
@@ -274,6 +278,10 @@ object PrismServerClient {
                 val error = "Error deleting subscription: ${e.message}"
                 Log.e(TAG, error, e)
                 withContext(Dispatchers.Main) { onError(error) }
+            } catch (e: IllegalArgumentException) {
+                val error = "Invalid server configuration: ${e.message}"
+                Log.e(TAG, error, e)
+                withContext(Dispatchers.Main) { onError(error) }
             }
         }
     }
@@ -360,6 +368,10 @@ object PrismServerClient {
             } catch (e: IOException) {
                 withContext(Dispatchers.Main) {
                     onError("Connection error: ${e.message}")
+                }
+            } catch (e: IllegalArgumentException) {
+                withContext(Dispatchers.Main) {
+                    onError("Invalid server configuration: ${e.message}")
                 }
             }
         }

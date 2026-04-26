@@ -81,14 +81,15 @@
     <string name="delete_registration_confirm">Delete</string>
     <string name="manual_app_generic_name">app</string>
     <string name="manual_app_registration_failed">Failed to register %1$s: %2$s</string>
+    <string name="manual_app_registration_success">%1$s registered successfully</string>
     <string name="change_server_title">Change Prism Server?</string>
     <plurals name="change_server_warning_message">
         <item quantity="one">You have %1$d manual app registered with the current server.
 
-Changing to %2$s will delete registrations from the old server and re-register with the new one.</item>
+Changing to %2$s will remove your registered apps from the old server. You will need to re-add them for the new server.</item>
         <item quantity="other">You have %1$d manual apps registered with the current server.
 
-Changing to %2$s will delete registrations from the old server and re-register with the new one.</item>
+Changing to %2$s will remove your registered apps from the old server. You will need to re-add them for the new server.</item>
     </plurals>
     <string name="change_server_confirm_button">Continue</string>
 

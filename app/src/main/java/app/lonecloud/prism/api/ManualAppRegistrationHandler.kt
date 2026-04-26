@@ -23,24 +23,18 @@ class ManualAppRegistrationHandler(private val context: Context) {
 
     fun handleRegister(message: ServerMessage.Register) {
         val db = DatabaseFactory.getDb(context)
-        val vapidKey = db.listChannelIdVapid()
-            .find { (channelId, _) -> channelId == message.channelID }
-            ?.second
+        val preferences = PrismPreferences(context)
 
-        val app = if (vapidKey != null) {
-            db.listApps().find { it.vapidKey == vapidKey && DescriptionParser.isManualApp(it.description) }
-        } else {
-            null
-        }
+        val app = db.getAppFromChanId(message.channelID, false)
 
-        if (app == null) {
+        if (app == null || !app.connectorToken.startsWith("manual_app_")) {
             Log.d(TAG, "Not a manual app or app not found for channelId=${redactIdentifier(message.channelID)}")
             return
         }
 
         Log.d(TAG, "Auto-registering manual app '${app.title}' with Prism server")
-        val vapidPrivateKey = DescriptionParser.extractValue(app.description, DescriptionParser.VAPID_PRIVATE_KEY_PREFIX)
-            ?: PrismPreferences(context).getVapidPrivateKey(app.connectorToken)
+        val vapidPrivateKey = preferences.getVapidPrivateKey(app.connectorToken)
+            ?: DescriptionParser.extractValue(app.description, DescriptionParser.VAPID_PRIVATE_KEY_PREFIX)
 
         if (vapidPrivateKey.isNullOrBlank()) {
             handleFailure(
@@ -75,11 +69,15 @@ class ManualAppRegistrationHandler(private val context: Context) {
             return
         }
 
+        val appName = app.title
+            ?: DescriptionParser.extractValue(app.description, DescriptionParser.NAME_PREFIX)
+            ?: "Unknown App"
+
         PrismServerClient.registerApp(
             context,
             PrismServerClient.WebPushRegistration(
                 connectorToken = app.connectorToken,
-                appName = app.title ?: "Unknown App",
+                appName = appName,
                 webpushUrl = message.pushEndpoint,
                 vapidPrivateKey = vapidPrivateKey,
                 p256dh = keys.p256dh,
@@ -100,7 +98,35 @@ class ManualAppRegistrationHandler(private val context: Context) {
 
     private fun onRegistrationSuccess(appTitle: String?, connectorToken: String) {
         Log.d(TAG, "Successfully registered '$appTitle' with Prism server")
+        val db = DatabaseFactory.getDb(context)
+        val app = db.getAppFromCoToken(connectorToken)
+        val channelId = db.getChannelId(connectorToken)
+        if (app != null && channelId != null && !app.description.isNullOrBlank()) {
+            var updated = DescriptionParser.removeValue(app.description, DescriptionParser.VAPID_PRIVATE_KEY_PREFIX)
+            val subscriptionId = PrismPreferences(context).getSubscriptionId(connectorToken)
+            if (subscriptionId != null) {
+                updated = DescriptionParser.updateValue(updated, "sid:", subscriptionId)
+            }
+            if (updated != app.description) {
+                db.registerApp(
+                    app.packageName,
+                    app.connectorToken,
+                    channelId,
+                    app.title,
+                    app.vapidKey,
+                    updated
+                )
+            }
+        }
         PrismPreferences(context).removePendingManualToken(connectorToken)
+        Handler(Looper.getMainLooper()).post {
+            val safeAppName = appTitle ?: context.getString(R.string.manual_app_generic_name)
+            Toast.makeText(
+                context,
+                context.getString(R.string.manual_app_registration_success, safeAppName),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
         sendUiAction(context, UiActions.REFRESH_REGISTRATIONS)
     }
 
@@ -112,11 +138,8 @@ class ManualAppRegistrationHandler(private val context: Context) {
         Log.e(TAG, "Failed to register '$appTitle' with Prism server: $error")
 
         val preferences = PrismPreferences(context)
-        val isInitialPendingRegistration = preferences.isPendingManualToken(connectorToken)
-        val isLikelyNewManualApp = isLikelyNewManualApp(connectorToken)
-        val shouldRollback = isInitialPendingRegistration || isLikelyNewManualApp
 
-        if (shouldRollback) {
+        if (isLikelyNewManualApp(connectorToken)) {
             Log.w(TAG, "Rolling back pending manual app '$appTitle' after registration failure")
             rollback(connectorToken)
         }
@@ -135,20 +158,12 @@ class ManualAppRegistrationHandler(private val context: Context) {
         sendUiAction(context, UiActions.REFRESH_REGISTRATIONS)
     }
 
-    private fun isLikelyNewManualApp(connectorToken: String): Boolean {
-        val app = DatabaseFactory.getDb(context)
-            .listApps()
-            .find { it.connectorToken == connectorToken }
-            ?: return false
-        return DescriptionParser.isManualApp(app.description) && app.endpoint.isNullOrBlank()
-    }
+    private fun isLikelyNewManualApp(connectorToken: String): Boolean = connectorToken.startsWith("manual_app_") &&
+        PrismPreferences(context).getSubscriptionId(connectorToken).isNullOrBlank()
 
     private fun rollback(connectorToken: String) {
         val db = DatabaseFactory.getDb(context)
-        val app = db.listApps().find { it.connectorToken == connectorToken }
-        val channelId = app?.let {
-            db.listChannelIdVapid().find { (_, vapid) -> vapid == it.vapidKey }?.first
-        }
+        val channelId = db.getChannelId(connectorToken)
 
         channelId?.let { EncryptionKeyStore(context).deleteKeys(it) }
         db.unregisterApp(connectorToken)

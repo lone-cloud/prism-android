@@ -19,7 +19,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -39,7 +38,10 @@ import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.R
 import app.lonecloud.prism.activities.ui.components.PasswordTextField
+import app.lonecloud.prism.activities.ui.components.UrlTextField
+import app.lonecloud.prism.activities.ui.components.isAsciiPrintable
 import app.lonecloud.prism.utils.DescriptionParser
+import app.lonecloud.prism.utils.isValidUrl
 import app.lonecloud.prism.utils.normalizeUrl
 
 @Composable
@@ -47,7 +49,7 @@ fun ServerConfigScreen(
     initialUrl: String,
     initialApiKey: String,
     onNavigateBack: () -> Unit,
-    onSave: (url: String, apiKey: String) -> Unit
+    onSave: (url: String, apiKey: String, oldServerUrl: String?, oldApiKey: String?) -> Unit
 ) {
     var url by remember { mutableStateOf(initialUrl) }
     var apiKey by remember { mutableStateOf("") }
@@ -56,6 +58,8 @@ fun ServerConfigScreen(
     var showServerChangeWarning by remember { mutableStateOf(false) }
     var showClearConfirmation by remember { mutableStateOf(false) }
     var manualAppsCount by remember { mutableIntStateOf(0) }
+    var pendingOldUrl by remember { mutableStateOf("") }
+    var pendingOldKey by remember { mutableStateOf("") }
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val successMessage = stringResource(R.string.connection_successful)
@@ -63,17 +67,23 @@ fun ServerConfigScreen(
 
     fun testAndSave(normalizedUrl: String) {
         isTesting = true
+        val oldUrl = pendingOldUrl
+        val oldKey = pendingOldKey
         PrismServerClient.testConnection(
             normalizedUrl,
             apiKey,
             onSuccess = {
                 isTesting = false
                 testResult = successMessage
-                onSave(normalizedUrl, apiKey)
+                onSave(normalizedUrl, apiKey, oldUrl.takeIf { it.isNotBlank() }, oldKey.takeIf { it.isNotBlank() })
+                pendingOldUrl = ""
+                pendingOldKey = ""
                 onNavigateBack()
             },
             onError = { error ->
                 isTesting = false
+                pendingOldUrl = ""
+                pendingOldKey = ""
                 testResult = failedMessageTemplate.replace("%s", error)
             }
         )
@@ -94,16 +104,15 @@ fun ServerConfigScreen(
 
         PrismInfoWithLink(uriHandler = uriHandler)
 
-        OutlinedTextField(
+        UrlTextField(
             value = url,
             onValueChange = {
                 url = it
                 testResult = null
             },
-            label = { Text(stringResource(R.string.prism_server_url_label)) },
-            placeholder = { Text(stringResource(R.string.prism_server_url_placeholder)) },
+            label = stringResource(R.string.prism_server_url_label),
+            placeholder = stringResource(R.string.prism_server_url_placeholder),
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
             enabled = !isTesting
         )
 
@@ -184,7 +193,7 @@ fun ServerConfigScreen(
 
                     testAndSave(normalizedUrl)
                 },
-                enabled = !isTesting && url.isNotBlank() && apiKey.isNotBlank(),
+                enabled = !isTesting && url.isNotBlank() && apiKey.isNotBlank() && isValidUrl(url) && apiKey.isAsciiPrintable(),
                 modifier = if (initialUrl.isNotBlank()) Modifier.weight(1f) else Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.test_and_save_button))
@@ -197,7 +206,9 @@ fun ServerConfigScreen(
             newUrl = normalizeUrl(url),
             initialUrl = initialUrl,
             manualAppsCount = manualAppsCount,
-            onConfirm = { normalizedUrl ->
+            onConfirm = { normalizedUrl, oldUrl, oldKey ->
+                pendingOldUrl = oldUrl
+                pendingOldKey = oldKey
                 showServerChangeWarning = false
                 testAndSave(normalizedUrl)
             },
@@ -209,9 +220,9 @@ fun ServerConfigScreen(
         ClearServerConfirmationDialog(
             initialUrl = initialUrl,
             manualAppsCount = manualAppsCount,
-            onConfirm = {
+            onConfirm = { oldUrl, oldKey ->
                 showClearConfirmation = false
-                onSave("", "")
+                onSave("", "", oldUrl.takeIf { it.isNotBlank() }, oldKey.takeIf { it.isNotBlank() })
                 onNavigateBack()
             },
             onDismiss = { showClearConfirmation = false }
@@ -249,7 +260,7 @@ private fun ServerChangeWarningDialog(
     newUrl: String,
     initialUrl: String,
     manualAppsCount: Int,
-    onConfirm: (String) -> Unit,
+    onConfirm: (newUrl: String, oldUrl: String, oldKey: String) -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
@@ -270,15 +281,8 @@ private fun ServerChangeWarningDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val oldKey = app.lonecloud.prism.PrismPreferences(context).prismApiKey
-                    if (initialUrl.isNotBlank() && !oldKey.isNullOrBlank()) {
-                        app.lonecloud.prism.PrismServerClient.deleteAllApps(
-                            context,
-                            serverUrl = initialUrl,
-                            apiKey = oldKey
-                        )
-                    }
-                    onConfirm(newUrl)
+                    val oldKey = app.lonecloud.prism.PrismPreferences(context).prismApiKey ?: ""
+                    onConfirm(newUrl, initialUrl, oldKey)
                 }
             ) {
                 Text(stringResource(R.string.change_server_confirm_button))
@@ -296,7 +300,7 @@ private fun ServerChangeWarningDialog(
 private fun ClearServerConfirmationDialog(
     initialUrl: String,
     manualAppsCount: Int,
-    onConfirm: () -> Unit,
+    onConfirm: (oldUrl: String, oldKey: String) -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
@@ -320,15 +324,8 @@ private fun ClearServerConfirmationDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    val oldKey = app.lonecloud.prism.PrismPreferences(context).prismApiKey
-                    if (initialUrl.isNotBlank() && !oldKey.isNullOrBlank()) {
-                        app.lonecloud.prism.PrismServerClient.deleteAllApps(
-                            context,
-                            serverUrl = initialUrl,
-                            apiKey = oldKey
-                        )
-                    }
-                    onConfirm()
+                    val oldKey = app.lonecloud.prism.PrismPreferences(context).prismApiKey ?: ""
+                    onConfirm(initialUrl, oldKey)
                 }
             ) {
                 Text(stringResource(R.string.clear_server_button))

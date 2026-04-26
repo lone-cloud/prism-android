@@ -8,10 +8,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.lonecloud.prism.BuildConfig
+import app.lonecloud.prism.DatabaseFactory
 import app.lonecloud.prism.PrismPreferences
 import app.lonecloud.prism.PrismServerClient
 import app.lonecloud.prism.activities.ui.SettingsState
 import app.lonecloud.prism.receivers.PrismConfigReceiver
+import app.lonecloud.prism.utils.DescriptionParser
 import app.lonecloud.prism.utils.UiActions
 import app.lonecloud.prism.utils.normalizeUrl
 import kotlinx.coroutines.launch
@@ -114,7 +116,12 @@ class SettingsViewModel(
         }
     }
 
-    fun savePrismConfig(url: String, apiKey: String) {
+    fun savePrismConfig(
+        url: String,
+        apiKey: String,
+        oldServerUrl: String? = null,
+        oldApiKey: String? = null
+    ) {
         viewModelScope.launch {
             val trimmedUrl = url.trim()
             val trimmedKey = apiKey.trim()
@@ -130,10 +137,23 @@ class SettingsViewModel(
                     prismApiKey = trimmedKey.ifBlank { null }
                 }
 
+                if (!oldServerUrl.isNullOrBlank() && !oldApiKey.isNullOrBlank()) {
+                    PrismServerClient.deleteAllApps(app, serverUrl = oldServerUrl, apiKey = oldApiKey)
+                    val db = DatabaseFactory.getDb(app)
+                    db.listApps()
+                        .filter { DescriptionParser.isManualApp(it.description) }
+                        .forEach { manualApp ->
+                            val intent = android.content.Intent("org.unifiedpush.android.distributor.UNREGISTER")
+                            intent.setPackage(app.packageName)
+                            intent.putExtra("token", manualApp.connectorToken)
+                            app.sendBroadcast(intent)
+                        }
+                }
+
                 sendConfigBroadcast(app, PrismConfigReceiver.ACTION_SET_PRISM_SERVER_URL, trimmedUrl)
                 sendConfigBroadcast(app, PrismConfigReceiver.ACTION_SET_PRISM_API_KEY, trimmedKey)
 
-                if (shouldTriggerRegistration()) {
+                if (shouldTriggerRegistration() && oldServerUrl.isNullOrBlank()) {
                     PrismServerClient.registerAllApps(app)
                 }
 

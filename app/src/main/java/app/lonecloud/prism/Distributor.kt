@@ -44,7 +44,17 @@ object Distributor : UnifiedPushDistributor() {
         title: String?,
         vapid: String?,
         description: String?
-    ) = backendRegisterNewChannelId(context, packageName, channelId, title, vapid, description)
+    ) {
+        val db = getDb(context)
+        val app = db.getAppFromChanId(channelId, false)
+        if (app != null) {
+            val restoredName = DescriptionParser.extractValue(app.description, DescriptionParser.NAME_PREFIX)
+            if (!restoredName.isNullOrBlank()) {
+                db.registerApp(app.packageName, app.connectorToken, channelId, restoredName, app.vapidKey, app.description)
+            }
+        }
+        backendRegisterNewChannelId(context, packageName, channelId, title, vapid, description)
+    }
 
     override fun backendUnregisterChannelId(context: Context, channelId: String) {
         val preferences = PrismPreferences(context)

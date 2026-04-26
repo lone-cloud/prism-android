@@ -215,6 +215,7 @@ class MainViewModel(
                 val encryptionKeys = WebPushEncryptionKeys.generateKeySet()
 
                 val descriptionParts = mutableListOf("target:$targetPackageName")
+                descriptionParts.add("${DescriptionParser.NAME_PREFIX}$name")
                 description?.takeIf { it.isNotBlank() }?.let { descriptionParts.add(it) }
                 descriptionParts.add("${DescriptionParser.VAPID_PRIVATE_KEY_PREFIX}${vapidKeys.privateKey}")
                 val fullDescription = descriptionParts.joinToString("|")
@@ -241,7 +242,8 @@ class MainViewModel(
                     `package` = app.packageName
                     putExtra("token", connectorToken)
                     putExtra("application", packageName)
-                    putExtra("message", name)
+                    putExtra("message", fullDescription)
+                    putExtra("vapid", vapidKeys.publicKey)
                 }
                 app.sendBroadcast(intent)
 

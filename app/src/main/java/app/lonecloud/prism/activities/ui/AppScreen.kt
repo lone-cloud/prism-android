@@ -288,7 +288,7 @@ fun App(
                     initialUrl = vm.state.prismServerUrl,
                     initialApiKey = vm.state.prismApiKey,
                     onNavigateBack = { navController.navigateUp() },
-                    onSave = { url, apiKey -> vm.savePrismConfig(url, apiKey) }
+                    onSave = { url, apiKey, oldUrl, oldKey -> vm.savePrismConfig(url, apiKey, oldUrl, oldKey) }
                 )
             }
             composable(
