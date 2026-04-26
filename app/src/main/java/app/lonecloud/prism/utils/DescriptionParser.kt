@@ -4,6 +4,7 @@ object DescriptionParser {
     private const val DELIMITER = "|"
 
     const val VAPID_PRIVATE_KEY_PREFIX = "vp:"
+    const val NAME_PREFIX = "name:"
 
     fun extractValue(description: String?, prefix: String): String? = description
         ?.split(DELIMITER)
@@ -24,6 +25,12 @@ object DescriptionParser {
         parts.add("$prefix$value")
         return parts.joinToString(DELIMITER)
     }
+
+    fun removeValue(description: String?, prefix: String): String = description
+        ?.split(DELIMITER)
+        ?.filter { !it.startsWith(prefix) }
+        ?.joinToString(DELIMITER)
+        ?: (description ?: "")
 
     fun isManualApp(description: String?): Boolean = description?.startsWith("target:") == true
 }
