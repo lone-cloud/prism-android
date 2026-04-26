@@ -1,0 +1,5 @@
+- switching or removing your Prism server now properly deletes your registered apps from the old server and removes them from the app list
+- changing to a new server no longer deletes your apps from the old one if the new server fails to connect
+- registration notifications now show the actual app name instead of "Prism"
+- API key field shows an error if the key contains unsupported characters
+- other minor improvements and bug fixes
