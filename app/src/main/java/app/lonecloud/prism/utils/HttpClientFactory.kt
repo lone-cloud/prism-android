@@ -22,7 +22,7 @@ object HttpClientFactory {
 
     val action: OkHttpClient by lazy {
         OkHttpClient.Builder()
-            .callTimeout(8, TimeUnit.SECONDS)
+            .callTimeout(6, TimeUnit.SECONDS)
             .build()
     }
 

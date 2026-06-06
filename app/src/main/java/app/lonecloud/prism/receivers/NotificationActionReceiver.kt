@@ -14,6 +14,7 @@ import java.io.IOException
 import java.net.URI
 import java.util.Locale
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -50,7 +51,9 @@ class NotificationActionReceiver : BroadcastReceiver() {
         val pendingResult = goAsync()
         AppScope.launch {
             try {
-                executeAction(context, actionEndpoint, actionMethod, data)
+                withTimeout(7_000L) {
+                    executeAction(context, actionEndpoint, actionMethod, data)
+                }
             } catch (e: IOException) {
                 logActionFailure(e)
             } catch (e: IllegalArgumentException) {
