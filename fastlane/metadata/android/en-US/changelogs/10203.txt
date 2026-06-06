@@ -1,0 +1,2 @@
+- fixed: tapping a notification action could cause an ANR (app not responding) popup on slow connections
+- dep updates
