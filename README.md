@@ -4,8 +4,7 @@
 > **⚠️ This repository has moved.**
 >
 > Development continues at [git.lonecloud.dev/lone-cloud/prism-android](https://git.lonecloud.dev/lone-cloud/prism-android).
-> Releases, issues, and pull requests are hosted there. The signing key is unchanged —
-> all APKs are signed with the same key as before. This fork will not be updated.
+> The signing key is unchanged and all releases are signed with the same key as before. This fork will not be updated.
 
 <img src="assets/prism.webp" alt="Prism Icon" width="80" height="80" />
 
